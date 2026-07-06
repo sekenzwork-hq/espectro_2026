@@ -18,10 +18,18 @@ func main() {
 		return
 	}
 
-	db, err := database.NewPostgres(cfg.DBUrl)
+	db, dbErr := database.NewPostgres(cfg.DBUrl)
 
-	if err != nil {
-		logger.Error("Database connection error : ", err)
+	if dbErr != nil {
+		logger.Error("Database connection error : ", dbErr)
+		return
+	}
+
+	_, ormErr := database.NewOrm(db)
+
+	if ormErr != nil {
+		logger.Info("ORM connection error : ", ormErr)
+		return
 	}
 
 	gin := gin.Default()
