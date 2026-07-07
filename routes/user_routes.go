@@ -9,11 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func RegisterUserRoutes(r *gin.Engine, db *gorm.DB) {
+func RegisterUserRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
-	api := r.Group("/api/v1")
-
-	usersApi := api.Group("/user")
+	usersApi := r.Group("/user")
 
 	repo := repository.NewUserPostgresRepo(db)
 

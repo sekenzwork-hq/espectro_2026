@@ -18,6 +18,12 @@ func main() {
 		return
 	}
 
+	if len(cfg.Version) == 0 || len(cfg.Version) == 1 {
+
+		logger.Info("Invalid server version")
+		return
+	}
+
 	db, dbErr := database.NewPostgres(cfg.DBUrl)
 
 	if dbErr != nil {
@@ -34,7 +40,11 @@ func main() {
 
 	gin := gin.Default()
 
-	routes.RegisterUserRoutes(gin, gormDB)
+	apiVersion := "/api/" + cfg.Version
+
+	api := gin.Group(apiVersion)
+
+	routes.RegisterUserRoutes(api, gormDB)
 
 	listenErr := gin.Run(":8080")
 

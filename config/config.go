@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	DBUrl string
+	DBUrl   string
+	Version string
 }
 
 func Load(path string) (*Config, error) {
@@ -19,6 +20,7 @@ func Load(path string) (*Config, error) {
 	}
 
 	return &Config{
-		DBUrl: os.Getenv("POSTGRES"),
+		DBUrl:   os.Getenv("POSTGRES"),
+		Version: os.Getenv("VERSION"),
 	}, nil
 }
