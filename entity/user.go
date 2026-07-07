@@ -1,4 +1,4 @@
-package domain
+package entity
 
 import "time"
 
@@ -20,10 +20,4 @@ type User struct {
 	City      string
 	Usertype  Usertype
 	CreatedAt time.Time
-}
-
-type UserRepository interface {
-	RegisterUser() (string, error)
-	GetUserById(string) (User, error)
-	GetAllUsers()
 }

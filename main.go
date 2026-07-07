@@ -1,9 +1,9 @@
 package main
 
 import (
-	"espectro/internal/config"
-	"espectro/internal/delivery/http/routes"
-	"espectro/internal/infrastructure/database"
+	"espectro/config"
+	"espectro/database"
+	"espectro/routes"
 
 	"github.com/bytedance/gopkg/util/logger"
 	"github.com/gin-gonic/gin"

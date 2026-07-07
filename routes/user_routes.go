@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"espectro/internal/delivery/http/handlers"
+	"espectro/handlers"
 
 	"github.com/gin-gonic/gin"
 )
