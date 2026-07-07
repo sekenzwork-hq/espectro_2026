@@ -1,7 +1,12 @@
 package handlers
 
 import (
+	"errors"
+	customerrors "espectro/custom_errors"
+	"espectro/entity"
+	"espectro/pkg"
 	"espectro/usecases"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +23,25 @@ func NewUserHandlers(usecases usecases.UserUsecases) UserHandlers {
 
 func (h *UserHandlers) RegisterUser(ctx *gin.Context) {
 
-	ctx.JSON(200, gin.H{
-		"message": "connected",
-	})
+	var userEntity entity.UserEntity
+
+	canGo := pkg.ParseJsonOrXML(ctx, &userEntity)
+
+	if !canGo {
+		return
+	}
+
+	id, validationOrDBError := h.usecases.RegisterUser(userEntity)
+
+	if validationOrDBError != nil {
+		isValidationError := errors.Is(validationOrDBError, &customerrors.ValidationError{})
+
+		if isValidationError {
+			ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": validationOrDBError})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": validationOrDBError})
+		}
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "User registered", "id": id})
+	}
 }
