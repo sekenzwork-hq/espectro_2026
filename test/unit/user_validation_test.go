@@ -238,7 +238,7 @@ func TestValidateCity(t *testing.T) {
 	incorrectCities := []string{"1234", "cfff", "1234567777", "@!!@#$%^&&&&&&$"}
 
 	for i := range incorrectCities {
-		city := correctCities[i]
+		city := incorrectCities[i]
 
 		correct := pkg.ValidateCity(city)
 
