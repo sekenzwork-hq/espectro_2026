@@ -52,6 +52,12 @@ func (u *UserUsecases) RegisterUser(user entity.UserEntity) (uuid.UUID, error) {
 		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid State name"}
 	}
 
+	isCityCorrect := pkg.ValidateCity(user.City)
+
+	if !isCityCorrect {
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid City"}
+	}
+
 	isPhoneNumberCorrect := pkg.ValidatePhoneNumber(user.PhoneNumber)
 
 	if !isPhoneNumberCorrect {

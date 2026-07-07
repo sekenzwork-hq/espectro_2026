@@ -37,7 +37,7 @@ func TestValidateFullname(t *testing.T) {
 		err := pkg.ValidateUserFullname(name)
 
 		if err == nil {
-			t.Errorf("Validation of fullname failed the test case (incorrect name) : ", name)
+			t.Error("Validation of fullname failed the test case (incorrect name) : ", name)
 			return
 		}
 	}
@@ -210,6 +210,40 @@ func TestValidateUserType(t *testing.T) {
 
 		if correct {
 			t.Error("Validation of user type failed the test case (incorrect) : ", uType)
+			return
+		}
+	}
+}
+
+func TestValidateCity(t *testing.T) {
+
+	correctCities := []string{
+		"Thiruvananthapuram",
+		"Chhatrapati Sambhajinagar",
+		"Tiruchirappalli",
+	}
+
+	for i := range correctCities {
+
+		city := correctCities[i]
+
+		correct := pkg.ValidateCity(city)
+
+		if !correct {
+			t.Error("Validation of city failed the test case (correct) : ", city)
+			return
+		}
+	}
+
+	incorrectCities := []string{"1234", "cfff", "1234567777", "@!!@#$%^&&&&&&$"}
+
+	for i := range incorrectCities {
+		city := correctCities[i]
+
+		correct := pkg.ValidateCity(city)
+
+		if correct {
+			t.Error("Validation of city failed the test case (incorrect) : ", city)
 			return
 		}
 	}

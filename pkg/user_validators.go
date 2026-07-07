@@ -25,7 +25,7 @@ func ValidateUserFullname(fullname string) error {
 
 	reg := getRegxForSpaceAndCharacters()
 
-	correct := reg.MatchString(strings.Trim(fullname, " "))
+	correct := reg.MatchString(strings.TrimSpace(fullname))
 
 	if !correct {
 		return errors.New("Fullname should not contain any special character, symbols and digits")
@@ -41,7 +41,7 @@ func ValidateUserEmail(email string) bool {
 	}
 	reg := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
-	return reg.MatchString(strings.Trim(email, " "))
+	return reg.MatchString(strings.TrimSpace(email))
 }
 
 func ValidateCountryCode(code string) bool {
@@ -50,12 +50,19 @@ func ValidateCountryCode(code string) bool {
 	}
 
 	count := 0
-	strings.ContainsFunc(strings.Trim(code, " "), func(r rune) bool {
+
+	for i := range code {
+
+		var r rune = rune(code[i])
+
 		if r == '+' {
 			count++
 		}
-		return r == '+'
-	})
+
+		if count == 2 {
+			return false
+		}
+	}
 
 	if count != 1 {
 		return false
@@ -72,15 +79,35 @@ func ValidateCountryOrState(str string) bool {
 		return false
 	}
 
-	str = strings.Trim(str, " ")
+	str = strings.TrimSpace(str)
 
-	if len(str) > 150 {
+	if len(str) > 150 || len(str) <= 1 {
 		return false
 	}
 
-	reg := getRegxForSpaceAndCharacters()
+	reg := regexp.MustCompile(`^[A-Za-z\s()]+$`)
 
-	return reg.MatchString(str)
+	match := reg.MatchString(str)
+
+	return match
+}
+
+func ValidateCity(city string) bool {
+
+	if len(city) < 5 {
+		return false
+	} else if len(city) > 200 {
+		return false
+	}
+
+	city = strings.TrimSpace(city)
+
+	reg := regexp.MustCompile(`^[A-Za-z\s()]+$`)
+
+	match := reg.MatchString(city)
+
+	return match
+
 }
 
 func ValidatePhoneNumber(phoneNumber string) bool {
@@ -88,7 +115,7 @@ func ValidatePhoneNumber(phoneNumber string) bool {
 	if len(phoneNumber) > 15 {
 		return false
 	}
-	phoneNumber = strings.Trim(phoneNumber, " ")
+	phoneNumber = strings.TrimSpace(phoneNumber)
 	if len(phoneNumber) != 10 {
 		return false
 	}
@@ -101,7 +128,7 @@ func ValidatePhoneNumber(phoneNumber string) bool {
 
 func ValidateUserType(userType string) bool {
 
-	userType = strings.Trim(userType, " ")
+	userType = strings.TrimSpace(userType)
 
 	contains := slices.Contains(userTypes, userType)
 
