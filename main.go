@@ -25,7 +25,7 @@ func main() {
 		return
 	}
 
-	_, ormErr := database.NewOrm(db)
+	gormDB, ormErr := database.NewOrm(db)
 
 	if ormErr != nil {
 		logger.Info("ORM connection error : ", ormErr)
@@ -34,7 +34,7 @@ func main() {
 
 	gin := gin.Default()
 
-	routes.RegisterUserRoutes(gin)
+	routes.RegisterUserRoutes(gin, gormDB)
 
 	listenErr := gin.Run(":8080")
 
