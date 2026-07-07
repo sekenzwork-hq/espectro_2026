@@ -5,5 +5,5 @@ type ValidationError struct {
 }
 
 func (v *ValidationError) Error() string {
-	return "Validation Error"
+	return v.OrgError
 }

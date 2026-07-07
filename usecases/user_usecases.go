@@ -7,6 +7,7 @@ import (
 	"espectro/repository"
 
 	"github.com/bytedance/gopkg/util/logger"
+	"github.com/google/uuid"
 )
 
 type UserUsecases struct {
@@ -19,55 +20,55 @@ func NewUserUsecases(r repository.UserPostgresRepo) UserUsecases {
 	}
 }
 
-func (u *UserUsecases) RegisterUser(user entity.UserEntity) (string, error) {
+func (u *UserUsecases) RegisterUser(user entity.UserEntity) (uuid.UUID, error) {
 
 	fullnameErr := pkg.ValidateUserFullname(user.Fullname)
 
 	if fullnameErr != nil {
-		return "", &customerrors.ValidationError{OrgError: fullnameErr.Error()}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: fullnameErr.Error()}
 	}
 
 	isEmailCorrect := pkg.ValidateUserEmail(user.Email)
 
 	if !isEmailCorrect {
-		return "", &customerrors.ValidationError{OrgError: "Invalid Email address"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Email address"}
 	}
 
 	isCountryCodeCorrect := pkg.ValidateCountryCode(user.CountryCode)
 
 	if !isCountryCodeCorrect {
-		return "", &customerrors.ValidationError{OrgError: "Invalid Country code"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Country code"}
 	}
 
 	isCountryCorrect := pkg.ValidateCountryOrState(user.Country)
 
 	if !isCountryCorrect {
-		return "", &customerrors.ValidationError{OrgError: "Invalid Country name"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Country name"}
 	}
 
 	isStateCorrect := pkg.ValidateCountryOrState(user.State)
 
 	if !isStateCorrect {
-		return "", &customerrors.ValidationError{OrgError: "Invalid State name"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid State name"}
 	}
 
 	isPhoneNumberCorrect := pkg.ValidatePhoneNumber(user.PhoneNumber)
 
 	if !isPhoneNumberCorrect {
-		return "", &customerrors.ValidationError{OrgError: "Invalid Phone number"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Phone number"}
 	}
 
 	isCorrectUserType := pkg.ValidateUserType(user.Usertype)
 
 	if !isCorrectUserType {
-		return "", &customerrors.ValidationError{OrgError: "Invalid Usertype"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Usertype"}
 	}
 
-	id, dbErr := u.RegisterUser(user)
+	id, dbErr := u.repo.RegisterUser(user)
 
 	if dbErr != nil {
 		logger.Error("DB error while inserting user data : ", dbErr)
-		return "", &customerrors.ServerError{OrgError: "Something went wrong while saving user data"}
+		return uuid.UUID{}, &customerrors.ServerError{OrgError: "Something went wrong while saving user data"}
 	}
 
 	return id, nil

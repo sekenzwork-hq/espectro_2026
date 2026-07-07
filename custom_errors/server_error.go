@@ -5,5 +5,5 @@ type ServerError struct {
 }
 
 func (v *ServerError) Error() string {
-	return "Something went wrong"
+	return v.OrgError
 }

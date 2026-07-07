@@ -3,6 +3,7 @@ package repository
 import (
 	"espectro/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +17,7 @@ func NewUserPostgresRepo(db *gorm.DB) UserPostgresRepo {
 	}
 }
 
-func (u *UserPostgresRepo) RegisterUser(user entity.UserEntity) (string, error) {
-	obj := u.db.Create(&user)
+func (u *UserPostgresRepo) RegisterUser(user entity.UserEntity) (uuid.UUID, error) {
+	obj := u.db.Table("users").Create(&user)
 	return user.Id, obj.Error
 }

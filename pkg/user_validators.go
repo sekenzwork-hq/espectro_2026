@@ -4,7 +4,6 @@ import (
 	"errors"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 )
 
@@ -53,7 +52,7 @@ func ValidateCountryCode(code string) bool {
 
 func ValidateCountryOrState(str string) bool {
 
-	if len(str) < 2 {
+	if len(str) <= 1 {
 		return false
 	}
 
@@ -66,19 +65,15 @@ func ValidateCountryOrState(str string) bool {
 	return reg.MatchString(str)
 }
 
-func ValidatePhoneNumber(phoneNumber int) bool {
+func ValidatePhoneNumber(phoneNumber string) bool {
 
-	if phoneNumber > 9999999999 || phoneNumber < 0000000000 {
+	if len(phoneNumber) != 10 {
 		return false
 	}
 
-	strPhoneNo := strconv.Itoa(phoneNumber)
+	reg := regexp.MustCompile(`^[0-9]{10}$`)
 
-	if len(strPhoneNo) != 10 {
-		return false
-	}
-
-	return true
+	return reg.MatchString(phoneNumber)
 
 }
 

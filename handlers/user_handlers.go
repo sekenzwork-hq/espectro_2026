@@ -34,12 +34,14 @@ func (h *UserHandlers) RegisterUser(ctx *gin.Context) {
 	id, validationOrDBError := h.usecases.RegisterUser(userEntity)
 
 	if validationOrDBError != nil {
-		isValidationError := errors.Is(validationOrDBError, &customerrors.ValidationError{})
+
+		var validationError *customerrors.ValidationError
+		isValidationError := errors.As(validationOrDBError, &validationError)
 
 		if isValidationError {
-			ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": validationOrDBError})
+			ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": validationOrDBError.Error()})
 		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": validationOrDBError})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": validationOrDBError.Error()})
 		}
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "User registered", "id": id})
