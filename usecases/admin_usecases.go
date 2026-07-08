@@ -1,10 +1,12 @@
 package usecases
 
 import (
+	"errors"
 	customerrors "espectro/custom_errors"
-	"espectro/models"
 	"espectro/pkg"
 	"espectro/repository"
+
+	"gorm.io/gorm"
 )
 
 type AdminUsecases struct {
@@ -17,18 +19,23 @@ func NewAdminUsecases(repo repository.AdminRepo) AdminUsecases {
 	}
 }
 
-func (a AdminUsecases) RetrieveAdminCredByEmail(email string, password string) (models.TokensModel, error) {
+func (a AdminUsecases) Login(email string, password string) (string, error) {
+
+	credentialError := &customerrors.CredentialsError{OrgError: "Invalid Credentials"}
+	serverError := &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 
 	isEmailCorrect := pkg.ValidateUserEmail(email)
 
-	if !isEmailCorrect {
-		return models.TokensModel{}, &customerrors.CredentialsError{OrgError: "Invalid Credentials"}
+	if !isEmailCorrect || len(password) > 50 {
+		return "", credentialError
 	}
 
 	adminCred, adminCredErr := a.repo.RetrieveAdminCredByEmail(email)
 
-	if adminCredErr != nil {
-		return models.TokensModel{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	if errors.Is(adminCredErr, gorm.ErrRecordNotFound) {
+		return "", credentialError
+	} else if adminCredErr != nil {
+		return "", serverError
 	}
 
 	hashedPass := adminCred.Password
@@ -36,7 +43,15 @@ func (a AdminUsecases) RetrieveAdminCredByEmail(email string, password string) (
 	passCorrect := pkg.CompareHashedPass(password, hashedPass)
 
 	if !passCorrect {
-		return models.TokensModel{}, &customerrors.CredentialsError{OrgError: "Invalid Credentials"}
+		return "", credentialError
 	}
+
+	jwtToken, jwtErr := pkg.GenerateJWTForAdmin(adminCred.Id.String())
+
+	if jwtErr != nil {
+		return "", serverError
+	}
+
+	return jwtToken, nil
 
 }

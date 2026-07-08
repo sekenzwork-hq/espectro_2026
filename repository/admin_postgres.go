@@ -16,11 +16,11 @@ func NewAdminPostgresRepo(db *gorm.DB) AdminPostgresRepo {
 	}
 }
 
-func (a *AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminDBLoginCredentials, error) {
+func (a AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminDBLoginCredentials, error) {
 
 	cred := &entity.AdminDBLoginCredentials{
 		Email: email,
 	}
-	err := a.db.Table("admins").Where("email=?", email).Select("password").Find(&cred).Error
+	err := a.db.Table("admins").Where("email=? AND deleted_at NOT NULL", email).Select("password").First(&cred).Error
 	return *cred, err
 }
