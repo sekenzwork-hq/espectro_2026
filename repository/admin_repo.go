@@ -1,9 +1,13 @@
 package repository
 
-import "espectro/entity"
+import (
+	"espectro/entity"
+
+	"github.com/google/uuid"
+)
 
 type AdminRepo interface {
 	RetrieveAdminCredByEmail(email string) (entity.AdminDBLoginCredentials, error)
-	CreateNewAdmin(admin entity.AdminCreateEntity) error
+	CreateNewAdmin(admin entity.AdminCreateEntity) (uuid.UUID, error)
 	RetrieveAdminRoleByID(adminId string) (string, error)
 }

@@ -3,6 +3,7 @@ package repository
 import (
 	"espectro/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -28,8 +29,8 @@ func (a AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminD
 	return *cred, err
 }
 
-func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminCreateEntity) error {
-	return a.db.
+func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminCreateEntity) (uuid.UUID, error) {
+	return admin.Id, a.db.
 		Table("admins").
 		Create(&admin).Error
 }

@@ -57,7 +57,7 @@ func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
 		return
 	}
 
-	currentAdminId := ctx.GetString("id")
+	currentAdminId := ctx.GetString("admin_id")
 
 	newAdminId, creationErr := a.usecases.CreateNewAdmin(newAdmin, currentAdminId)
 

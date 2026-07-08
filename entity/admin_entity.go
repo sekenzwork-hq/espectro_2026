@@ -15,8 +15,8 @@ type AdminDBLoginCredentials struct {
 
 type AdminCreateEntity struct {
 	Id       uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Email    string    `gorm:"column:email"`
-	Fullname string    `gorm:"column:fullname"`
-	Password string    `gorm:"column:password"`
-	Role     string    `gorm:"column:admin_role"`
+	Email    string    `json:"email" gorm:"column:email"`
+	Fullname string    `json:"fullname" gorm:"column:fullname"`
+	Password string    `json:"password" gorm:"column:password"`
+	Role     string    `json:"admin_role" gorm:"column:admin_role"`
 }

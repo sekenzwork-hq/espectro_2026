@@ -150,9 +150,9 @@ func ValidatePassword(password string) error {
 
 	password = strings.TrimSpace(password)
 
-	upperOrLowerRegex := regexp.MustCompile(`(?=.*[A-Za-z])`)
-	numberRegex := regexp.MustCompile(`(?=.*\d)`)
-	specialCharRegex := regexp.MustCompile(`(?=.*[^A-Za-z0-9])`)
+	upperOrLowerRegex := regexp.MustCompile(`[A-Za-z]`)
+	numberRegex := regexp.MustCompile(`[0-9]`)
+	specialCharRegex := regexp.MustCompile(`[^A-Za-z0-9]`)
 
 	containsUpperOrLower := upperOrLowerRegex.MatchString(password)
 

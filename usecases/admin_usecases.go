@@ -115,12 +115,12 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedA
 		Password: hashedPass,
 	}
 
-	insertErr := a.repo.CreateNewAdmin(adminWithPasswordHashed)
+	newAdminId, insertErr := a.repo.CreateNewAdmin(adminWithPasswordHashed)
 
 	if insertErr != nil {
 		return "", &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
-	return adminWithPasswordHashed.Id.String(), nil
+	return newAdminId.String(), nil
 
 }

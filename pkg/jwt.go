@@ -33,7 +33,7 @@ func ParseJWTFromAdmin(token string) (string, error) {
 
 	if parseErr != nil {
 		logger.Info("Parsing token error : ", parseErr)
-		return "", &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return "", parseErr
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
