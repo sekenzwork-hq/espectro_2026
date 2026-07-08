@@ -18,7 +18,7 @@ func NewAdminPostgresRepo(db *gorm.DB) AdminPostgresRepo {
 
 func (a *AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminDBLoginCredentials, error) {
 
-	var cred *entity.AdminDBLoginCredentials = &entity.AdminDBLoginCredentials{
+	cred := &entity.AdminDBLoginCredentials{
 		Email: email,
 	}
 	err := a.db.Table("admins").Where("email=?", email).Select("password").Find(&cred).Error

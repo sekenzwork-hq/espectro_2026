@@ -11,10 +11,10 @@ import (
 )
 
 type UserUsecases struct {
-	repo repository.UserPostgresRepo
+	repo repository.UserRepository
 }
 
-func NewUserUsecases(r repository.UserPostgresRepo) UserUsecases {
+func NewUserUsecases(r repository.UserRepository) UserUsecases {
 	return UserUsecases{
 		repo: r,
 	}

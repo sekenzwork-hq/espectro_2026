@@ -7,5 +7,5 @@ import (
 )
 
 type UserRepository interface {
-	Register(user entity.UserEntity) (uuid.UUID, error)
+	RegisterUser(user entity.UserEntity) (uuid.UUID, error)
 }
