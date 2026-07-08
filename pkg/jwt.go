@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"errors"
+	customerrors "espectro/custom_errors"
 	"os"
 
 	"github.com/bytedance/gopkg/util/logger"
@@ -22,7 +22,7 @@ func GenerateJWTForAdmin(id string) (string, error) {
 
 func ParseJWTFromAdmin(token string) (string, error) {
 
-	invalidTokenErr := errors.New("Invalid token")
+	invalidTokenErr := &customerrors.ValidationError{OrgError: "Invalid token"}
 
 	parsedToken, parseErr := jwt.Parse(token, func(t *jwt.Token) (any, error) {
 		if t.Method != jwt.SigningMethodHS512 {
@@ -33,7 +33,7 @@ func ParseJWTFromAdmin(token string) (string, error) {
 
 	if parseErr != nil {
 		logger.Info("Parsing token error : ", parseErr)
-		return "", invalidTokenErr
+		return "", &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)

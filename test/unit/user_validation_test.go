@@ -19,7 +19,7 @@ func TestValidateFullname(t *testing.T) {
 
 		name := correctSampleNames[i]
 
-		err := pkg.ValidateUserFullname(name)
+		err := pkg.ValidateFullname(name)
 
 		if err != nil {
 			t.Error("Validation of fullname failed the test case (correct names) : ", name)
@@ -34,7 +34,7 @@ func TestValidateFullname(t *testing.T) {
 
 		name := incorrectSampleNames[i]
 
-		err := pkg.ValidateUserFullname(name)
+		err := pkg.ValidateFullname(name)
 
 		if err == nil {
 			t.Error("Validation of fullname failed the test case (incorrect name) : ", name)
@@ -51,7 +51,7 @@ func TestValidateEmail(t *testing.T) {
 
 		email := correctEmails[i]
 
-		correct := pkg.ValidateUserEmail(email)
+		correct := pkg.ValidateEmail(email)
 
 		if !correct {
 			t.Error("Validation of email failed the test case (correct) : ", email)
@@ -72,7 +72,7 @@ func TestValidateEmail(t *testing.T) {
 
 		email := incorrectEmails[i]
 
-		correct := pkg.ValidateUserEmail(email)
+		correct := pkg.ValidateEmail(email)
 
 		if correct {
 			t.Error("Validation of email failed the test case (incorrect) : ", email)

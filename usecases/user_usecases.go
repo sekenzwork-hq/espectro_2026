@@ -22,52 +22,52 @@ func NewUserUsecases(r repository.UserRepository) UserUsecases {
 
 func (u *UserUsecases) RegisterUser(user entity.UserEntity) (uuid.UUID, error) {
 
-	fullnameErr := pkg.ValidateUserFullname(user.Fullname)
+	fullnameErr := pkg.ValidateFullname(user.Fullname)
 
 	if fullnameErr != nil {
 		return uuid.UUID{}, &customerrors.ValidationError{OrgError: fullnameErr.Error()}
 	}
 
-	isEmailCorrect := pkg.ValidateUserEmail(user.Email)
+	isEmailCorrect := pkg.ValidateEmail(user.Email)
 
 	if !isEmailCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Email address"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid email address"}
 	}
 
 	isCountryCodeCorrect := pkg.ValidateCountryCode(user.CountryCode)
 
 	if !isCountryCodeCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Country code"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid country code"}
 	}
 
 	isCountryCorrect := pkg.ValidateCountryOrState(user.Country)
 
 	if !isCountryCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Country name"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid country name"}
 	}
 
 	isStateCorrect := pkg.ValidateCountryOrState(user.State)
 
 	if !isStateCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid State name"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid state name"}
 	}
 
 	isCityCorrect := pkg.ValidateCity(user.City)
 
 	if !isCityCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid City"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid city"}
 	}
 
 	isPhoneNumberCorrect := pkg.ValidatePhoneNumber(user.PhoneNumber)
 
 	if !isPhoneNumberCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Phone number"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid phone number"}
 	}
 
 	isCorrectUserType := pkg.ValidateUserType(user.Usertype)
 
 	if !isCorrectUserType {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid Usertype"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid user type"}
 	}
 
 	id, dbErr := u.repo.RegisterUser(user)

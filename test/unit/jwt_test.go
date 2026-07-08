@@ -30,7 +30,6 @@ func TestJWTForAdmins(t *testing.T) {
 		id, err := pkg.ParseJWTFromAdmin(token)
 
 		if len(id) == 0 || err != nil || id != orgId {
-
 			t.Errorf("JWT Token validation for admin failed. ID : %v, OrgID : %v, token : %v, Error : %v", id, orgId, token, err)
 			return
 		}

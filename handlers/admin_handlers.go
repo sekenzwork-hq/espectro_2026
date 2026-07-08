@@ -46,3 +46,34 @@ func (a AdminHandlers) Login(ctx *gin.Context) {
 	}
 
 }
+
+func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
+
+	var newAdmin entity.AdminCreateEntity
+
+	canGo := pkg.ParseJson(ctx, &newAdmin)
+
+	if !canGo {
+		return
+	}
+
+	currentAdminId := ctx.GetString("id")
+
+	newAdminId, creationErr := a.usecases.CreateNewAdmin(newAdmin, currentAdminId)
+
+	if _, ok := errors.AsType[*customerrors.CredentialsError](creationErr); ok {
+
+		ctx.JSON(http.StatusUnauthorized, gin.H{"status": 401, "message": creationErr.Error()})
+
+	} else if _, ok := errors.AsType[*customerrors.ValidationError](creationErr); ok {
+
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": creationErr.Error()})
+
+	} else if _, ok := errors.AsType[*customerrors.ServerError](creationErr); ok {
+
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": creationErr.Error()})
+
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "New admin has been created", "id": newAdminId})
+	}
+}
