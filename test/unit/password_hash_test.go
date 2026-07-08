@@ -2,7 +2,6 @@ package unit
 
 import (
 	"espectro/pkg"
-	"fmt"
 	"testing"
 )
 
@@ -23,7 +22,6 @@ func TestPasswordHash(t *testing.T) {
 		}
 
 		hashes = append(hashes, hash)
-		fmt.Printf("Password : %v and it's hash : %v\n", pass, hash)
 	}
 
 	for i := range hashes {

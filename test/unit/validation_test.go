@@ -269,7 +269,7 @@ func TestValidatePassword(t *testing.T) {
 
 	for i := range incorrectPass {
 
-		pass := correctPasswords[i]
+		pass := incorrectPass[i]
 
 		err := pkg.ValidatePassword(pass)
 
