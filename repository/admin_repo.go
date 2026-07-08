@@ -1,5 +1,7 @@
 package repository
 
+import "espectro/entity"
+
 type AdminRepo interface {
-	Login(email string, password string) (bool, error)
+	RetrieveAdminCredByEmail(email string) (entity.AdminDBLoginCredentials, error)
 }
