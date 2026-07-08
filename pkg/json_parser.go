@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ParseJsonOrXML(ctx *gin.Context, obj any) bool {
+func ParseJson(ctx *gin.Context, obj any) bool {
 
-	parseErr := ctx.ShouldBind(obj)
+	parseErr := ctx.ShouldBindBodyWithJSON(obj)
 
 	if parseErr != nil {
 		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Invalid Json"})

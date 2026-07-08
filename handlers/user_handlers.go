@@ -25,7 +25,7 @@ func (h *UserHandlers) RegisterUser(ctx *gin.Context) {
 
 	var userEntity entity.UserEntity
 
-	canGo := pkg.ParseJsonOrXML(ctx, &userEntity)
+	canGo := pkg.ParseJson(ctx, &userEntity)
 
 	if !canGo {
 		return
