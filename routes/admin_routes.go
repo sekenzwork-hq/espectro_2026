@@ -17,5 +17,8 @@ func RegisterAdminRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 	handlers := handlers.NewAdminHandlers(usecases)
 
-	r.Group("/admin/login", handlers.Login)
+	adminApi := r.Group("/admin")
+
+	adminApi.POST("/login", handlers.Login)
+
 }

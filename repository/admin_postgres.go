@@ -21,6 +21,6 @@ func (a AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminD
 	cred := &entity.AdminDBLoginCredentials{
 		Email: email,
 	}
-	err := a.db.Table("admins").Where("email=? AND deleted_at NOT NULL", email).Select("password").First(&cred).Error
+	err := a.db.Table("admins").Where("email=? AND deleted_at IS NULL", email).Select("password", "id").First(&cred).Error
 	return *cred, err
 }

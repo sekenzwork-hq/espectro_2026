@@ -45,6 +45,7 @@ func main() {
 	api := gin.Group(apiVersion)
 
 	routes.RegisterUserRoutes(api, gormDB)
+	routes.RegisterAdminRoutes(api, gormDB)
 
 	listenErr := gin.Run(":8080")
 
