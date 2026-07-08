@@ -248,3 +248,62 @@ func TestValidateCity(t *testing.T) {
 		}
 	}
 }
+
+func TestValidatePassword(t *testing.T) {
+
+	correctPasswords := []string{"someone@#$123", "another@#456"}
+
+	for i := range correctPasswords {
+
+		pass := correctPasswords[i]
+
+		err := pkg.ValidatePassword(pass)
+
+		if err != nil {
+			t.Errorf("Password validation failed (correct) : Error : %v, Password : %v", err, pass)
+			return
+		}
+	}
+
+	incorrectPass := []string{"12345678", "12345", "!@#$%", "someone@"}
+
+	for i := range incorrectPass {
+
+		pass := correctPasswords[i]
+
+		err := pkg.ValidatePassword(pass)
+
+		if err == nil {
+			t.Errorf("Password validation failed (incorrect) : Error : %v, Password : %v", err, pass)
+			return
+		}
+	}
+}
+
+func TestValidateAdminRoles(t *testing.T) {
+
+	correctRoles := []string{"volunteer", "leader", "member"}
+
+	for i := range correctRoles {
+		role := correctRoles[i]
+
+		correct := pkg.ValidateAdminRole(role)
+
+		if !correct {
+			t.Error("Admin role validation failed (correct) : ", role)
+			return
+		}
+	}
+
+	incorrectRoles := []string{"something", "1@###$$", "12344555"}
+	for i := range incorrectRoles {
+		role := incorrectRoles[i]
+
+		correct := pkg.ValidateAdminRole(role)
+
+		if correct {
+			t.Error("Admin role validation failed (incorrect) : ", role)
+			return
+		}
+	}
+}
