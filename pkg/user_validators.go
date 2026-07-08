@@ -96,11 +96,15 @@ func ValidateCity(city string) bool {
 
 	if len(city) < 5 {
 		return false
-	} else if len(city) > 200 {
+	} else if len(city) > 1000 {
 		return false
 	}
 
 	city = strings.TrimSpace(city)
+
+	if len(city) > 150 && len(city) < 4 {
+		return false
+	}
 
 	reg := regexp.MustCompile(`^[A-Za-z\s()]+$`)
 

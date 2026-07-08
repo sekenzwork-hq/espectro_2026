@@ -44,6 +44,6 @@ func (h *UserHandlers) RegisterUser(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": validationOrDBError.Error()})
 		}
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "User registered", "id": id})
+		ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "User registered", "id": id})
 	}
 }
