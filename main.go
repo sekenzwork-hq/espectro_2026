@@ -38,6 +38,8 @@ func main() {
 		return
 	}
 
+	//redisClient := database.NewRedis(cfg.RedisIP, cfg.RedisPassword)
+
 	gin := gin.Default()
 
 	apiVersion := "/api/" + cfg.Version

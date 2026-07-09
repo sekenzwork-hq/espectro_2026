@@ -7,8 +7,10 @@ import (
 )
 
 type Config struct {
-	DBUrl   string
-	Version string
+	DBUrl         string
+	Version       string
+	RedisIP       string
+	RedisPassword string
 }
 
 func Load(path string) (*Config, error) {
@@ -20,7 +22,9 @@ func Load(path string) (*Config, error) {
 	}
 
 	return &Config{
-		DBUrl:   os.Getenv("POSTGRES"),
-		Version: os.Getenv("VERSION"),
+		DBUrl:         os.Getenv("POSTGRES"),
+		Version:       os.Getenv("VERSION"),
+		RedisIP:       os.Getenv("REDIS_IP"),
+		RedisPassword: os.Getenv("REDIS_PASSWORD"),
 	}, nil
 }

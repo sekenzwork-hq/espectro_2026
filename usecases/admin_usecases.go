@@ -170,5 +170,4 @@ func (a AdminUsecases) CheckAdminExists(adminId string) error {
 	}
 
 	return nil
-
 }
