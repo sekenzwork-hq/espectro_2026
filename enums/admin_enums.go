@@ -3,15 +3,63 @@ package enums
 type AdminUpdateMode string
 
 const (
-	EmailOnly        AdminUpdateMode = "EMAIL_ONLY"
-	FullnameOnly     AdminUpdateMode = "FULLNAME_ONLY"
-	EmailAndFullname AdminUpdateMode = "EMAIL_AND_FULLNAME"
+	EmailOnly        AdminUpdateMode = "email"
+	FullnameOnly     AdminUpdateMode = "fullname only"
+	EmailAndFullname AdminUpdateMode = "email and fullname"
 )
 
 func (a AdminUpdateMode) IsValid() bool {
 
 	switch a {
 	case EmailAndFullname, EmailOnly, FullnameOnly:
+		return true
+	default:
+		return false
+	}
+}
+
+type AdminRole string
+
+const (
+	Leader    AdminRole = "leader"
+	Member    AdminRole = "member"
+	Volunteer AdminRole = "volunteer"
+)
+
+func (a AdminRole) IsValid() bool {
+	switch a {
+	case Leader, Member, Volunteer:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a AdminRole) ParseRole(strRole string) (AdminRole, bool) {
+
+	switch strRole {
+	case "leader":
+		return Leader, true
+	case "member":
+		return Member, true
+	case "volunteer":
+		return Volunteer, true
+	default:
+		return "", false
+	}
+}
+
+type AdminMiddlewareType string
+
+const (
+	LeaderMiddleware   AdminMiddlewareType = "leader middleware"
+	AllAdminMiddleware AdminMiddlewareType = "all admin middleware"
+)
+
+func (a AdminMiddlewareType) IsValid() bool {
+
+	switch a {
+	case LeaderMiddleware, AllAdminMiddleware:
 		return true
 	default:
 		return false

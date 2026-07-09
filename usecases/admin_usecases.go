@@ -60,46 +60,20 @@ func (a AdminUsecases) Login(email string, password string) (string, error) {
 
 func (a AdminUsecases) CreateNewAdmin(admin entity.AdminEntity, requestedAdminId string) (string, error) {
 
-	if len(requestedAdminId) == 0 {
-		return "", &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
-	}
-
-	//First retrieving current admin role to detect whether the admin has the permission to do it.
-	currentAdminRole, currentAdminRoleErr := a.repo.RetrieveAdminRoleByID(requestedAdminId)
-
-	if currentAdminRoleErr != nil {
-		return "", &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-	}
-
-	if len(currentAdminRole) == 0 {
-		return "", &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
-	}
-
-	if currentAdminRole != "leader" {
-		return "", &customerrors.PermissionError{OrgError: "Current admin doesn't have permission"}
-	}
+	var adminRole enums.AdminRole
 
 	fullnameErr := pkg.ValidateFullname(admin.Fullname)
+	adminRole, isAdminRoleCorrect := adminRole.ParseRole(admin.Role)
+	isEmailCorrect := pkg.ValidateEmail(admin.Email)
+	passwordErr := pkg.ValidatePassword(admin.Password)
 
 	if fullnameErr != nil {
 		return "", &customerrors.ValidationError{OrgError: fullnameErr.Error()}
-	}
-
-	isEmailCorrect := pkg.ValidateEmail(admin.Email)
-
-	if !isEmailCorrect {
+	} else if !isEmailCorrect {
 		return "", &customerrors.ValidationError{OrgError: "Invalid email address"}
-	}
-
-	passwordErr := pkg.ValidatePassword(admin.Password)
-
-	if passwordErr != nil {
+	} else if passwordErr != nil {
 		return "", &customerrors.ValidationError{OrgError: passwordErr.Error()}
-	}
-
-	isRoleCorrect := pkg.ValidateAdminRole(admin.Role)
-
-	if !isRoleCorrect {
+	} else if !isAdminRoleCorrect {
 		return "", &customerrors.ValidationError{OrgError: "Invalid admin role"}
 	}
 
@@ -126,34 +100,21 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminEntity, requestedAdminId
 
 }
 
-func (a AdminUsecases) DeleteMemberOrVolunteer(adminId string, requestedAdminId string) (bool, error) {
+func (a AdminUsecases) DeleteMemberOrVolunteer(adminId string, requestedAdminId string) error {
 
-	if len(requestedAdminId) == 0 {
-		return false, &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
-	} else if len(adminId) == 0 {
-		return false, &customerrors.ValidationError{OrgError: "Provide valid admin id to delete"}
-	}
-
-	//First checking the current admin role to check the permission.
-	currentAdminRole, currentAdminRoleErr := a.repo.RetrieveAdminRoleByID(requestedAdminId)
-
-	if currentAdminRoleErr != nil {
-		return false, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-	}
-
-	if currentAdminRole != "leader" {
-		return false, &customerrors.PermissionError{OrgError: "Current admin doesn't have permission"}
+	if len(adminId) == 0 {
+		return &customerrors.ValidationError{OrgError: "Provide valid admin id to delete"}
 	}
 
 	deletionErr := a.repo.DeleteMemberOrVolunteer(adminId)
 
 	if errors.Is(deletionErr, gorm.ErrRecordNotFound) {
-		return false, nil
+		return &customerrors.NotFoundOrLeaderError{OrgError: "Deletion operation doesn't work whether admin doesn't exist or admin is a leader"}
 	} else if deletionErr != nil {
-		return false, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
-	return true, nil
+	return nil
 }
 
 func (a AdminUsecases) CheckAdminExists(adminId string) error {
@@ -167,7 +128,7 @@ func (a AdminUsecases) CheckAdminExists(adminId string) error {
 	if err != nil {
 		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	} else if !exists {
-		return &customerrors.NotFoundError{OrgError: "Current admin doesn't exist"}
+		return &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
 	}
 
 	return nil
@@ -240,11 +201,53 @@ func (a AdminUsecases) UpdateCurrentAdmin(adminId string, newEmail string, newFu
 		err := updateFunc(newEmail, "", enums.EmailOnly)
 		outErr = err
 
-	//If the above conditions are not satisfied, then [updationMode] may be not valid, so just returning server error
+	//If the above conditions are not satisfied, then [updationMode] may be not valid, so just returning validation error
 	default:
-		outErr = &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		outErr = &customerrors.ValidationError{OrgError: "Provide email, fullname or both to update"}
 	}
 
 	return outErr
+
+}
+
+func (a AdminUsecases) RetrieveAdminRoleByID(adminId string) (enums.AdminRole, error) {
+
+	if adminId == "" {
+		return "", &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
+	}
+
+	role, err := a.repo.RetrieveAdminRoleByID(adminId)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) || role == "" {
+		return "", &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
+	} else if err != nil {
+		return "", &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	} else {
+		return role, nil
+	}
+
+}
+func (a AdminUsecases) UpdateAdminRole(adminId string, newRole string) error {
+
+	if len(adminId) == 0 || len(adminId) > 36 {
+		return &customerrors.ValidationError{OrgError: "Provide valid admin id"}
+	}
+
+	var adminRole enums.AdminRole
+	adminRole, isRoleCorrect := adminRole.ParseRole(newRole)
+
+	if !isRoleCorrect {
+		return &customerrors.ValidationError{OrgError: "Invalid admin role"}
+	}
+
+	err := a.repo.UpdateAdminRole(adminId, adminRole)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundOrLeaderError{OrgError: "Updation operation doesn't work whether the admin doesn't exist or admin is a leader"}
+	} else if err != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return nil
 
 }

@@ -2,6 +2,7 @@ package unit
 
 import (
 	"espectro/enums"
+	"fmt"
 	"testing"
 )
 
@@ -26,4 +27,12 @@ func TestAdminUpdationModeEnums(t *testing.T) {
 			t.Errorf("Admin updation enum validation failed (incorrct). Enum : %v\n", enum)
 		}
 	}
+}
+
+func TestAdminRoleEnums(t *testing.T) {
+
+	var e enums.AdminRole
+
+	fmt.Println("Enum : ", e.IsValid())
+
 }

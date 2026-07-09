@@ -174,12 +174,3 @@ func ValidatePassword(password string) error {
 
 	return nil
 }
-
-func ValidateAdminRole(adminRole string) bool {
-
-	roles := []string{"leader", "member", "volunteer"}
-
-	contains := slices.Contains(roles, adminRole)
-
-	return contains
-}

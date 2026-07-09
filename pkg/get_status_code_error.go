@@ -9,7 +9,9 @@ import (
 func GetStatusCodeForError(err error) int {
 
 	switch {
-	case errors.As(err, &customerrors.ValidationErr) || errors.As(err, &customerrors.CredentialErr):
+	case errors.As(err, &customerrors.ValidationErr) ||
+		errors.As(err, &customerrors.CredentialErr) ||
+		errors.As(err, &customerrors.NotFoundOrLeaderErr):
 		return http.StatusNotAcceptable
 	case errors.As(err, &customerrors.ServerErr):
 		return http.StatusInternalServerError
@@ -17,6 +19,7 @@ func GetStatusCodeForError(err error) int {
 		return http.StatusUnauthorized
 	case errors.As(err, &customerrors.NotFoundErr):
 		return http.StatusNotFound
+
 	default:
 		return http.StatusOK
 	}

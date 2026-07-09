@@ -38,14 +38,22 @@ func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminEntity) (uuid.UUID, 
 		Create(&admin).Error
 }
 
-func (a AdminPostgresRepo) RetrieveAdminRoleByID(adminId string) (string, error) {
+func (a AdminPostgresRepo) RetrieveAdminRoleByID(adminId string) (enums.AdminRole, error) {
 	var role string
 	err := a.db.
 		Table("admins").
 		Where("id=?", adminId).
 		Select("admin_role").
 		Pluck("admin_role", &role).Error
-	return role, err
+
+	if err != nil {
+		return "", err
+	} else if role == "" {
+		return "", gorm.ErrRecordNotFound
+	} else {
+		return enums.AdminRole(role), nil
+	}
+
 }
 
 func (a AdminPostgresRepo) DeleteMemberOrVolunteer(adminId string) error {
@@ -79,10 +87,6 @@ func (a AdminPostgresRepo) UpdateCurrentAdmin(
 	newFullname string,
 	updateMode enums.AdminUpdateMode) error {
 
-	if !updateMode.IsValid() {
-		return &customerrors.InvalidAdminUpdateModeError{OrgError: "Provide correct update mode"}
-	}
-
 	data := map[string]any{}
 
 	switch updateMode {
@@ -93,9 +97,12 @@ func (a AdminPostgresRepo) UpdateCurrentAdmin(
 	case enums.FullnameOnly:
 		data["fullname"] = newFullname
 
-	default:
+	case enums.EmailAndFullname:
 		data["email"] = newEmail
 		data["fullname"] = newFullname
+
+	default:
+		return &customerrors.InvalidAdminUpdateModeError{OrgError: "Provide correct update mode"}
 
 	}
 
@@ -112,4 +119,20 @@ func (a AdminPostgresRepo) UpdateCurrentAdmin(
 
 	return nil
 
+}
+
+func (a AdminPostgresRepo) UpdateAdminRole(adminId string, newRole enums.AdminRole) error {
+
+	out := a.db.
+		Table("admins").
+		Where("id=? AND (admin_role = 'member' OR admin_role = 'volunteer')", adminId).
+		Update("admin_role", newRole)
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"espectro/enums"
 	"espectro/handlers"
 	"espectro/middlewares"
 	"espectro/repository"
@@ -18,12 +19,14 @@ func RegisterAdminRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 	handlers := handlers.NewAdminHandlers(usecases)
 
-	adminMiddleware := middlewares.NewAdminMiddleWare(usecases)
+	allAdminProtectedMiddleware := middlewares.NewAdminMiddleWare(usecases, enums.AllAdminMiddleware)
+	leaderAdminProtectedMiddleware := middlewares.NewAdminMiddleWare(usecases, enums.LeaderMiddleware)
 
 	adminApi := r.Group("/admin")
 
 	adminApi.POST("/login", handlers.Login)
-	adminApi.POST("/create", adminMiddleware.AdminMiddleWare, handlers.CreateNewAdmin)
-	adminApi.DELETE("/delete", adminMiddleware.AdminMiddleWare, handlers.DeleteMemberOrVolunteer)
-	adminApi.PATCH("/update", adminMiddleware.AdminMiddleWare, handlers.UpdateCurrentAdmin)
+	adminApi.POST("/create", leaderAdminProtectedMiddleware.AdminMiddleWare, handlers.CreateNewAdmin)
+	adminApi.DELETE("/delete", leaderAdminProtectedMiddleware.AdminMiddleWare, handlers.DeleteMemberOrVolunteer)
+	adminApi.PATCH("/update", allAdminProtectedMiddleware.AdminMiddleWare, handlers.UpdateCurrentAdmin)
+	adminApi.PATCH("/update/role", leaderAdminProtectedMiddleware.AdminMiddleWare, handlers.UpdateAdminRole)
 }

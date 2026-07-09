@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	customerrors "espectro/custom_errors"
+	"espectro/enums"
 	"espectro/pkg"
 	"espectro/usecases"
 	"net/http"
@@ -9,14 +11,19 @@ import (
 )
 
 type AdminMiddleWare struct {
-	usecases usecases.AdminUsecases
+	adminType enums.AdminMiddlewareType
+	usecases  usecases.AdminUsecases
 }
 
-func NewAdminMiddleWare(usecases usecases.AdminUsecases) AdminMiddleWare {
-	return AdminMiddleWare{usecases: usecases}
+func NewAdminMiddleWare(usecases usecases.AdminUsecases, adminType enums.AdminMiddlewareType) AdminMiddleWare {
+	return AdminMiddleWare{usecases: usecases, adminType: adminType}
 }
 
 func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
+
+	if !a.adminType.IsValid() {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"status": 500, "message": "Something went wrong while operating"})
+	}
 
 	headerToken := ctx.GetHeader("Authorization")
 
@@ -32,7 +39,23 @@ func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 		return
 	}
 
-	err := a.usecases.CheckAdminExists(parsedAdminId)
+	var err error
+
+	switch a.adminType {
+	case enums.AllAdminMiddleware:
+
+		err = a.usecases.CheckAdminExists(parsedAdminId)
+
+	case enums.LeaderMiddleware:
+
+		role, roleErr := a.usecases.RetrieveAdminRoleByID(parsedAdminId)
+
+		if roleErr != nil {
+			err = roleErr
+		} else if role != enums.Leader {
+			err = &customerrors.PermissionError{OrgError: "Current admin doesn't have permission"}
+		}
+	}
 
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)

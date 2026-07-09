@@ -31,7 +31,6 @@ func TestStatusCodeGeneration(t *testing.T) {
 		genCode := pkg.GetStatusCodeForError(err)
 
 		if genCode != correctCode {
-
 			t.Errorf("Status code generation failed. Code got : %v, Correct code : %v, Error : %v\n", genCode, correctCode, err)
 			return
 		}

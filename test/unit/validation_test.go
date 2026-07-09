@@ -279,31 +279,3 @@ func TestValidatePassword(t *testing.T) {
 		}
 	}
 }
-
-func TestValidateAdminRoles(t *testing.T) {
-
-	correctRoles := []string{"volunteer", "leader", "member"}
-
-	for i := range correctRoles {
-		role := correctRoles[i]
-
-		correct := pkg.ValidateAdminRole(role)
-
-		if !correct {
-			t.Error("Admin role validation failed (correct) : ", role)
-			return
-		}
-	}
-
-	incorrectRoles := []string{"something", "1@###$$", "12344555"}
-	for i := range incorrectRoles {
-		role := incorrectRoles[i]
-
-		correct := pkg.ValidateAdminRole(role)
-
-		if correct {
-			t.Error("Admin role validation failed (incorrect) : ", role)
-			return
-		}
-	}
-}

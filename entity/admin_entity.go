@@ -25,3 +25,8 @@ type AdminUpdateEmailAndFullnameEntity struct {
 	Email    string `json:"email" gorm:"column:email"`
 	Fullname string `json:"fullname" gorm:"column:fullname"`
 }
+
+type AdminRoleUpdateEntity struct {
+	AdminId string `json:"admin_id"`
+	Role    string `json:"admin_role"`
+}
