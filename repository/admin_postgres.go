@@ -18,7 +18,7 @@ func NewAdminPostgresRepo(db *gorm.DB) AdminPostgresRepo {
 }
 
 func (a AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminDBLoginCredentials, error) {
-	cred := &entity.AdminDBLoginCredentials{
+	cred := entity.AdminDBLoginCredentials{
 		Email: email,
 	}
 	err := a.db.
@@ -26,7 +26,8 @@ func (a AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminD
 		Where("email=? AND deleted_at IS NULL", email).
 		Select("password", "id").
 		First(&cred).Error
-	return *cred, err
+
+	return cred, err
 }
 
 func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminEntity) (uuid.UUID, error) {
@@ -46,8 +47,15 @@ func (a AdminPostgresRepo) RetrieveAdminRoleByID(adminId string) (string, error)
 }
 
 func (a AdminPostgresRepo) DeleteMemberOrVolunteer(adminId string) error {
-	return a.db.
+	out := a.db.
 		Table("admins").
 		Where("id=? AND (admin_role = 'member' OR admin_role = 'volunteer')", adminId).
-		Delete(nil).Error
+		Delete(nil)
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

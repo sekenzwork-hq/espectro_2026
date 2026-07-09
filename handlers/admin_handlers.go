@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"errors"
-	customerrors "espectro/custom_errors"
 	"espectro/entity"
 	"espectro/pkg"
 	"espectro/usecases"
@@ -32,14 +30,9 @@ func (a AdminHandlers) Login(ctx *gin.Context) {
 
 	jwtToken, err := a.usecases.Login(enteredData.Email, enteredData.Password)
 
-	if _, ok := errors.AsType[*customerrors.CredentialsError](err); ok {
+	if err != nil {
 
-		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": err.Error()})
-
-	} else if _, ok := errors.AsType[*customerrors.ServerError](err); ok {
-
-		ctx.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": err.Error()})
-
+		ctx.JSON(pkg.GetStatusCodeForError(err), gin.H{"status": pkg.GetStatusCodeForError(err), "message": err.Error()})
 	} else {
 
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Login credentials are correct", "access_token": jwtToken})
@@ -61,17 +54,8 @@ func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
 
 	newAdminId, creationErr := a.usecases.CreateNewAdmin(newAdmin, currentAdminId)
 
-	if _, ok := errors.AsType[*customerrors.CredentialsError](creationErr); ok {
-
-		ctx.JSON(http.StatusUnauthorized, gin.H{"status": 401, "message": creationErr.Error()})
-
-	} else if _, ok := errors.AsType[*customerrors.ValidationError](creationErr); ok {
-
-		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": creationErr.Error()})
-
-	} else if _, ok := errors.AsType[*customerrors.ServerError](creationErr); ok {
-
-		ctx.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": creationErr.Error()})
+	if creationErr != nil {
+		ctx.JSON(pkg.GetStatusCodeForError(creationErr), gin.H{"status": pkg.GetStatusCodeForError(creationErr), "message": creationErr.Error()})
 
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "New admin has been created", "id": newAdminId})
@@ -80,4 +64,16 @@ func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
 
 func (a AdminHandlers) DeleteMemberOrVolunteer(ctx *gin.Context) {
 
+	currentAdminId := ctx.GetString("admin_id")
+	oneToDelete := ctx.Query("admin_id")
+
+	deleted, err := a.usecases.DeleteMemberOrVolunteer(oneToDelete, currentAdminId)
+
+	if err != nil {
+		ctx.JSON(pkg.GetStatusCodeForError(err), gin.H{"status": pkg.GetStatusCodeForError(err), "message": err.Error()})
+	} else if !deleted {
+		ctx.JSON(http.StatusNotFound, gin.H{"status": 404, "message": "Deletion operation doesn't work whether admin doesn't exist or admin is a leader"})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Admin has been deleted"})
+	}
 }

@@ -60,7 +60,7 @@ func (a AdminUsecases) Login(email string, password string) (string, error) {
 func (a AdminUsecases) CreateNewAdmin(admin entity.AdminEntity, requestedAdminId string) (string, error) {
 
 	if len(requestedAdminId) == 0 {
-		return "", &customerrors.CredentialsError{OrgError: "Current admin is invalid"}
+		return "", &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
 	}
 
 	//First retrieving current admin role to detect whether the admin has the permission to do it.
@@ -71,11 +71,11 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminEntity, requestedAdminId
 	}
 
 	if len(currentAdminRole) == 0 {
-		return "", &customerrors.CredentialsError{OrgError: "Current admin is invalid"}
+		return "", &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
 	}
 
 	if currentAdminRole != "leader" {
-		return "", &customerrors.CredentialsError{OrgError: "Current admin doesn't have permission"}
+		return "", &customerrors.PermissionError{OrgError: "Current admin doesn't have permission"}
 	}
 
 	fullnameErr := pkg.ValidateFullname(admin.Fullname)
@@ -128,7 +128,7 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminEntity, requestedAdminId
 func (a AdminUsecases) DeleteMemberOrVolunteer(adminId string, requestedAdminId string) (bool, error) {
 
 	if len(requestedAdminId) == 0 {
-		return false, &customerrors.CredentialsError{OrgError: "Current admin is invalid"}
+		return false, &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
 	} else if len(adminId) == 0 {
 		return false, &customerrors.ValidationError{OrgError: "Provide valid admin id to delete"}
 	}
@@ -137,16 +137,18 @@ func (a AdminUsecases) DeleteMemberOrVolunteer(adminId string, requestedAdminId 
 	currentAdminRole, currentAdminRoleErr := a.repo.RetrieveAdminRoleByID(requestedAdminId)
 
 	if currentAdminRoleErr != nil {
-		return false, &customerrors.CredentialsError{OrgError: "Something went wrong while operating"}
+		return false, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
 	if currentAdminRole != "leader" {
-		return false, &customerrors.CredentialsError{OrgError: "Current admin doesn't have permission"}
+		return false, &customerrors.PermissionError{OrgError: "Current admin doesn't have permission"}
 	}
 
 	deletionErr := a.repo.DeleteMemberOrVolunteer(adminId)
 
-	if deletionErr != nil {
+	if errors.Is(deletionErr, gorm.ErrRecordNotFound) {
+		return false, nil
+	} else if deletionErr != nil {
 		return false, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
