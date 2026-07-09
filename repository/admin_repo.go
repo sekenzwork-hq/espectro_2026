@@ -2,6 +2,7 @@ package repository
 
 import (
 	"espectro/entity"
+	"espectro/enums"
 
 	"github.com/google/uuid"
 )
@@ -12,4 +13,5 @@ type AdminRepo interface {
 	RetrieveAdminRoleByID(adminId string) (string, error)
 	DeleteMemberOrVolunteer(adminId string) error
 	CheckAdminExists(adminId string) (bool, error)
+	UpdateCurrentAdmin(adminId string, newEmail string, newFullname string, updateMode enums.AdminUpdateMode) error
 }

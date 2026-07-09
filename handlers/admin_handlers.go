@@ -31,10 +31,9 @@ func (a AdminHandlers) Login(ctx *gin.Context) {
 	jwtToken, err := a.usecases.Login(enteredData.Email, enteredData.Password)
 
 	if err != nil {
-
-		ctx.JSON(pkg.GetStatusCodeForError(err), gin.H{"status": pkg.GetStatusCodeForError(err), "message": err.Error()})
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Login credentials are correct", "access_token": jwtToken})
 	}
 
@@ -55,8 +54,8 @@ func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
 	newAdminId, creationErr := a.usecases.CreateNewAdmin(newAdmin, currentAdminId)
 
 	if creationErr != nil {
-		ctx.JSON(pkg.GetStatusCodeForError(creationErr), gin.H{"status": pkg.GetStatusCodeForError(creationErr), "message": creationErr.Error()})
-
+		code := pkg.GetStatusCodeForError(creationErr)
+		ctx.JSON(code, gin.H{"status": code, "message": creationErr.Error()})
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "New admin has been created", "id": newAdminId})
 	}
@@ -71,7 +70,8 @@ func (a AdminHandlers) DeleteMemberOrVolunteer(ctx *gin.Context) {
 
 	if err != nil {
 
-		ctx.JSON(pkg.GetStatusCodeForError(err), gin.H{"status": pkg.GetStatusCodeForError(err), "message": err.Error()})
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 
 	} else if !deleted {
 
@@ -80,5 +80,27 @@ func (a AdminHandlers) DeleteMemberOrVolunteer(ctx *gin.Context) {
 	} else {
 
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Admin has been deleted"})
+	}
+}
+
+func (a AdminHandlers) UpdateCurrentAdmin(ctx *gin.Context) {
+
+	var adminEmailAndFullname entity.AdminUpdateEmailAndFullnameEntity
+
+	canGo := pkg.ParseJson(ctx, &adminEmailAndFullname)
+
+	if !canGo {
+		return
+	}
+
+	currentAdminId := ctx.GetString("admin_id")
+
+	err := a.usecases.UpdateCurrentAdmin(currentAdminId, adminEmailAndFullname.Email, adminEmailAndFullname.Fullname)
+
+	if err != nil {
+		statCode := pkg.GetStatusCodeForError(err)
+		ctx.JSON(statCode, gin.H{"status": statCode, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"status": 202, "message": "Updated successfully"})
 	}
 }

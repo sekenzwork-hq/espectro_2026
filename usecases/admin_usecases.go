@@ -4,6 +4,7 @@ import (
 	"errors"
 	customerrors "espectro/custom_errors"
 	"espectro/entity"
+	"espectro/enums"
 	"espectro/pkg"
 	"espectro/repository"
 
@@ -170,4 +171,80 @@ func (a AdminUsecases) CheckAdminExists(adminId string) error {
 	}
 
 	return nil
+}
+
+func (a AdminUsecases) UpdateCurrentAdmin(adminId string, newEmail string, newFullname string) error {
+
+	if len(adminId) == 0 {
+		return &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
+	}
+
+	var updationMode enums.AdminUpdateMode
+
+	if len(newEmail) != 0 && len(newFullname) != 0 {
+		updationMode = enums.EmailAndFullname
+	} else if len(newEmail) != 0 {
+		updationMode = enums.EmailOnly
+	} else {
+		updationMode = enums.FullnameOnly
+	}
+
+	var outErr error
+
+	updateFunc := func(newEmail string, newFullname string, updateMode enums.AdminUpdateMode) error {
+
+		err := a.repo.UpdateCurrentAdmin(adminId, newEmail, newFullname, updateMode)
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Current Admin is invalid"}
+		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+
+		return nil
+
+	}
+	switch updationMode {
+
+	//First checking if the request is to update fullname and email
+	case enums.EmailAndFullname:
+		isEmailCorrect := pkg.ValidateEmail(newEmail)
+		fullnameErr := pkg.ValidateFullname(newFullname)
+
+		if !isEmailCorrect {
+			return &customerrors.ValidationError{OrgError: "Invalid email address"}
+		} else if fullnameErr != nil {
+			return &customerrors.ValidationError{OrgError: fullnameErr.Error()}
+		}
+		err := updateFunc(newEmail, newFullname, enums.EmailAndFullname)
+		outErr = err
+
+	//Checking if the request is to update fullname only
+	case enums.FullnameOnly:
+
+		fullnameErr := pkg.ValidateFullname(newFullname)
+
+		if fullnameErr != nil {
+			return &customerrors.ValidationError{OrgError: fullnameErr.Error()}
+		}
+		err := updateFunc("", newFullname, enums.FullnameOnly)
+		outErr = err
+
+	//Checking if the request is to update email only
+	case enums.EmailOnly:
+		isEmailCorrect := pkg.ValidateEmail(newEmail)
+
+		if !isEmailCorrect {
+			return &customerrors.ValidationError{OrgError: "Invalid email address"}
+		}
+		err := updateFunc(newEmail, "", enums.EmailOnly)
+		outErr = err
+
+	//If the above conditions are not satisfied, then [updationMode] may be not valid, so just returning server error
+	default:
+		outErr = &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return outErr
+
 }
