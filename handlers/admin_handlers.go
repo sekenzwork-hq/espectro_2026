@@ -49,7 +49,7 @@ func (a AdminHandlers) Login(ctx *gin.Context) {
 
 func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
 
-	var newAdmin entity.AdminCreateEntity
+	var newAdmin entity.AdminEntity
 
 	canGo := pkg.ParseJson(ctx, &newAdmin)
 
@@ -76,4 +76,8 @@ func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "New admin has been created", "id": newAdminId})
 	}
+}
+
+func (a AdminHandlers) DeleteMemberOrVolunteer(ctx *gin.Context) {
+
 }

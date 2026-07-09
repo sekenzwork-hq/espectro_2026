@@ -2,6 +2,7 @@ package repository
 
 import (
 	"espectro/entity"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -29,7 +30,7 @@ func (a AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminD
 	return *cred, err
 }
 
-func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminCreateEntity) (uuid.UUID, error) {
+func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminEntity) (uuid.UUID, error) {
 	return admin.Id, a.db.
 		Table("admins").
 		Create(&admin).Error
@@ -43,4 +44,11 @@ func (a AdminPostgresRepo) RetrieveAdminRoleByID(adminId string) (string, error)
 		Select("admin_role").
 		Pluck("admin_role", &role).Error
 	return role, err
+}
+
+func (a AdminPostgresRepo) SoftDeleteMemberOrVolunteer(adminId string) error {
+	return a.db.
+		Table("admins").
+		Where("id=?", adminId).
+		Update("deleted_at", time.Now().UTC()).Error
 }

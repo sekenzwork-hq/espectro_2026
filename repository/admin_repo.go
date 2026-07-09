@@ -8,6 +8,7 @@ import (
 
 type AdminRepo interface {
 	RetrieveAdminCredByEmail(email string) (entity.AdminDBLoginCredentials, error)
-	CreateNewAdmin(admin entity.AdminCreateEntity) (uuid.UUID, error)
+	CreateNewAdmin(admin entity.AdminEntity) (uuid.UUID, error)
 	RetrieveAdminRoleByID(adminId string) (string, error)
+	SoftDeleteMemberOrVolunteer(adminId string) error
 }
