@@ -70,10 +70,15 @@ func (a AdminHandlers) DeleteMemberOrVolunteer(ctx *gin.Context) {
 	deleted, err := a.usecases.DeleteMemberOrVolunteer(oneToDelete, currentAdminId)
 
 	if err != nil {
+
 		ctx.JSON(pkg.GetStatusCodeForError(err), gin.H{"status": pkg.GetStatusCodeForError(err), "message": err.Error()})
+
 	} else if !deleted {
+
 		ctx.JSON(http.StatusNotFound, gin.H{"status": 404, "message": "Deletion operation doesn't work whether admin doesn't exist or admin is a leader"})
+
 	} else {
+
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Admin has been deleted"})
 	}
 }

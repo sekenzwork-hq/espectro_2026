@@ -5,6 +5,7 @@ var PermissionErr *PermissionError
 var ValidationErr *ValidationError
 var ServerErr *ServerError
 var AuthErr *AuthenticationError
+var NotFoundErr *NotFoundError
 
 type PermissionError struct {
 	OrgError string
@@ -44,4 +45,12 @@ type AuthenticationError struct {
 
 func (a AuthenticationError) Error() string {
 	return a.OrgError
+}
+
+type NotFoundError struct {
+	OrgError string
+}
+
+func (n *NotFoundError) Error() string {
+	return n.OrgError
 }

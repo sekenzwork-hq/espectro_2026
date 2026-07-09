@@ -154,3 +154,21 @@ func (a AdminUsecases) DeleteMemberOrVolunteer(adminId string, requestedAdminId 
 
 	return true, nil
 }
+
+func (a AdminUsecases) CheckAdminExists(adminId string) error {
+
+	if len(adminId) == 0 {
+		return &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
+	}
+
+	exists, err := a.repo.CheckAdminExists(adminId)
+
+	if err != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	} else if !exists {
+		return &customerrors.NotFoundError{OrgError: "Current admin doesn't exist"}
+	}
+
+	return nil
+
+}

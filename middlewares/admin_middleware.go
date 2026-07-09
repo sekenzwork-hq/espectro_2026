@@ -2,12 +2,21 @@ package middlewares
 
 import (
 	"espectro/pkg"
+	"espectro/usecases"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AdminMiddleWare(ctx *gin.Context) {
+type AdminMiddleWare struct {
+	usecases usecases.AdminUsecases
+}
+
+func NewAdminMiddleWare(usecases usecases.AdminUsecases) AdminMiddleWare {
+	return AdminMiddleWare{usecases: usecases}
+}
+
+func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 
 	headerToken := ctx.GetHeader("Authorization")
 
@@ -20,8 +29,17 @@ func AdminMiddleWare(ctx *gin.Context) {
 
 	if parseErr != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"status": 401, "message": "Invalid token"})
-	} else {
-		ctx.Set("admin_id", parsedAdminId)
-		ctx.Next()
+		return
 	}
+
+	err := a.usecases.CheckAdminExists(parsedAdminId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.AbortWithStatusJSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+	ctx.Set("admin_id", parsedAdminId)
+	ctx.Next()
+
 }

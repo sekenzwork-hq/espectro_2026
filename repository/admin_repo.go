@@ -11,4 +11,5 @@ type AdminRepo interface {
 	CreateNewAdmin(admin entity.AdminEntity) (uuid.UUID, error)
 	RetrieveAdminRoleByID(adminId string) (string, error)
 	DeleteMemberOrVolunteer(adminId string) error
+	CheckAdminExists(adminId string) (bool, error)
 }

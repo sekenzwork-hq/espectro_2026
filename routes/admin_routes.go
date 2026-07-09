@@ -18,10 +18,11 @@ func RegisterAdminRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 	handlers := handlers.NewAdminHandlers(usecases)
 
+	adminMiddleware := middlewares.NewAdminMiddleWare(usecases)
+
 	adminApi := r.Group("/admin")
 
 	adminApi.POST("/login", handlers.Login)
-	adminApi.POST("/create", middlewares.AdminMiddleWare, handlers.CreateNewAdmin)
-	adminApi.DELETE("/delete", handlers.DeleteMemberOrVolunteer)
-
+	adminApi.POST("/create", adminMiddleware.AdminMiddleWare, handlers.CreateNewAdmin)
+	adminApi.DELETE("/delete", adminMiddleware.AdminMiddleWare, handlers.DeleteMemberOrVolunteer)
 }
