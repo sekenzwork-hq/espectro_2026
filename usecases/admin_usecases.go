@@ -57,13 +57,13 @@ func (a AdminUsecases) Login(email string, password string) (string, error) {
 
 }
 
-func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedAdminId string) (string, error) {
+func (a AdminUsecases) CreateNewAdmin(admin entity.AdminEntity, requestedAdminId string) (string, error) {
 
 	if len(requestedAdminId) == 0 {
 		return "", &customerrors.CredentialsError{OrgError: "Current admin is invalid"}
 	}
 
-	//First retrieving current admin role to detect whether he/she has the permission to do it.
+	//First retrieving current admin role to detect whether the admin has the permission to do it.
 	currentAdminRole, currentAdminRoleErr := a.repo.RetrieveAdminRoleByID(requestedAdminId)
 
 	if currentAdminRoleErr != nil {
@@ -75,7 +75,7 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedA
 	}
 
 	if currentAdminRole != "leader" {
-		return "", &customerrors.CredentialsError{OrgError: "Current admin does not have permission"}
+		return "", &customerrors.CredentialsError{OrgError: "Current admin doesn't have permission"}
 	}
 
 	fullnameErr := pkg.ValidateFullname(admin.Fullname)
@@ -108,7 +108,7 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedA
 		return "", &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
-	adminWithPasswordHashed := entity.AdminCreateEntity{
+	adminWithPasswordHashed := entity.AdminEntity{
 		Fullname: admin.Fullname,
 		Email:    admin.Email,
 		Role:     admin.Role,
@@ -123,4 +123,32 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedA
 
 	return newAdminId.String(), nil
 
+}
+
+func (a AdminUsecases) DeleteMemberOrVolunteer(adminId string, requestedAdminId string) (bool, error) {
+
+	if len(requestedAdminId) == 0 {
+		return false, &customerrors.CredentialsError{OrgError: "Current admin is invalid"}
+	} else if len(adminId) == 0 {
+		return false, &customerrors.ValidationError{OrgError: "Provide valid admin id to delete"}
+	}
+
+	//First checking the current admin role to check the permission.
+	currentAdminRole, currentAdminRoleErr := a.repo.RetrieveAdminRoleByID(requestedAdminId)
+
+	if currentAdminRoleErr != nil {
+		return false, &customerrors.CredentialsError{OrgError: "Something went wrong while operating"}
+	}
+
+	if currentAdminRole != "leader" {
+		return false, &customerrors.CredentialsError{OrgError: "Current admin doesn't have permission"}
+	}
+
+	deletionErr := a.repo.DeleteMemberOrVolunteer(adminId)
+
+	if deletionErr != nil {
+		return false, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return true, nil
 }

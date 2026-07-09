@@ -2,7 +2,6 @@ package repository
 
 import (
 	"espectro/entity"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -46,9 +45,9 @@ func (a AdminPostgresRepo) RetrieveAdminRoleByID(adminId string) (string, error)
 	return role, err
 }
 
-func (a AdminPostgresRepo) SoftDeleteMemberOrVolunteer(adminId string) error {
+func (a AdminPostgresRepo) DeleteMemberOrVolunteer(adminId string) error {
 	return a.db.
 		Table("admins").
-		Where("id=?", adminId).
-		Update("deleted_at", time.Now().UTC()).Error
+		Where("id=? AND (admin_role = 'member' OR admin_role = 'volunteer')", adminId).
+		Delete(nil).Error
 }
