@@ -40,13 +40,24 @@ func TestAdminRoleEnums(t *testing.T) {
 		}
 	}
 
-	invalidEnums := []enums.AdminUpdateMode{"Unknown", "   ", "!@#$***", "update_it"}
+	invalidEnums := []enums.AdminRole{"Unknown", "   ", "!@#$***", "update_it"}
 
 	for i := range invalidEnums {
 		enum := invalidEnums[i]
 
 		if enum.IsValid() {
 			t.Errorf("Admin updation role validation failed (incorrct). Enum : %v\n", enum)
+		}
+	}
+
+	strEnums := []string{"leader", "member", "volunteer"}
+
+	for i := range strEnums {
+
+		strEn := strEnums[i]
+
+		if _, ok := enums.AdminRole(strEn).ParseRole(strEn); !ok {
+			t.Errorf("Admin role enum validation failed. Enum : %v\n", strEn)
 		}
 	}
 
