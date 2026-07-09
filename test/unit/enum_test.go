@@ -2,7 +2,6 @@ package unit
 
 import (
 	"espectro/enums"
-	"fmt"
 	"testing"
 )
 
@@ -31,8 +30,24 @@ func TestAdminUpdationModeEnums(t *testing.T) {
 
 func TestAdminRoleEnums(t *testing.T) {
 
-	var e enums.AdminRole
+	validEnums := []enums.AdminRole{enums.Member, enums.Leader, enums.Volunteer}
 
-	fmt.Println("Enum : ", e.IsValid())
+	for i := range validEnums {
+		enum := validEnums[i]
+
+		if !enum.IsValid() {
+			t.Errorf("Admin role enum validation failed (correct). Enum : %v\n", enum)
+		}
+	}
+
+	invalidEnums := []enums.AdminUpdateMode{"Unknown", "   ", "!@#$***", "update_it"}
+
+	for i := range invalidEnums {
+		enum := invalidEnums[i]
+
+		if enum.IsValid() {
+			t.Errorf("Admin updation role validation failed (incorrct). Enum : %v\n", enum)
+		}
+	}
 
 }
