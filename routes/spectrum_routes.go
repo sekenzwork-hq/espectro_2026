@@ -7,15 +7,17 @@ import (
 	repositoryimple "espectro/repository_imple"
 	"espectro/usecases"
 
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func RegisterSpectrumRoutes(r *gin.RouterGroup, db *gorm.DB) {
+func RegisterSpectrumRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Cloudinary) {
 
 	spectrumRepo := repositoryimple.NewSpectrumPostgresRepo(db)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
-	spectrumUsecase := usecases.NewSpectrumUsecases(spectrumRepo)
+	cldMediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
+	spectrumUsecase := usecases.NewSpectrumUsecases(spectrumRepo, cldMediaRepo)
 	adminUsecase := usecases.NewAdminUsecases(adminRepo)
 	handlers := handlers.NewSpectrumHandlers(spectrumUsecase)
 

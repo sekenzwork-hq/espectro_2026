@@ -6,17 +6,19 @@ import (
 	"espectro/enums"
 	"espectro/pkg"
 	"espectro/repository"
+	"fmt"
 	"mime/multipart"
 
 	"github.com/google/uuid"
 )
 
 type SpectrumUsecases struct {
-	repo repository.SpectrumRepo
+	repo      repository.SpectrumRepo
+	mediaRepo repository.MediaServiceRepo
 }
 
-func NewSpectrumUsecases(repo repository.SpectrumRepo) SpectrumUsecases {
-	return SpectrumUsecases{repo: repo}
+func NewSpectrumUsecases(repo repository.SpectrumRepo, mediaRepo repository.MediaServiceRepo) SpectrumUsecases {
+	return SpectrumUsecases{repo: repo, mediaRepo: mediaRepo}
 }
 
 func (s SpectrumUsecases) CreateSpectrum(
@@ -29,6 +31,8 @@ func (s SpectrumUsecases) CreateSpectrum(
 	logoFile *multipart.FileHeader,
 
 ) (entity.Spectrum, error) {
+
+	fmt.Println("Images from usecase : ", imageFiles)
 
 	nameErr := pkg.ValidateSpectrumOrEventName(name)
 
@@ -56,9 +60,9 @@ func (s SpectrumUsecases) CreateSpectrum(
 	var videoUrl *string
 	var imageUrls []string
 
-	if pkg.BytesToMB(logoFile.Size) > 2 {
+	if logoFile != nil && pkg.BytesToMB(logoFile.Size) > 2 {
 		return entity.Spectrum{}, &customerrors.SizeError{OrgError: "Logo image size should be less than or equal to 2 MB"}
-	} else if pkg.BytesToMB(videoFile.Size) > 50 {
+	} else if videoFile != nil && pkg.BytesToMB(videoFile.Size) > 50 {
 		return entity.Spectrum{}, &customerrors.SizeError{OrgError: "Video size should be less than or equal to 50 MB"}
 	}
 
@@ -71,6 +75,35 @@ func (s SpectrumUsecases) CreateSpectrum(
 	}
 
 	spectrumId, idErr := uuid.NewUUID()
+	baseFolder := "spectrum/" + spectrumId.String()
+	logoFolder := baseFolder + "/logo"
+	imagesFolder := baseFolder + "/images"
+	videoFolder := baseFolder + "/video"
+
+	if logoFile != nil {
+		url, urlErr := s.mediaRepo.UploadFile(logoFile, logoFolder)
+		if urlErr != nil {
+			return entity.Spectrum{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		logoUrl = &url
+	}
+
+	if videoFile != nil {
+		url, urlErr := s.mediaRepo.UploadFile(logoFile, videoFolder)
+		if urlErr != nil {
+			return entity.Spectrum{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		videoUrl = &url
+	}
+
+	if len(imageFiles) != 0 {
+		urls, urlsErr := s.mediaRepo.UploadFiles(imageFiles, imagesFolder)
+		if urlsErr != nil {
+			return entity.Spectrum{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		imageUrls = urls
+
+	}
 
 	if idErr != nil {
 		return entity.Spectrum{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}

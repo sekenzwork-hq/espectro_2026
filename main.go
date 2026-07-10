@@ -4,6 +4,7 @@ import (
 	"espectro/config"
 	"espectro/database"
 	"espectro/routes"
+	"espectro/services"
 
 	"github.com/bytedance/gopkg/util/logger"
 	"github.com/gin-gonic/gin"
@@ -38,6 +39,17 @@ func main() {
 		return
 	}
 
+	defer func() {
+		db.Close()
+	}()
+
+	cld, cldErr := services.NewCloudinary(cfg.CloudinaryUrl)
+
+	if cldErr != nil {
+		logger.Info("Cloudinary establishing error : ", cldErr)
+		return
+	}
+
 	//redisClient := database.NewRedis(cfg.RedisIP, cfg.RedisPassword)
 
 	gin := gin.Default()
@@ -48,7 +60,7 @@ func main() {
 
 	routes.RegisterUserRoutes(api, gormDB)
 	routes.RegisterAdminRoutes(api, gormDB)
-	routes.RegisterSpectrumRoutes(api, gormDB)
+	routes.RegisterSpectrumRoutes(api, gormDB, cld)
 
 	listenErr := gin.Run(":8080")
 

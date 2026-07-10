@@ -46,3 +46,7 @@ func (m MediaCloudinaryRepo) UploadFile(imageFile *multipart.FileHeader, folderI
 
 	return res.SecureURL, err
 }
+
+func (m MediaCloudinaryRepo) DeleteFolderWithFiles(folderId string) error {
+	return nil
+}
