@@ -1,4 +1,4 @@
-package repository
+package repositoryimple
 
 import (
 	"espectro/entity"

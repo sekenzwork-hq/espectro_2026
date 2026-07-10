@@ -4,7 +4,7 @@ import (
 	"espectro/enums"
 	"espectro/handlers"
 	"espectro/middlewares"
-	"espectro/repository"
+	repositoryimple "espectro/repository_imple"
 	"espectro/usecases"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +13,7 @@ import (
 
 func RegisterAdminRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
-	repo := repository.NewAdminPostgresRepo(db)
+	repo := repositoryimple.NewAdminPostgresRepo(db)
 
 	usecases := usecases.NewAdminUsecases(repo)
 

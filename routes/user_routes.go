@@ -2,7 +2,7 @@ package routes
 
 import (
 	"espectro/handlers"
-	"espectro/repository"
+	repositoryimple "espectro/repository_imple"
 	"espectro/usecases"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +13,7 @@ func RegisterUserRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 	usersApi := r.Group("/user")
 
-	repo := repository.NewUserPostgresRepo(db)
+	repo := repositoryimple.NewUserPostgresRepo(db)
 
 	usecases := usecases.NewUserUsecases(repo)
 
