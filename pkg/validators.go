@@ -12,6 +12,17 @@ func getRegxForSpaceAndCharacters() *regexp.Regexp {
 	return regexp.MustCompile(`^[a-zA-Z\s]+$`)
 }
 
+func getRegexForSpecialCharacters() *regexp.Regexp {
+	return regexp.MustCompile(`[^A-Za-z0-9]`)
+}
+
+func getRegexForNumbers() *regexp.Regexp {
+	return regexp.MustCompile(`[0-9]`)
+}
+
+func getRegexForUpperOrLower() *regexp.Regexp {
+	return regexp.MustCompile(`[A-Za-z]`)
+}
 func ValidateFullname(fullname string) error {
 
 	if len(fullname) < 3 {
@@ -150,9 +161,9 @@ func ValidatePassword(password string) error {
 
 	password = strings.TrimSpace(password)
 
-	upperOrLowerRegex := regexp.MustCompile(`[A-Za-z]`)
-	numberRegex := regexp.MustCompile(`[0-9]`)
-	specialCharRegex := regexp.MustCompile(`[^A-Za-z0-9]`)
+	upperOrLowerRegex := getRegexForUpperOrLower()
+	numberRegex := getRegexForNumbers()
+	specialCharRegex := getRegexForSpecialCharacters()
 
 	containsUpperOrLower := upperOrLowerRegex.MatchString(password)
 
@@ -171,6 +182,47 @@ func ValidatePassword(password string) error {
 	if !containsSpecialChar {
 		return &customerrors.ValidationError{OrgError: "Password should contain alteast one special character"}
 	}
+
+	return nil
+}
+
+func ValidateSpectrumOrEventName(name string) error {
+
+	if len(name) < 3 {
+		return &customerrors.ValidationError{OrgError: "Name length should be atleast 3"}
+	} else if len(name) > 100 {
+		return &customerrors.ValidationError{OrgError: "Name length should be less than or equal to 100"}
+	}
+
+	name = strings.TrimSpace(name)
+
+	return nil
+
+}
+
+func ValidateSpectrumShortDescription(shortDes string) error {
+
+	if len(shortDes) < 50 {
+		return &customerrors.ValidationError{OrgError: "Short description length should be atleast 50"}
+	} else if len(shortDes) > 300 {
+		return &customerrors.ValidationError{OrgError: "Short description length should be less than or equal to 300"}
+	}
+
+	shortDes = strings.TrimSpace(shortDes)
+
+	return nil
+
+}
+
+func ValidateSpectrumOrEventDescription(des string) error {
+
+	if len(des) < 50 {
+		return &customerrors.ValidationError{OrgError: "Description length should be atleast 50"}
+	} else if len(des) > 1000 {
+		return &customerrors.ValidationError{OrgError: "Description length should be less than or equal to 1000"}
+	}
+
+	des = strings.TrimSpace(des)
 
 	return nil
 }

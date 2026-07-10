@@ -8,6 +8,7 @@ var AuthErr *AuthenticationError
 var NotFoundErr *NotFoundError
 var InvalidAdminUpdateModeErr *InvalidAdminUpdateModeError
 var NotFoundOrLeaderErr *NotFoundOrLeaderError
+var SpaceErr *SpaceError
 
 type PermissionError struct {
 	OrgError string
@@ -70,5 +71,13 @@ type NotFoundOrLeaderError struct {
 }
 
 func (i NotFoundOrLeaderError) Error() string {
+	return i.OrgError
+}
+
+type SpaceError struct {
+	OrgError string
+}
+
+func (i SpaceError) Error() string {
 	return i.OrgError
 }
