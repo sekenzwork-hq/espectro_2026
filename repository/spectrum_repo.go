@@ -1,7 +1,20 @@
 package repository
 
-import "espectro/entity"
+import (
+	"espectro/entity"
+	"espectro/enums"
+)
 
 type SpectrumRepo interface {
-	CreateSpectrum(newSpectrum entity.Spectrum) (entity.Spectrum, error)
+	CreateSpectrum(newSpectrum entity.SpectrumEntity) (entity.SpectrumEntity, error)
+	UpdateSpectrum(
+		spectrumId string,
+		name *string,
+		shortDescription *string,
+		description *string,
+		status *enums.SpectrumStatus,
+		logoUrl *string,
+		videoUrl *string,
+		imageUrls *[]string,
+	) error
 }
