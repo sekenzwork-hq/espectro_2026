@@ -4,8 +4,8 @@ type AdminUpdateMode string
 
 const (
 	EmailOnly        AdminUpdateMode = "email"
-	FullnameOnly     AdminUpdateMode = "fullname only"
-	EmailAndFullname AdminUpdateMode = "email and fullname"
+	FullnameOnly     AdminUpdateMode = "fullname_only"
+	EmailAndFullname AdminUpdateMode = "email_and_fullname"
 )
 
 func (a AdminUpdateMode) IsValid() bool {
@@ -52,14 +52,15 @@ func (a AdminRole) ParseRole(strRole string) (AdminRole, bool) {
 type AdminMiddlewareType string
 
 const (
-	LeaderMiddleware   AdminMiddlewareType = "leader middleware"
-	AllAdminMiddleware AdminMiddlewareType = "all admin middleware"
+	LeaderMiddleware          AdminMiddlewareType = "leader_middleware"
+	AllAdminMiddleware        AdminMiddlewareType = "all_admin_middleware"
+	LeaderAndMemberMiddleware AdminMiddlewareType = "leader_and_member"
 )
 
 func (a AdminMiddlewareType) IsValid() bool {
 
 	switch a {
-	case LeaderMiddleware, AllAdminMiddleware:
+	case LeaderMiddleware, AllAdminMiddleware, LeaderAndMemberMiddleware:
 		return true
 	default:
 		return false

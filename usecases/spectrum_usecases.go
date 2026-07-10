@@ -3,10 +3,12 @@ package usecases
 import (
 	customerrors "espectro/custom_errors"
 	"espectro/entity"
+	"espectro/enums"
 	"espectro/pkg"
 	"espectro/repository"
+	"mime/multipart"
 
-	"github.com/lib/pq"
+	"github.com/google/uuid"
 )
 
 type SpectrumUsecases struct {
@@ -21,9 +23,10 @@ func (s SpectrumUsecases) CreateSpectrum(
 	name string,
 	shortDescription string,
 	description string,
-	imageUrl []string,
-	videoUrl *string,
-	logoUrl *string,
+	status enums.SpectrumStatus,
+	imageFiles []*multipart.FileHeader,
+	videoFile *multipart.FileHeader,
+	logoFile *multipart.FileHeader,
 
 ) (entity.Spectrum, error) {
 
@@ -36,7 +39,7 @@ func (s SpectrumUsecases) CreateSpectrum(
 	shortDescriptionErr := pkg.ValidateSpectrumShortDescription(shortDescription)
 
 	if shortDescriptionErr != nil {
-		return entity.Spectrum{}, nameErr
+		return entity.Spectrum{}, shortDescriptionErr
 	}
 
 	descriptionErr := pkg.ValidateSpectrumOrEventDescription(description)
@@ -45,18 +48,47 @@ func (s SpectrumUsecases) CreateSpectrum(
 		return entity.Spectrum{}, descriptionErr
 	}
 
-	if len(imageUrl) > 10 {
-		return entity.Spectrum{}, &customerrors.SpaceError{OrgError: "Maximum number of images is 10"}
+	if len(imageFiles) > 10 {
+		return entity.Spectrum{}, &customerrors.SizeError{OrgError: "Maximum number of images is 10"}
 	}
 
-	spectrum, creationErr := s.repo.CreateSpectrum(entity.Spectrum{
+	var logoUrl *string
+	var videoUrl *string
+	var imageUrls []string
+
+	if pkg.BytesToMB(logoFile.Size) > 2 {
+		return entity.Spectrum{}, &customerrors.SizeError{OrgError: "Logo image size should be less than or equal to 2 MB"}
+	} else if pkg.BytesToMB(videoFile.Size) > 50 {
+		return entity.Spectrum{}, &customerrors.SizeError{OrgError: "Video size should be less than or equal to 50 MB"}
+	}
+
+	for i := range imageFiles {
+		mb := pkg.BytesToMB(imageFiles[i].Size)
+
+		if mb > 2 {
+			return entity.Spectrum{}, &customerrors.SizeError{OrgError: "Images size should be less than or equal to 2 MB"}
+		}
+	}
+
+	spectrumId, idErr := uuid.NewUUID()
+
+	if idErr != nil {
+		return entity.Spectrum{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	spectrumData := entity.Spectrum{
+		Id:               spectrumId,
 		Name:             name,
 		ShortDescription: shortDescription,
 		Description:      description,
-		LogoUrl:          nil,
-		ImageUrls:        pq.StringArray{},
-		VideoUrl:         nil,
-	})
+		Status:           enums.Pending,
+		ImageUrls:        imageUrls,
+		LogoUrl:          logoUrl,
+		VideoUrl:         videoUrl,
+		TotalEvents:      0,
+	}
+
+	spectrum, creationErr := s.repo.CreateSpectrum(spectrumData)
 
 	if creationErr != nil {
 		return entity.Spectrum{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}

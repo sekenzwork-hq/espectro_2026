@@ -7,6 +7,7 @@ import (
 	"espectro/usecases"
 	"net/http"
 
+	"github.com/bytedance/gopkg/util/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,10 +20,14 @@ func NewAdminMiddleWare(usecases usecases.AdminUsecases, adminType enums.AdminMi
 	return AdminMiddleWare{usecases: usecases, adminType: adminType}
 }
 
+var count = 0
+
 func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 
 	if !a.adminType.IsValid() {
+		logger.Info("Admin type is invalid")
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"status": 500, "message": "Something went wrong while operating"})
+		return
 	}
 
 	headerToken := ctx.GetHeader("Authorization")
@@ -43,9 +48,7 @@ func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 
 	switch a.adminType {
 	case enums.AllAdminMiddleware:
-
 		err = a.usecases.CheckAdminExists(parsedAdminId)
-
 	case enums.LeaderMiddleware:
 
 		role, roleErr := a.usecases.RetrieveAdminRoleByID(parsedAdminId)
@@ -53,6 +56,14 @@ func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 		if roleErr != nil {
 			err = roleErr
 		} else if role != enums.Leader {
+			err = &customerrors.PermissionError{OrgError: "Current admin doesn't have permission"}
+		}
+	case enums.LeaderAndMemberMiddleware:
+
+		role, roleErr := a.usecases.RetrieveAdminRoleByID(parsedAdminId)
+		if roleErr != nil {
+			err = roleErr
+		} else if role != enums.Leader && role != enums.Member {
 			err = &customerrors.PermissionError{OrgError: "Current admin doesn't have permission"}
 		}
 	}
@@ -64,5 +75,6 @@ func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 	}
 	ctx.Set("admin_id", parsedAdminId)
 	ctx.Next()
+	logger.Info("Routed to next handler!!")
 
 }

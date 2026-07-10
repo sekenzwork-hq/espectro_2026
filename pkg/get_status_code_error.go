@@ -19,6 +19,8 @@ func GetStatusCodeForError(err error) int {
 		return http.StatusUnauthorized
 	case errors.As(err, &customerrors.NotFoundErr):
 		return http.StatusNotFound
+	case errors.As(err, &customerrors.SizeErr):
+		return http.StatusNotAcceptable
 
 	default:
 		return http.StatusOK
