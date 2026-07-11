@@ -83,3 +83,18 @@ func (s SpectrumPostgresRepo) SoftDeleteSpectrum(spectrumId string) error {
 
 	return nil
 }
+
+func (s SpectrumPostgresRepo) RetrieveSpectrums(offset int, limit int) ([]entity.SpectrumEntity, error) {
+
+	var spectrums []entity.SpectrumEntity
+
+	out := s.db.
+		Table("spectrums").
+		Select("id,name,short_description,description,status,total_events,logo_url,video_url,image_urls,created_at").
+		Where("deleted_at IS NULL").
+		Offset(offset).
+		Limit(limit).
+		Scan(&spectrums)
+
+	return spectrums, out.Error
+}

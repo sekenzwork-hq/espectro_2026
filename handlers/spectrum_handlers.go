@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -173,5 +174,37 @@ func (s SpectrumHandlers) DeleteSpectrum(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Spectrum has been deleted"})
+
+}
+
+func (s SpectrumHandlers) RetrieveSpectrums(ctx *gin.Context) {
+
+	var page int
+	var limit int
+
+	pageQ, pageIntErr := strconv.Atoi(ctx.Query("page"))
+	limitQ, limitIntErr := strconv.Atoi(ctx.Query("limit"))
+
+	if pageIntErr != nil {
+		page = 1
+	} else {
+		page = pageQ
+	}
+
+	if limitIntErr != nil {
+		limit = 50
+	} else {
+		limit = limitQ
+	}
+
+	spectrums, spectrumsErr := s.usecases.RetrieveSpectrums(limit, page)
+
+	if spectrumsErr != nil {
+		code := pkg.GetStatusCodeForError(spectrumsErr)
+		ctx.JSON(code, gin.H{"status": code, "message": spectrumsErr.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "spectrums": spectrums})
 
 }

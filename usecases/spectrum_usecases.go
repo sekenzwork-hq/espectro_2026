@@ -186,6 +186,25 @@ func (s SpectrumUsecases) DeleteSpectrum(spectrumId string) error {
 	return nil
 }
 
+func (s SpectrumUsecases) RetrieveSpectrums(limit int, page int) ([]entity.SpectrumEntity, error) {
+
+	emptySpectrums := []entity.SpectrumEntity{}
+
+	if limit > 150 {
+		return emptySpectrums, &customerrors.SizeError{OrgError: "The limit should be less than or equal to 150"}
+	}
+
+	offset := pkg.GetOffset(limit, page)
+
+	spectrums, spectrumsErr := s.repo.RetrieveSpectrums(offset, limit)
+
+	if spectrumsErr != nil {
+		return emptySpectrums, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return spectrums, nil
+}
+
 /*
 For validating the basic spectrum data and if one of those is null, then it won't validate that.
 Maybe this function is called for updating few fields only. Here passing the media files only for checking size and limit.

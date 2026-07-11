@@ -18,4 +18,5 @@ type SpectrumRepo interface {
 		imageUrls []string,
 	) error
 	SoftDeleteSpectrum(spectrumId string) error
+	RetrieveSpectrums(offset int, limit int) ([]entity.SpectrumEntity, error)
 }

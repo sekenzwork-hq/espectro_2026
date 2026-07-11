@@ -19,7 +19,6 @@ type SpectrumEntity struct {
 	VideoUrl         *string              `json:"video_url" gorm:"column:video_url"`
 	TotalEvents      int                  `json:"total_events" gorm:"column:total_events"`
 	CreatedAt        *time.Time           `json:"created_at" gorm:"type:timestampz;default:now()"`
-	DeletedAt        *time.Time           `json:"deleted_at" gorm:"type:timestampz"`
 }
 
 type SpectrumUpdateMediaEntity struct {
