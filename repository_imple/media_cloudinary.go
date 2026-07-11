@@ -23,15 +23,14 @@ func (m MediaCloudinaryRepo) UploadFiles(imageFiles []*multipart.FileHeader, fol
 	ctx := context.Background()
 
 	for i := range imageFiles {
+
 		image := imageFiles[i]
 		res, err := m.cld.Upload.Upload(ctx, image, uploader.UploadParams{
 			Folder: folderId,
 		})
-
 		if err != nil {
 			return []string{}, err
 		}
-
 		urls = append(urls, res.SecureURL)
 	}
 
@@ -73,10 +72,9 @@ func (m MediaCloudinaryRepo) DeleteFolderWithFiles(globalFolderId string, endpoi
 func (m MediaCloudinaryRepo) DeleteMutiFoldersWithFiles(globalFolderId string, endpointFolders []string) error {
 
 	for i := range endpointFolders {
+
 		endpointFolder := endpointFolders[i]
-
 		err := m.DeleteFolderWithFiles(globalFolderId, endpointFolder)
-
 		if err != nil {
 			return err
 		}

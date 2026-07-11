@@ -3,6 +3,8 @@ package unit
 import (
 	"espectro/pkg"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func TestValidateFullname(t *testing.T) {
@@ -275,6 +277,31 @@ func TestValidatePassword(t *testing.T) {
 
 		if err == nil {
 			t.Errorf("Password validation failed (incorrect) : Error : %v, Password : %v", err, pass)
+			return
+		}
+	}
+}
+
+func TestValidateUUID(t *testing.T) {
+
+	validId := uuid.New()
+
+	correct := pkg.ValidateUUID(validId.String())
+
+	if !correct {
+		t.Error("Validation of correct uuid failed")
+		return
+	}
+
+	invalidIds := []string{"id", "unknown-id", "123456789012345678901234567890123456"}
+
+	for i := range invalidIds {
+		id := invalidIds[i]
+
+		correct := pkg.ValidateUUID(id)
+
+		if correct {
+			t.Errorf("Validation of incorrect uuid failed. Id : %v, Out : %v", id, correct)
 			return
 		}
 	}
