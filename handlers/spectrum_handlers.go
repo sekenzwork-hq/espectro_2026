@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -179,23 +178,7 @@ func (s SpectrumHandlers) DeleteSpectrum(ctx *gin.Context) {
 
 func (s SpectrumHandlers) RetrieveSpectrums(ctx *gin.Context) {
 
-	var page int
-	var limit int
-
-	pageQ, pageIntErr := strconv.Atoi(ctx.Query("page"))
-	limitQ, limitIntErr := strconv.Atoi(ctx.Query("limit"))
-
-	if pageIntErr != nil {
-		page = 1
-	} else {
-		page = pageQ
-	}
-
-	if limitIntErr != nil {
-		limit = 50
-	} else {
-		limit = limitQ
-	}
+	limit, page := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
 
 	spectrums, spectrumsErr := s.usecases.RetrieveSpectrums(limit, page)
 

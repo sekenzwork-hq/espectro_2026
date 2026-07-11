@@ -71,3 +71,18 @@ func (v VenueHandlers) UpdateVenue(ctx *gin.Context) {
 		ctx.JSON(http.StatusAccepted, gin.H{"status": 202, "message": "Venue has been updated"})
 	}
 }
+
+func (v VenueHandlers) RetrieveVenue(ctx *gin.Context) {
+
+	limit, page := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+
+	venue, err := v.usecases.RetrieveVenue(page, limit)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "venue": venue})
+}

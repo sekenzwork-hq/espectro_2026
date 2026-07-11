@@ -191,7 +191,7 @@ func (s SpectrumUsecases) RetrieveSpectrums(limit int, page int) ([]entity.Spect
 	emptySpectrums := []entity.SpectrumEntity{}
 
 	if limit > 150 {
-		return emptySpectrums, &customerrors.SizeError{OrgError: "The limit should be less than or equal to 150"}
+		return emptySpectrums, &customerrors.SizeError{OrgError: "Limit should be less than or equal to 150"}
 	}
 
 	offset := pkg.GetOffset(limit, page)

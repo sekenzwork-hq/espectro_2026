@@ -108,3 +108,21 @@ func (v VenueUsecases) UpdateVenue(venueId string, newVenue entity.VenueUpdateEn
 	return nil
 
 }
+
+func (v VenueUsecases) RetrieveVenue(page int, limit int) ([]entity.VenueEntity, error) {
+
+	emptyVenue := []entity.VenueEntity{}
+	if limit > 150 {
+		return emptyVenue, &customerrors.SizeError{OrgError: "Limit should be less than or equal to 150"}
+	}
+
+	offset := pkg.GetOffset(limit, page)
+
+	venue, retrievalErr := v.repo.RetrieveVenue(offset, limit)
+
+	if retrievalErr != nil {
+		return emptyVenue, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return venue, nil
+}
