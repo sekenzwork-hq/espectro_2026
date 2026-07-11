@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 func getRegxForSpaceAndCharacters() *regexp.Regexp {
@@ -225,4 +227,15 @@ func ValidateSpectrumOrEventDescription(des string) error {
 	des = strings.TrimSpace(des)
 
 	return nil
+}
+
+func ValidateUUID(id string) bool {
+
+	if len(id) == 0 || len(id) > 36 {
+		return false
+	}
+
+	_, parseErr := uuid.Parse(id)
+
+	return parseErr != nil
 }

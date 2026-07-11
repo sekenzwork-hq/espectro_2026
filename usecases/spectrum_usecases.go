@@ -8,7 +8,6 @@ import (
 	"espectro/models"
 	"espectro/pkg"
 	"espectro/repository"
-	"fmt"
 	"mime/multipart"
 
 	"github.com/google/uuid"
@@ -127,7 +126,6 @@ func (s SpectrumUsecases) UpdateSpectrum(
 			return emptyMedia, serverErr
 		}
 	} else if logoFile != nil {
-		fmt.Println("Entered")
 		deletionErr := s.mediaRepo.DeleteFolderWithFiles(baseFolder, logoFolder)
 
 		if deletionErr != nil {
