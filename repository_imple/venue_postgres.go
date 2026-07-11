@@ -2,6 +2,7 @@ package repositoryimple
 
 import (
 	"espectro/entity"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -20,4 +21,20 @@ func (v VenuePostgresRepo) CreateVenue(venue entity.VenueCreateEntity) (uuid.UUI
 		Table("venue").
 		Create(&venue).Error
 	return venue.Id, err
+}
+
+func (v VenuePostgresRepo) DeleteVenue(venueId string) error {
+
+	out := v.db.
+		Table("venue").
+		Where("id=? AND deleted_at IS NULL", venueId).
+		Update("deleted_at", time.Now().UTC())
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

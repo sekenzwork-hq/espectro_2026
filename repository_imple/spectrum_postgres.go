@@ -68,7 +68,7 @@ func (s SpectrumPostgresRepo) UpdateSpectrum(
 	return nil
 }
 
-func (s SpectrumPostgresRepo) SoftDeleteSpectrum(spectrumId string) error {
+func (s SpectrumPostgresRepo) DeleteSpectrum(spectrumId string) error {
 
 	out := s.db.
 		Table("spectrums").

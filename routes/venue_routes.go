@@ -24,4 +24,5 @@ func RegisterVenueRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	venueApi := r.Group("/venue")
 
 	venueApi.POST("/create", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreateVenue)
+	venueApi.DELETE("/delete", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeleteVenue)
 }

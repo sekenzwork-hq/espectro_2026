@@ -37,3 +37,17 @@ func (v VenueHandlers) CreateVenue(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Venue has been created", "id": venueId})
 
 }
+
+func (v VenueHandlers) DeleteVenue(ctx *gin.Context) {
+
+	venueId := ctx.Query("venue_id")
+
+	err := v.usecases.DeleteVenue(venueId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Venue has been deleted"})
+	}
+}

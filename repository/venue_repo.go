@@ -8,4 +8,5 @@ import (
 
 type VenueRepo interface {
 	CreateVenue(venue entity.VenueCreateEntity) (uuid.UUID, error)
+	DeleteVenue(venueId string) error
 }

@@ -175,7 +175,7 @@ func (s SpectrumUsecases) DeleteSpectrum(spectrumId string) error {
 		return &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
 	}
 
-	deletionErr := s.repo.SoftDeleteSpectrum(spectrumId)
+	deletionErr := s.repo.DeleteSpectrum(spectrumId)
 
 	if errors.Is(deletionErr, gorm.ErrRecordNotFound) {
 		return &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
