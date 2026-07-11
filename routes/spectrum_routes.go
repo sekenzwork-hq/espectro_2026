@@ -28,5 +28,5 @@ func RegisterSpectrumRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clo
 	spectrumApi.POST("/create", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreateSpectrum)
 	spectrumApi.PATCH("/update", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdateSpectrum)
 	spectrumApi.DELETE("/delete", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeleteSpectrum)
-	spectrumApi.GET("/", allAdminMiddleware.AdminMiddleWare, handlers.RetrieveSpectrums)
+	spectrumApi.GET("", allAdminMiddleware.AdminMiddleWare, handlers.RetrieveSpectrums)
 }

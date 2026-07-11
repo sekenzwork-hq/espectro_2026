@@ -57,7 +57,7 @@ func (s SpectrumPostgresRepo) UpdateSpectrum(
 		data["image_urls"] = pq.StringArray(imageUrls)
 	}
 
-	out := s.db.Table("spectrums").Where("id=?", spectrumId).Updates(data)
+	out := s.db.Table("spectrums").Where("id=? AND deleted_at IS NULL", spectrumId).Updates(data)
 
 	if out.Error != nil {
 		return out.Error
