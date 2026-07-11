@@ -87,8 +87,8 @@ func (s SpectrumHandlers) UpdateSpectrum(ctx *gin.Context) {
 
 	spectrumIdForm := form.Value["spectrum_id"]
 
-	if len(spectrumIdForm) == 0 || spectrumIdForm[0] == "" {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Invalid spectrum id"})
+	if len(spectrumIdForm) == 0 {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide spectrum id"})
 		return
 	}
 	nameForm := form.Value["name"]
@@ -158,4 +158,20 @@ func (s SpectrumHandlers) UpdateSpectrum(ctx *gin.Context) {
 			ctx.JSON(http.StatusAccepted, gin.H{"status": 202, "message": "Spectrum has been updated"})
 		}
 	}
+}
+
+func (s SpectrumHandlers) DeleteSpectrum(ctx *gin.Context) {
+
+	spectrumId := ctx.Query("spectrum_id")
+
+	err := s.usecases.DeleteSpectrum(spectrumId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Spectrum has been deleted"})
+
 }

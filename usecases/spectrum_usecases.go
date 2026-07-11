@@ -87,6 +87,10 @@ func (s SpectrumUsecases) UpdateSpectrum(
 ) (entity.SpectrumUpdateMediaEntity, error) {
 
 	emptyMedia := entity.SpectrumUpdateMediaEntity{}
+
+	if correct := pkg.ValidateUUID(spectrumId); !correct {
+		return emptyMedia, &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
+	}
 	serverErr := &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 
 	validationErr := s.validateSpectrumData(name, shortDescription, description, status, imageFiles, videoFile, logoFile)
@@ -151,7 +155,7 @@ func (s SpectrumUsecases) UpdateSpectrum(
 		return emptyMedia, serverErr
 	}
 
-	updationErr := s.repo.UpdateSpectrum(spectrumId, name, shortDescription, description, status, media.LogoUrl, media.VideoUrl, &media.ImageUrls)
+	updationErr := s.repo.UpdateSpectrum(spectrumId, name, shortDescription, description, status, media.LogoUrl, media.VideoUrl, media.ImageUrls)
 
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 		return emptyMedia, &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
@@ -163,9 +167,27 @@ func (s SpectrumUsecases) UpdateSpectrum(
 
 }
 
-/*
-	For validating the basic spectrum data and if one of those is null, then it won't validate that.
+func (s SpectrumUsecases) DeleteSpectrum(spectrumId string) error {
 
+	isIdCorrect := pkg.ValidateUUID(spectrumId)
+
+	if !isIdCorrect {
+		return &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
+	}
+
+	deletionErr := s.repo.SoftDeleteSpectrum(spectrumId)
+
+	if errors.Is(deletionErr, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
+	} else if deletionErr != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return nil
+}
+
+/*
+For validating the basic spectrum data and if one of those is null, then it won't validate that.
 Maybe this function is called for updating few fields only. Here passing the media files only for checking size and limit.
 */
 func (s SpectrumUsecases) validateSpectrumData(
@@ -233,8 +255,7 @@ func (s SpectrumUsecases) validateSpectrumData(
 }
 
 /*
-	For uploading the spectrum media such as video, logo and other images len(10) and also deleting-
-
+For uploading the spectrum media such as video, logo and other images len(10) and also deleting-
 all those media we upload if one of them fail to upload
 */
 func (s SpectrumUsecases) uploadMediaForSpectrum(

@@ -15,6 +15,7 @@ type SpectrumRepo interface {
 		status *enums.SpectrumStatus,
 		logoUrl *string,
 		videoUrl *string,
-		imageUrls *[]string,
+		imageUrls []string,
 	) error
+	SoftDeleteSpectrum(spectrumId string) error
 }

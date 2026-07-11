@@ -3,6 +3,7 @@ package repositoryimple
 import (
 	"espectro/entity"
 	"espectro/enums"
+	"time"
 
 	"github.com/lib/pq"
 	"gorm.io/gorm"
@@ -29,7 +30,7 @@ func (s SpectrumPostgresRepo) UpdateSpectrum(
 	status *enums.SpectrumStatus,
 	logoUrl *string,
 	videoUrl *string,
-	imageUrls *[]string,
+	imageUrls []string,
 ) error {
 
 	data := map[string]any{}
@@ -53,10 +54,26 @@ func (s SpectrumPostgresRepo) UpdateSpectrum(
 		data["video_url"] = *(videoUrl)
 	}
 	if imageUrls != nil {
-		data["image_urls"] = pq.StringArray(*(imageUrls))
+		data["image_urls"] = pq.StringArray(imageUrls)
 	}
 
 	out := s.db.Table("spectrums").Where("id=?", spectrumId).Updates(data)
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+}
+
+func (s SpectrumPostgresRepo) SoftDeleteSpectrum(spectrumId string) error {
+
+	out := s.db.
+		Table("spectrums").
+		Where("id=? AND deleted_at IS NULL", spectrumId).
+		Update("deleted_at", time.Now().UTC())
 
 	if out.Error != nil {
 		return out.Error
