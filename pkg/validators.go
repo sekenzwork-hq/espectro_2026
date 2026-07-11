@@ -236,6 +236,5 @@ func ValidateUUID(id string) bool {
 	}
 
 	_, parseErr := uuid.Parse(id)
-
-	return parseErr != nil
+	return parseErr == nil
 }
