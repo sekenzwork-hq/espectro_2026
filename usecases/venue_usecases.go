@@ -19,7 +19,7 @@ func NewVenueUsecases(repo repository.VenueRepo) VenueUsecases {
 	return VenueUsecases{repo: repo}
 }
 
-func (v VenueUsecases) CreateVenue(venue entity.VenueFromJson) (uuid.UUID, error) {
+func (v VenueUsecases) CreateVenue(venue entity.VenueFromJsonEntity) (uuid.UUID, error) {
 
 	emptyUUID := uuid.UUID{}
 	isCountryCorrect := pkg.ValidateCountryOrState(venue.Country)
@@ -40,7 +40,7 @@ func (v VenueUsecases) CreateVenue(venue entity.VenueFromJson) (uuid.UUID, error
 		return emptyUUID, &customerrors.ValidationError{OrgError: "Invalid city name"}
 	}
 
-	venueCreateEntity := entity.VenueCreateEntity{
+	venueCreateEntity := entity.VenueEntity{
 		Country: venue.Country,
 		State:   venue.State,
 		City:    venue.City,
@@ -71,4 +71,40 @@ func (v VenueUsecases) DeleteVenue(venueId string) error {
 	}
 
 	return nil
+}
+
+func (v VenueUsecases) UpdateVenue(venueId string, newVenue entity.VenueUpdateEntity) error {
+
+	if correct := pkg.ValidateUUID(venueId); !correct {
+		return &customerrors.ValidationError{OrgError: "Invalid venue id"}
+	}
+
+	if newVenue.Country != nil {
+
+		if correct := pkg.ValidateCountryOrState(*newVenue.Country); !correct {
+			return &customerrors.ValidationError{OrgError: "Invalid country name"}
+		}
+	}
+
+	if newVenue.State != nil {
+		if correct := pkg.ValidateCountryOrState(*newVenue.State); !correct {
+			return &customerrors.ValidationError{OrgError: "Invalid state name"}
+		}
+	}
+
+	if newVenue.City != nil {
+		if correct := pkg.ValidateCity(*newVenue.City); !correct {
+			return &customerrors.ValidationError{OrgError: "Invalid city name"}
+		}
+	}
+
+	err := v.repo.UpdateVenue(venueId, newVenue.Country, newVenue.State, newVenue.City)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundError{OrgError: "Venue does not exist"}
+	} else if err != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+	return nil
+
 }

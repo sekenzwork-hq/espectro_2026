@@ -16,7 +16,7 @@ func NewVenuePostgresRepo(db *gorm.DB) VenuePostgresRepo {
 	return VenuePostgresRepo{db: db}
 }
 
-func (v VenuePostgresRepo) CreateVenue(venue entity.VenueCreateEntity) (uuid.UUID, error) {
+func (v VenuePostgresRepo) CreateVenue(venue entity.VenueEntity) (uuid.UUID, error) {
 	err := v.db.
 		Table("venue").
 		Create(&venue).Error
@@ -29,6 +29,33 @@ func (v VenuePostgresRepo) DeleteVenue(venueId string) error {
 		Table("venue").
 		Where("id=? AND deleted_at IS NULL", venueId).
 		Update("deleted_at", time.Now().UTC())
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+}
+
+func (v VenuePostgresRepo) UpdateVenue(venueId string, country *string, state *string, city *string) error {
+
+	data := map[string]any{}
+	if country != nil {
+		data["country"] = *country
+	}
+	if state != nil {
+		data["state"] = *state
+	}
+	if city != nil {
+		data["city"] = *city
+	}
+
+	out := v.db.
+		Table("venue").
+		Where("id=? AND deleted_at IS NULL", venueId).
+		Updates(data)
 
 	if out.Error != nil {
 		return out.Error

@@ -19,7 +19,7 @@ func NewVenueHandlers(usecases usecases.VenueUsecases) VenueHandlers {
 
 func (v VenueHandlers) CreateVenue(ctx *gin.Context) {
 
-	var venue entity.VenueFromJson
+	var venue entity.VenueFromJsonEntity
 
 	canGo := pkg.ParseJson(ctx, &venue)
 	if !canGo {
@@ -49,5 +49,25 @@ func (v VenueHandlers) DeleteVenue(ctx *gin.Context) {
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Venue has been deleted"})
+	}
+}
+
+func (v VenueHandlers) UpdateVenue(ctx *gin.Context) {
+
+	var newVenue entity.VenueUpdateEntity
+
+	canGo := pkg.ParseJson(ctx, &newVenue)
+
+	if !canGo {
+		return
+	}
+
+	err := v.usecases.UpdateVenue(newVenue.Id, newVenue)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{"status": 202, "message": "Venue has been updated"})
 	}
 }

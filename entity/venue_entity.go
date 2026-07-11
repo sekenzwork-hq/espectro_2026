@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type VenueCreateEntity struct {
+type VenueEntity struct {
 	Id        uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Country   string    `json:"country" gorm:"column:country"`
 	State     string    `json:"state" gorm:"column:state"`
@@ -14,8 +14,15 @@ type VenueCreateEntity struct {
 	CreatedAt time.Time `json:"created_at" gorm:"column:created_at"`
 }
 
-type VenueFromJson struct {
+type VenueFromJsonEntity struct {
 	Country string `json:"country"`
 	State   string `json:"state"`
 	City    string `json:"city"`
+}
+
+type VenueUpdateEntity struct {
+	Id      string  `json:"venue_id"`
+	Country *string `json:"country"`
+	State   *string `json:"state"`
+	City    *string `json:"city"`
 }

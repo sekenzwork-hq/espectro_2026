@@ -7,6 +7,7 @@ import (
 )
 
 type VenueRepo interface {
-	CreateVenue(venue entity.VenueCreateEntity) (uuid.UUID, error)
+	CreateVenue(venue entity.VenueEntity) (uuid.UUID, error)
 	DeleteVenue(venueId string) error
+	UpdateVenue(venueId string, country *string, state *string, city *string) error
 }
