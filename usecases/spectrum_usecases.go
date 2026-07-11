@@ -100,8 +100,8 @@ func (s SpectrumUsecases) UpdateSpectrum(
 	imagesFolder := "/images"
 	videoFolder := "/video"
 
+	//This is for deleting the files those were uploaded previously to upload new media if the argument media is not null
 	if len(imageFiles) != 0 && logoFile != nil && videoFile != nil {
-
 		deletionErr := s.mediaRepo.DeleteMutiFoldersWithFiles(baseFolder, []string{logoFolder, imagesFolder, videoFolder})
 
 		if deletionErr != nil {
@@ -163,6 +163,11 @@ func (s SpectrumUsecases) UpdateSpectrum(
 
 }
 
+/*
+	For validating the basic spectrum data and if one of those is null, then it won't validate that.
+
+Maybe this function is called for updating few fields only. Here passing the media files only for checking size and limit.
+*/
 func (s SpectrumUsecases) validateSpectrumData(
 	name *string,
 	shortDescription *string,
@@ -227,6 +232,11 @@ func (s SpectrumUsecases) validateSpectrumData(
 
 }
 
+/*
+	For uploading the spectrum media such as video, logo and other images len(10) and also deleting-
+
+all those media we upload if one of them fail to upload
+*/
 func (s SpectrumUsecases) uploadMediaForSpectrum(
 	spectrumId string,
 	logoFile *multipart.FileHeader,
