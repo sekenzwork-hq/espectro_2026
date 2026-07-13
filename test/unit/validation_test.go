@@ -2,9 +2,8 @@ package unit
 
 import (
 	"espectro/pkg"
-	"testing"
-
 	"github.com/google/uuid"
+	"testing"
 )
 
 func TestValidateFullname(t *testing.T) {
