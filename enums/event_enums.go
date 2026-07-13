@@ -18,3 +18,39 @@ func (e EventStatus) IsValid() bool {
 		return false
 	}
 }
+
+type EventMode string
+
+const (
+	OnlineEvent  EventMode = "online"
+	StadiumEvent EventMode = "stadium"
+	HallEvent    EventMode = "hall"
+)
+
+func (e EventMode) IsValid() bool {
+
+	switch e {
+	case OnlineEvent, StadiumEvent, HallEvent:
+		return true
+	default:
+		return false
+	}
+}
+
+type EventType string
+
+const (
+	SpeechEvent      EventType = "event"
+	ConcertEvent     EventType = "concert"
+	CompetitionEvent EventType = "competition"
+)
+
+func (e EventType) IsValid() bool {
+
+	switch e {
+	case SpeechEvent, ConcertEvent, CompetitionEvent:
+		return true
+	default:
+		return false
+	}
+}

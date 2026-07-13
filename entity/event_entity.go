@@ -6,4 +6,5 @@ type EventEntity struct {
 	Description string `json:"description" gorm:"column:description"`
 	SpectrumId  string `json:"spectrum_id" gorm:"column:spectrum_id"`
 	Status      string `json:"status" gorm:"column:status"`
+	Limit       *int   `json:"limit" gorm:"column:limit"`
 }
