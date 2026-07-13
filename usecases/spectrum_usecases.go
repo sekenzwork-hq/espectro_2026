@@ -59,7 +59,7 @@ func (s SpectrumUsecases) CreateSpectrum(
 		Name:             name,
 		ShortDescription: shortDescription,
 		Description:      description,
-		Status:           enums.Pending,
+		Status:           enums.PendingSpectrum,
 		ImageUrls:        media.ImageUrls,
 		LogoUrl:          media.LogoUrl,
 		VideoUrl:         media.VideoUrl,
