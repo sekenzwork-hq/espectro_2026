@@ -98,3 +98,13 @@ func (s SpectrumPostgresRepo) RetrieveSpectrums(offset int, limit int) ([]entity
 
 	return spectrums, out.Error
 }
+
+func (s SpectrumPostgresRepo) CheckSpectrumExists(spectrumId string) (bool, error) {
+
+	var exists bool
+	err := s.db.
+		Raw("SELECT EXISTS (SELECT 1 FROM spectrums WHERE id=?)", spectrumId).
+		Scan(&exists).Error
+
+	return exists, err
+}

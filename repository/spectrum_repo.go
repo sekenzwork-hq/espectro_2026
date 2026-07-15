@@ -19,4 +19,5 @@ type SpectrumRepo interface {
 	) error
 	DeleteSpectrum(spectrumId string) error
 	RetrieveSpectrums(offset int, limit int) ([]entity.SpectrumEntity, error)
+	CheckSpectrumExists(spectrumId string) (bool, error)
 }
