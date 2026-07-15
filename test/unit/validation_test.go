@@ -2,8 +2,9 @@ package unit
 
 import (
 	"espectro/pkg"
-	"github.com/google/uuid"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func TestValidateFullname(t *testing.T) {
@@ -303,5 +304,22 @@ func TestValidateUUID(t *testing.T) {
 			t.Errorf("Validation of incorrect uuid failed. Id : %v, Out : %v", id, correct)
 			return
 		}
+	}
+}
+
+func TestParseTime(t *testing.T) {
+
+	validTime := "2022-05-15 14:05:20"
+
+	_, err1 := pkg.ParseTime(validTime)
+	if err1 != nil {
+		t.Error("Time parsing failed (correct)")
+	}
+
+	invalidTime := "uoiuuo"
+
+	_, err2 := pkg.ParseTime(invalidTime)
+	if err2 == nil {
+		t.Error("Time parsing not failed (incorrect)")
 	}
 }
