@@ -243,3 +243,24 @@ func ValidateUUID(id string) bool {
 func ParseTime(timeStr string) (time.Time, error) {
 	return time.Parse("2006-01-02 15:04:05", timeStr)
 }
+
+func ValidateName(name string) error {
+	if len(name) < 3 {
+		return errors.New("Name should contain atleast 3 characters")
+	}
+
+	if len(name) > 100 {
+		return errors.New("Length of name should be less than or equal to 100")
+	}
+
+	reg := getRegxForSpaceAndCharacters()
+
+	correct := reg.MatchString(strings.TrimSpace(name))
+
+	if !correct {
+		return errors.New("Name should not contain any special character, symbols and digits")
+	}
+
+	return nil
+
+}

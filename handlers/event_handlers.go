@@ -33,7 +33,7 @@ func (e EventHandlers) CreateEvent(ctx *gin.Context) {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Event has been created", "id": event.Id, "created_at": event.CreatedAt})
+		ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Event has been created", "id": event.Id, "created_at": event.CreatedAt})
 	}
 }
 
