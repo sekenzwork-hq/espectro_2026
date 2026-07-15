@@ -40,7 +40,7 @@ func (e EventMode) IsValid() bool {
 type EventType string
 
 const (
-	SpeechEvent      EventType = "event"
+	SpeechEvent      EventType = "speech"
 	ConcertEvent     EventType = "concert"
 	CompetitionEvent EventType = "competition"
 )

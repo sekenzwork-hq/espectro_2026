@@ -94,7 +94,7 @@ func (a AdminHandlers) UpdateCurrentAdmin(ctx *gin.Context) {
 		statCode := pkg.GetStatusCodeForError(err)
 		ctx.JSON(statCode, gin.H{"status": statCode, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusAccepted, gin.H{"status": 202, "message": "Updated successfully"})
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Updated successfully"})
 	}
 }
 
@@ -115,7 +115,7 @@ func (a AdminHandlers) UpdateAdminRole(ctx *gin.Context) {
 
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusAccepted, gin.H{"status": 202, "message": "Admin role has been updated"})
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Admin role has been updated"})
 	}
 
 }

@@ -74,7 +74,7 @@ func (a AdminPostgresRepo) CheckAdminExists(adminId string) (bool, error) {
 
 	var exists bool
 	err := a.db.
-		Raw("SELECT EXISTS(SELECT 1 FROM admins WHERE id=?)", adminId).
+		Raw("SELECT EXISTS(SELECT 1 FROM admins WHERE id=? AND deleted_at IS NULL)", adminId).
 		Scan(&exists).Error
 
 	return exists, err

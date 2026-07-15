@@ -153,9 +153,9 @@ func (s SpectrumHandlers) UpdateSpectrum(ctx *gin.Context) {
 		}
 
 		if len(json) != 0 {
-			ctx.JSON(http.StatusAccepted, gin.H{"status": 202, "message": "Spectrum has been updated", "updated_media": json})
+			ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Spectrum has been updated", "updated_media": json})
 		} else {
-			ctx.JSON(http.StatusAccepted, gin.H{"status": 202, "message": "Spectrum has been updated"})
+			ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Spectrum has been updated"})
 		}
 	}
 }

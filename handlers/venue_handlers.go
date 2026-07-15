@@ -68,7 +68,7 @@ func (v VenueHandlers) UpdateVenue(ctx *gin.Context) {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusAccepted, gin.H{"status": 202, "message": "Venue has been updated"})
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Venue has been updated"})
 	}
 }
 

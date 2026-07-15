@@ -103,7 +103,7 @@ func (s SpectrumPostgresRepo) CheckSpectrumExists(spectrumId string) (bool, erro
 
 	var exists bool
 	err := s.db.
-		Raw("SELECT EXISTS (SELECT 1 FROM spectrums WHERE id=?)", spectrumId).
+		Raw("SELECT EXISTS (SELECT 1 FROM spectrums WHERE id=? AND deleted_at IS NULL)", spectrumId).
 		Scan(&exists).Error
 
 	return exists, err

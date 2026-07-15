@@ -84,7 +84,7 @@ func (v VenuePostgresRepo) CheckVenueExists(venueId string) (bool, error) {
 
 	var exists bool
 	err := v.db.
-		Raw("SELECT EXISTS (SELECT 1 FROM venue WHERE id=?)", venueId).
+		Raw("SELECT EXISTS (SELECT 1 FROM venue WHERE id=? AND deleted_at IS NULL)", venueId).
 		Scan(&exists).Error
 	return exists, err
 }

@@ -1,0 +1,32 @@
+package routes
+
+import (
+	"espectro/enums"
+	"espectro/handlers"
+	"espectro/middlewares"
+	repositoryimple "espectro/repository_imple"
+	"espectro/usecases"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
+
+func RegisterEventRoutes(r *gin.RouterGroup, db *gorm.DB) {
+
+	eventRepo := repositoryimple.NewEventPostgresRepo(db)
+	venueRepo := repositoryimple.NewVenuePostgresRepo(db)
+	spectrumRepo := repositoryimple.NewSpectrumPostgresRepo(db)
+	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
+
+	eventUsecases := usecases.NewEventUsecases(eventRepo, spectrumRepo, venueRepo)
+	adminUsecases := usecases.NewAdminUsecases(adminRepo)
+
+	eventHandlers := handlers.NewEventHandlers(eventUsecases)
+
+	leaderAndMemberMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
+
+	eventApi := r.Group("event")
+
+	eventApi.POST("/create", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.CreateEvent)
+	eventApi.PATCH("/update", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.UpdateEvent)
+}

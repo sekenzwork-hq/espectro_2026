@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -237,4 +238,8 @@ func ValidateUUID(id string) bool {
 
 	_, parseErr := uuid.Parse(id)
 	return parseErr == nil
+}
+
+func ParseTime(timeStr string) (time.Time, error) {
+	return time.Parse("2006-01-02 15:04:05", timeStr)
 }
