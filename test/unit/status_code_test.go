@@ -20,7 +20,7 @@ func TestStatusCodeGeneration(t *testing.T) {
 		401,
 		406,
 		404,
-		401,
+		403,
 		500,
 	}
 
