@@ -79,3 +79,12 @@ func (v VenuePostgresRepo) RetrieveVenue(offset int, limit int) ([]entity.VenueE
 
 	return venue, out.Error
 }
+
+func (v VenuePostgresRepo) CheckVenueExists(venueId string) (bool, error) {
+
+	var exists bool
+	err := v.db.
+		Raw("SELECT EXISTS (SELECT 1 FROM venue WHERE id=?)", venueId).
+		Scan(&exists).Error
+	return exists, err
+}

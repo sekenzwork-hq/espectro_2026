@@ -11,4 +11,5 @@ type VenueRepo interface {
 	DeleteVenue(venueId string) error
 	UpdateVenue(venueId string, country *string, state *string, city *string) error
 	RetrieveVenue(offset int, limit int) ([]entity.VenueEntity, error)
+	CheckVenueExists(venueId string) (bool, error)
 }
