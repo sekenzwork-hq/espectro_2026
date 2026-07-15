@@ -50,3 +50,18 @@ func (e EventPostgresRepo) DeleteEvent(eventId string) error {
 
 	return nil
 }
+
+func (e EventPostgresRepo) RetrieveEvents(limit int, offset int) ([]entity.EventEntity, error) {
+
+	var events []entity.EventEntity
+
+	err := e.db.
+		Table("events").
+		Select("id,name,description,status,event_mode,event_type,participant_limit,start_date,end_date,spectrum_id,venue_id,contact_email,created_at").
+		Where("deleted_at IS NULL").
+		Limit(limit).
+		Offset(offset).
+		Scan(&events).Error
+
+	return events, err
+}

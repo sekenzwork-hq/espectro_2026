@@ -70,3 +70,17 @@ func (e EventHandlers) DeleteEvent(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Event has been deleted"})
 	}
 }
+
+func (e EventHandlers) RetrieveEvents(ctx *gin.Context) {
+
+	limit, page := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+
+	events, err := e.usecases.RetrieveEvents(limit, page)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "events": events})
+	}
+}

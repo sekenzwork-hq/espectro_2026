@@ -101,6 +101,19 @@ func (e EventUsecases) DeleteEvent(eventId string) error {
 
 	return nil
 }
+
+func (e EventUsecases) RetrieveEvents(limit int, page int) ([]entity.EventEntity, error) {
+
+	offset := pkg.GetOffset(limit, page)
+
+	events, err := e.eventRepo.RetrieveEvents(limit, offset)
+
+	if err != nil {
+		return events, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return events, nil
+}
 func (e EventUsecases) validateEventDetailsAndCheckExistence(name string,
 	description string,
 	spectrumId string,
