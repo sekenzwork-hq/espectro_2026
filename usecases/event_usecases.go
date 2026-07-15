@@ -87,6 +87,20 @@ func (e EventUsecases) UpdateEvent(event entity.EventUpdateEntity) error {
 	return nil
 }
 
+func (e EventUsecases) DeleteEvent(eventId string) error {
+
+	if !pkg.ValidateUUID(eventId) {
+		return &customerrors.ValidationError{OrgError: "Invalid event id"}
+	}
+
+	err := e.eventRepo.DeleteEvent(eventId)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundError{OrgError: "Event does not exist"}
+	}
+
+	return nil
+}
 func (e EventUsecases) validateEventDetailsAndCheckExistence(name string,
 	description string,
 	spectrumId string,

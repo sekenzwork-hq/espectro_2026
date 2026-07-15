@@ -2,6 +2,7 @@ package repositoryimple
 
 import (
 	"espectro/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -33,4 +34,19 @@ func (e EventPostgresRepo) UpdateEvent(eventId string, newEvent entity.EventUpda
 	} else {
 		return nil
 	}
+}
+
+func (e EventPostgresRepo) DeleteEvent(eventId string) error {
+
+	out := e.db.
+		Table("events").
+		Where("id=? AND deleted_at IS NULL", eventId).UpdateColumn("deleted_at", time.Now().UTC())
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

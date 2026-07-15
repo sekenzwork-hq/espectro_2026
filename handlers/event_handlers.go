@@ -56,3 +56,17 @@ func (e EventHandlers) UpdateEvent(ctx *gin.Context) {
 	}
 
 }
+
+func (e EventHandlers) DeleteEvent(ctx *gin.Context) {
+
+	eventId := ctx.Query("event_id")
+
+	err := e.usecases.DeleteEvent(eventId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Event has been deleted"})
+	}
+}

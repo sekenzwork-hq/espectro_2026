@@ -42,7 +42,7 @@ func (a AdminPostgresRepo) RetrieveAdminRoleByID(adminId string) (enums.AdminRol
 	var role string
 	err := a.db.
 		Table("admins").
-		Where("id=?", adminId).
+		Where("id=? AND deleted_at IS NULL", adminId).
 		Select("admin_role").
 		Pluck("admin_role", &role).Error
 
@@ -59,7 +59,7 @@ func (a AdminPostgresRepo) RetrieveAdminRoleByID(adminId string) (enums.AdminRol
 func (a AdminPostgresRepo) DeleteMemberOrVolunteer(adminId string) error {
 	out := a.db.
 		Table("admins").
-		Where("id=? AND (admin_role = 'member' OR admin_role = 'volunteer')", adminId).
+		Where("id=? AND deleted_at IS NULL AND (admin_role = 'member' OR admin_role = 'volunteer')", adminId).
 		Delete(nil)
 
 	if out.Error != nil {
@@ -108,7 +108,7 @@ func (a AdminPostgresRepo) UpdateCurrentAdmin(
 
 	out := a.db.
 		Table("admins").
-		Where("id=?", adminId).
+		Where("id=? AND deleted_at IS NULL", adminId).
 		Updates(data)
 
 	if out.Error != nil {
@@ -125,7 +125,7 @@ func (a AdminPostgresRepo) UpdateAdminRole(adminId string, newRole enums.AdminRo
 
 	out := a.db.
 		Table("admins").
-		Where("id=? AND (admin_role = 'member' OR admin_role = 'volunteer')", adminId).
+		Where("id=? AND deleted_at IS NULL AND (admin_role = 'member' OR admin_role = 'volunteer')", adminId).
 		Update("admin_role", newRole)
 
 	if out.Error != nil {
