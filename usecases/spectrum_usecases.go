@@ -84,36 +84,42 @@ func (s SpectrumUsecases) UpdateSpectrum(
 	imageFiles []*multipart.FileHeader,
 	videoFile *multipart.FileHeader,
 	logoFile *multipart.FileHeader,
-) (entity.SpectrumUpdateMediaEntity, error) {
+) (entity.SpectrumEntity, error) {
 
-	emptyMedia := entity.SpectrumUpdateMediaEntity{}
-
-	if correct := pkg.ValidateUUID(spectrumId); !correct {
-		return emptyMedia, &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
-	}
+	emptySpectrum := entity.SpectrumEntity{}
 	serverErr := &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 
-	validationErr := s.validateSpectrumData(name, shortDescription, description, status, imageFiles, videoFile, logoFile)
+	if correct := pkg.ValidateUUID(spectrumId); !correct {
+		return emptySpectrum, &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
+	}
 
+	validationErr := s.validateSpectrumData(name, shortDescription, description, status, imageFiles, videoFile, logoFile)
 	if validationErr != nil {
-		return emptyMedia, validationErr
+		return emptySpectrum, validationErr
 	}
 
 	media, mediaErr := s.uploadMediaForSpectrum(spectrumId, logoFile, videoFile, imageFiles)
-
 	if mediaErr != nil {
-		return emptyMedia, serverErr
+		return emptySpectrum, serverErr
 	}
 
-	updationErr := s.repo.UpdateSpectrum(spectrumId, name, shortDescription, description, status, media.LogoUrl, media.VideoUrl, media.ImageUrls)
+	newSpectrum, updationErr := s.repo.UpdateSpectrum(spectrumId,
+		name,
+		shortDescription,
+		description,
+		status,
+		media.LogoUrl,
+		media.VideoUrl,
+		media.ImageUrls,
+	)
 
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
-		return emptyMedia, &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
+		return emptySpectrum, &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
 	} else if updationErr != nil {
-		return emptyMedia, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
-	return entity.SpectrumUpdateMediaEntity{LogoUrl: media.LogoUrl, VideoUrl: media.VideoUrl, ImagesUrls: media.ImageUrls}, nil
+	return newSpectrum, nil
 
 }
 

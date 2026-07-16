@@ -125,7 +125,7 @@ func (s SpectrumHandlers) UpdateSpectrum(ctx *gin.Context) {
 		videoFile = videoFileForm[0]
 	}
 
-	updatedMedia, err := s.usecases.UpdateSpectrum(
+	newSpectrum, err := s.usecases.UpdateSpectrum(
 		spectrumIdForm[0],
 		name,
 		shortDes,
@@ -139,24 +139,8 @@ func (s SpectrumHandlers) UpdateSpectrum(ctx *gin.Context) {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Spectrum has been updated", "spectrum": newSpectrum})
 
-		json := map[string]any{}
-
-		if updatedMedia.LogoUrl != nil {
-			json["logo_url"] = updatedMedia.LogoUrl
-		}
-		if updatedMedia.VideoUrl != nil {
-			json["video_url"] = updatedMedia.VideoUrl
-		}
-		if len(updatedMedia.ImagesUrls) != 0 {
-			json["image_urls"] = updatedMedia.ImagesUrls
-		}
-
-		if len(json) != 0 {
-			ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Spectrum has been updated", "updated_media": json})
-		} else {
-			ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Spectrum has been updated"})
-		}
 	}
 }
 

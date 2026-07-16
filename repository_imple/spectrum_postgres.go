@@ -3,6 +3,7 @@ package repositoryimple
 import (
 	"espectro/entity"
 	"espectro/enums"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
@@ -31,41 +32,43 @@ func (s SpectrumPostgresRepo) UpdateSpectrum(
 	logoUrl *string,
 	videoUrl *string,
 	imageUrls []string,
-) error {
+) (entity.SpectrumEntity, error) {
 
-	data := map[string]any{}
+	var newSpectrum entity.SpectrumEntity
+	var pgImageUrls pq.StringArray
 
-	if name != nil {
-		data["name"] = *(name)
-	}
-	if shortDescription != nil {
-		data["short_description"] = *(shortDescription)
-	}
-	if description != nil {
-		data["description"] = *(description)
-	}
-	if status != nil {
-		data["status"] = *(status)
-	}
-	if logoUrl != nil {
-		data["logo_url"] = *(logoUrl)
-	}
-	if videoUrl != nil {
-		data["video_url"] = *(videoUrl)
-	}
-	if imageUrls != nil {
-		data["image_urls"] = pq.StringArray(imageUrls)
+	if len(imageUrls) != 0 {
+		pgImageUrls = pq.StringArray(imageUrls)
 	}
 
-	out := s.db.Table("spectrums").Where("id=? AND deleted_at IS NULL", spectrumId).Updates(data)
+	out := s.db.
+		Table("spectrums").
+		Raw(`UPDATE spectrums SET 
+		name=COALESCE(?,name),
+		short_description=COALESCE(?,short_description),
+		description=COALESCE(?,description),
+		status=COALESCE(?,status),
+		logo_url=COALESCE(?,logo_url),
+		video_url=COALESCE(?,video_url),
+		image_urls=COALESCE(?,image_urls) 
+
+		WHERE id=? AND deleted_at IS NULL
+
+		RETURNING id,name,short_description,description,status,logo_url,video_url,image_urls,created_at
+		`,
+			name, shortDescription, description, status, logoUrl, videoUrl, pgImageUrls, spectrumId,
+		).
+		Scan(&newSpectrum)
+
+	fmt.Println("Row affected : ", out.RowsAffected)
 
 	if out.Error != nil {
-		return out.Error
+		return newSpectrum, out.Error
 	} else if out.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return newSpectrum, gorm.ErrRecordNotFound
 	}
 
-	return nil
+	return newSpectrum, nil
 }
 
 func (s SpectrumPostgresRepo) DeleteSpectrum(spectrumId string) error {

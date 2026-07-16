@@ -9,7 +9,7 @@ import (
 )
 
 type SpectrumEntity struct {
-	Id               uuid.UUID            `json:"id" gorm:"type uuid;primaryKey"`
+	Id               uuid.UUID            `json:"id" gorm:"column:id;type uuid;primaryKey"`
 	Name             string               `json:"name" gorm:"column:name"`
 	ShortDescription string               `json:"short_description" gorm:"column:short_description"`
 	Description      string               `json:"description" gorm:"column:description"`
@@ -18,7 +18,7 @@ type SpectrumEntity struct {
 	Status           enums.SpectrumStatus `json:"status" gorm:"column:status"`
 	VideoUrl         *string              `json:"video_url" gorm:"column:video_url"`
 	TotalEvents      int                  `json:"total_events" gorm:"column:total_events"`
-	CreatedAt        *time.Time           `json:"created_at" gorm:"type:timestampz;default:now()"`
+	CreatedAt        *time.Time           `json:"created_at" gorm:"column:created_at;type:timestampz;default:now()"`
 }
 
 type SpectrumUpdateMediaEntity struct {
