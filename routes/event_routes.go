@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"espectro/database"
 	"espectro/enums"
 	"espectro/handlers"
 	"espectro/middlewares"
@@ -17,8 +18,8 @@ func RegisterEventRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	venueRepo := repositoryimple.NewVenuePostgresRepo(db)
 	spectrumRepo := repositoryimple.NewSpectrumPostgresRepo(db)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
-
-	eventUsecases := usecases.NewEventUsecases(eventRepo, spectrumRepo, venueRepo)
+	transactionManager := database.NewTransactionManager(db)
+	eventUsecases := usecases.NewEventUsecases(eventRepo, spectrumRepo, venueRepo, transactionManager)
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
 
 	eventHandlers := handlers.NewEventHandlers(eventUsecases)

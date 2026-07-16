@@ -3,6 +3,7 @@ package usecases
 import (
 	"errors"
 	customerrors "espectro/custom_errors"
+	"espectro/database"
 	"espectro/entity"
 	"espectro/enums"
 	"espectro/pkg"
@@ -17,10 +18,20 @@ type EventUsecases struct {
 	eventRepo    repository.EventRepo
 	spectrumRepo repository.SpectrumRepo
 	venueRepo    repository.VenueRepo
+	transaction  database.TransactionManager
 }
 
-func NewEventUsecases(eventRepo repository.EventRepo, spectrumRepo repository.SpectrumRepo, venueRepo repository.VenueRepo) EventUsecases {
-	return EventUsecases{eventRepo: eventRepo, spectrumRepo: spectrumRepo, venueRepo: venueRepo}
+func NewEventUsecases(
+	eventRepo repository.EventRepo,
+	spectrumRepo repository.SpectrumRepo,
+	venueRepo repository.VenueRepo,
+	transaction database.TransactionManager,
+) EventUsecases {
+	return EventUsecases{eventRepo: eventRepo,
+		spectrumRepo: spectrumRepo,
+		venueRepo:    venueRepo,
+		transaction:  transaction,
+	}
 }
 
 func (e EventUsecases) CreateEvent(event entity.EventCreateEntity) (entity.EventEntity, error) {
@@ -44,24 +55,39 @@ func (e EventUsecases) CreateEvent(event entity.EventCreateEntity) (entity.Event
 
 	startDate, _ := pkg.ParseTime(*event.StartDate)
 	endDate, _ := pkg.ParseTime(*event.EndDate)
-	newEvent, insertionErr := e.eventRepo.CreateEvent(entity.EventEntity{
-		Name:             event.Name,
-		Description:      event.Description,
-		SpectrumId:       event.SpectrumId,
-		Status:           event.Status,
-		ParticipantLimit: event.ParticipantLimit,
-		StartDate:        &startDate,
-		EndDate:          &endDate,
-		EventMode:        event.EventMode,
-		EventType:        event.EventType,
-		IsFeatured:       event.IsFeatured,
-		ContactEmail:     event.ContactEmail,
-		VenueId:          event.VenueId,
+
+	var newEvent entity.EventEntity
+
+	transactionErr := e.transaction.Run(func() error {
+
+		insertedEvent, insertionErr := e.eventRepo.CreateEvent(entity.EventEntity{
+			Name:             event.Name,
+			Description:      event.Description,
+			SpectrumId:       event.SpectrumId,
+			Status:           event.Status,
+			ParticipantLimit: event.ParticipantLimit,
+			StartDate:        &startDate,
+			EndDate:          &endDate,
+			EventMode:        event.EventMode,
+			EventType:        event.EventType,
+			IsFeatured:       event.IsFeatured,
+			ContactEmail:     event.ContactEmail,
+			VenueId:          event.VenueId,
+		})
+		if insertionErr != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+
+		incrementErr := e.spectrumRepo.IncrementTotalEventsCount(event.SpectrumId)
+
+		if incrementErr != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		newEvent = insertedEvent
+		return nil
 	})
-	if insertionErr != nil {
-		return entity.EventEntity{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-	}
-	return newEvent, nil
+
+	return newEvent, transactionErr
 
 }
 
