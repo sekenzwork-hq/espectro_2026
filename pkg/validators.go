@@ -253,7 +253,7 @@ func ValidateName(name string) error {
 		return errors.New("Length of name should be less than or equal to 100")
 	}
 
-	reg := getRegxForSpaceAndCharacters()
+	reg := regexp.MustCompile(`[a-zA-Z0-9]`)
 
 	correct := reg.MatchString(strings.TrimSpace(name))
 
