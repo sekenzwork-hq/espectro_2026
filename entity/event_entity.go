@@ -6,7 +6,7 @@ import (
 )
 
 type EventEntity struct {
-	Id               string            `json:"id" gorm:"type uuid;default:gen_random_uuid();primaryKey"`
+	Id               string            `json:"id" gorm:"column:id;type uuid;default:gen_random_uuid();primaryKey"`
 	Name             string            `json:"name" gorm:"column:name"`
 	Description      string            `json:"description" gorm:"column:description"`
 	SpectrumId       string            `json:"spectrum_id" gorm:"column:spectrum_id"`
@@ -19,7 +19,7 @@ type EventEntity struct {
 	IsFeatured       bool              `json:"is_featured" gorm:"column:is_featured"`
 	ContactEmail     string            `json:"contact_email" gorm:"contact_email"`
 	VenueId          string            `json:"venue_id" gorm:"column:venue_id"`
-	CreatedAt        *time.Time        `json:"created_at" gorm:"type timestampz;default:now()"`
+	CreatedAt        *time.Time        `json:"created_at" gorm:"column:created_at;type timestampz;default:now()"`
 }
 
 type EventCreateEntity struct {

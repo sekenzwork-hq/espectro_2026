@@ -7,6 +7,7 @@ import (
 	"espectro/enums"
 	"espectro/pkg"
 	"espectro/repository"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -35,7 +36,6 @@ func (e EventUsecases) CreateEvent(event entity.EventCreateEntity) (entity.Event
 		&event.EventType,
 		&event.Status,
 		&event.ContactEmail,
-		&event.IsFeatured,
 	)
 
 	if err != nil {
@@ -85,7 +85,6 @@ func (e EventUsecases) UpdateEvent(event entity.EventUpdateEntity) (entity.Event
 		event.EventType,
 		event.Status,
 		event.ContactEmail,
-		event.IsFeatured,
 	)
 
 	if validationErr != nil {
@@ -138,7 +137,6 @@ func (e EventUsecases) validateEventDetailsAndCheckExistence(name *string,
 	eventType *enums.EventType,
 	status *enums.EventStatus,
 	contactEmail *string,
-	isFeatured *bool,
 
 ) error {
 
@@ -189,13 +187,14 @@ func (e EventUsecases) validateEventDetailsAndCheckExistence(name *string,
 		parsedEndTime = &time
 	}
 
-	if parsedStartTime != nil && parsedEndTime != nil {
+	if parsedStartTime != nil {
 
 		year, month, day := parsedStartTime.Date()
+		fmt.Printf("Year : %d, month : %d, day : %d\n", year, month, day)
 		now := time.Now()
 		if year < now.Year() || month < now.Month() || day < now.Day() {
 			return &customerrors.ValidationError{OrgError: "Start date should be today or after today"}
-		} else if parsedStartTime.After(*parsedEndTime) {
+		} else if parsedEndTime != nil && parsedStartTime.After(*parsedEndTime) {
 			return &customerrors.ValidationError{OrgError: "Start date should be on same day as end date or before end date"}
 		}
 	}

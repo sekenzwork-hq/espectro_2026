@@ -32,18 +32,30 @@ func (e EventPostgresRepo) UpdateEvent(eventId string, newEvent entity.EventUpda
 			description=COALESCE(?,description),
 			spectrum_id=COALESCE(?,spectrum_id),
 			status=COALESCE(?,status),
-			limit=COALESCE(?,limit),
+			participant_limit=COALESCE(?,participant_limit),
 			start_date=COALESCE(?,start_date),
 			end_date=COALESCE(?,end_date),
 			event_mode=COALESCE(?,event_mode),
 			event_type=COALESCE(?,event_type),
 			is_featured=COALESCE(?,is_featured),
 			contact_email=COALESCE(?,contact_email),
-			venue_id=COALESCE(?,venue_id) 
+			venue_id=COALESCE(?,venue_id) WHERE id=? AND deleted_at IS NULL
 
 			RETURNING 
-		    name,description,spectrum_id,status,limit,start_date,end_date,event_mode,event_type,is_featured,contact_email,venue_id
-			`,
+		    id,name,description,spectrum_id,status,participant_limit,start_date,end_date,event_mode,event_type,is_featured,contact_email,venue_id,created_at
+			`, newEvent.Name,
+			newEvent.Description,
+			newEvent.SpectrumId,
+			newEvent.Status,
+			newEvent.ParticipantLimit,
+			newEvent.StartDate,
+			newEvent.EndDate,
+			newEvent.EventMode,
+			newEvent.EventType,
+			newEvent.IsFeatured,
+			newEvent.ContactEmail,
+			newEvent.VenueId,
+			eventId,
 		).
 		Scan(&event)
 
