@@ -26,7 +26,7 @@ func (v VenueHandlers) CreateVenue(ctx *gin.Context) {
 		return
 	}
 
-	venueId, err := v.usecases.CreateVenue(venue)
+	newVenue, err := v.usecases.CreateVenue(venue)
 
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
@@ -34,7 +34,7 @@ func (v VenueHandlers) CreateVenue(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Venue has been created", "id": venueId})
+	ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Venue has been created", "venue": newVenue})
 
 }
 
@@ -62,13 +62,13 @@ func (v VenueHandlers) UpdateVenue(ctx *gin.Context) {
 		return
 	}
 
-	err := v.usecases.UpdateVenue(newVenue.Id, newVenue)
+	venue, err := v.usecases.UpdateVenue(newVenue.Id, newVenue)
 
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Venue has been updated"})
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Venue has been updated", "venue": venue})
 	}
 }
 

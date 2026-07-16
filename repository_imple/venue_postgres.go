@@ -4,7 +4,6 @@ import (
 	"espectro/entity"
 	"time"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,11 +15,11 @@ func NewVenuePostgresRepo(db *gorm.DB) VenuePostgresRepo {
 	return VenuePostgresRepo{db: db}
 }
 
-func (v VenuePostgresRepo) CreateVenue(venue entity.VenueEntity) (uuid.UUID, error) {
+func (v VenuePostgresRepo) CreateVenue(venue entity.VenueEntity) (entity.VenueEntity, error) {
 	err := v.db.
 		Table("venue").
 		Create(&venue).Error
-	return venue.Id, err
+	return venue, err
 }
 
 func (v VenuePostgresRepo) DeleteVenue(venueId string) error {
@@ -39,31 +38,26 @@ func (v VenuePostgresRepo) DeleteVenue(venueId string) error {
 	return nil
 }
 
-func (v VenuePostgresRepo) UpdateVenue(venueId string, country *string, state *string, city *string) error {
+func (v VenuePostgresRepo) UpdateVenue(venueId string, country *string, state *string, city *string) (entity.VenueEntity, error) {
 
-	data := map[string]any{}
-	if country != nil {
-		data["country"] = *country
-	}
-	if state != nil {
-		data["state"] = *state
-	}
-	if city != nil {
-		data["city"] = *city
-	}
-
+	var entity entity.VenueEntity
 	out := v.db.
-		Table("venue").
-		Where("id=? AND deleted_at IS NULL", venueId).
-		Updates(data)
+		Raw(`UPDATE venue SET 
+	country=COALESCE(?,country),
+	state=COALESCE(?,state),
+	city=COALESCE(?,city) 
+	WHERE id=? AND deleted_at IS NULL
+	RETURNING id,country,state,city,created_at
+	`, country, state, city, venueId,
+		).Scan(&entity)
 
 	if out.Error != nil {
-		return out.Error
+		return entity, out.Error
 	} else if out.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return entity, gorm.ErrRecordNotFound
 	}
 
-	return nil
+	return entity, nil
 }
 
 func (v VenuePostgresRepo) RetrieveVenue(offset int, limit int) ([]entity.VenueEntity, error) {
