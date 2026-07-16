@@ -33,7 +33,7 @@ func (e EventHandlers) CreateEvent(ctx *gin.Context) {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Event has been created", "id": event.Id, "created_at": event.CreatedAt})
+		ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Event has been created", "event": event})
 	}
 }
 
@@ -46,13 +46,12 @@ func (e EventHandlers) UpdateEvent(ctx *gin.Context) {
 		return
 	}
 
-	err := e.usecases.UpdateEvent(entity)
-
+	newEvent, err := e.usecases.UpdateEvent(entity)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Event has been updated"})
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Event has been updated", "event": newEvent})
 	}
 
 }
@@ -62,7 +61,6 @@ func (e EventHandlers) DeleteEvent(ctx *gin.Context) {
 	eventId := ctx.Query("event_id")
 
 	err := e.usecases.DeleteEvent(eventId)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})

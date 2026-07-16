@@ -21,19 +21,39 @@ func (e EventPostgresRepo) CreateEvent(event entity.EventEntity) (entity.EventEn
 	return event, err
 }
 
-func (e EventPostgresRepo) UpdateEvent(eventId string, newEvent entity.EventUpdateEntity) error {
+func (e EventPostgresRepo) UpdateEvent(eventId string, newEvent entity.EventUpdateEntity) (entity.EventEntity, error) {
+
+	var event entity.EventEntity
+
 	out := e.db.
-		Table("events").
-		Where("id=? AND deleted_at IS NULL", eventId).
-		Updates(&newEvent)
+		Raw(
+			`UPDATE events SET 
+			name=COALESCE(?,name),
+			description=COALESCE(?,description),
+			spectrum_id=COALESCE(?,spectrum_id),
+			status=COALESCE(?,status),
+			limit=COALESCE(?,limit),
+			start_date=COALESCE(?,start_date),
+			end_date=COALESCE(?,end_date),
+			event_mode=COALESCE(?,event_mode),
+			event_type=COALESCE(?,event_type),
+			is_featured=COALESCE(?,is_featured),
+			contact_email=COALESCE(?,contact_email),
+			venue_id=COALESCE(?,venue_id) 
+
+			RETURNING 
+		    name,description,spectrum_id,status,limit,start_date,end_date,event_mode,event_type,is_featured,contact_email,venue_id
+			`,
+		).
+		Scan(&event)
 
 	if out.Error != nil {
-		return out.Error
+		return event, out.Error
 	} else if out.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	} else {
-		return nil
+		return event, gorm.ErrRecordNotFound
 	}
+	return event, nil
+
 }
 
 func (e EventPostgresRepo) DeleteEvent(eventId string) error {

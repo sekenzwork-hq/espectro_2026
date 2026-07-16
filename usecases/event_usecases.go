@@ -24,25 +24,40 @@ func NewEventUsecases(eventRepo repository.EventRepo, spectrumRepo repository.Sp
 
 func (e EventUsecases) CreateEvent(event entity.EventCreateEntity) (entity.EventEntity, error) {
 
-	eventToInsert, err := e.validateEventDetailsAndCheckExistence(event.Name,
-		event.Description,
-		event.SpectrumId,
-		event.VenueId,
+	err := e.validateEventDetailsAndCheckExistence(&event.Name,
+		&event.Description,
+		&event.SpectrumId,
+		&event.VenueId,
 		event.ParticipantLimit,
 		event.StartDate,
 		event.EndDate,
-		event.EventMode,
-		event.EventType,
-		event.Status,
-		event.ContactEmail,
-		event.IsFeatured,
+		&event.EventMode,
+		&event.EventType,
+		&event.Status,
+		&event.ContactEmail,
+		&event.IsFeatured,
 	)
 
 	if err != nil {
 		return entity.EventEntity{}, err
 	}
 
-	newEvent, insertionErr := e.eventRepo.CreateEvent(eventToInsert)
+	startDate, _ := pkg.ParseTime(*event.StartDate)
+	endDate, _ := pkg.ParseTime(*event.EndDate)
+	newEvent, insertionErr := e.eventRepo.CreateEvent(entity.EventEntity{
+		Name:             event.Name,
+		Description:      event.Description,
+		SpectrumId:       event.SpectrumId,
+		Status:           event.Status,
+		ParticipantLimit: event.ParticipantLimit,
+		StartDate:        &startDate,
+		EndDate:          &endDate,
+		EventMode:        event.EventMode,
+		EventType:        event.EventType,
+		IsFeatured:       event.IsFeatured,
+		ContactEmail:     event.ContactEmail,
+		VenueId:          event.VenueId,
+	})
 	if insertionErr != nil {
 		return entity.EventEntity{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
@@ -50,14 +65,15 @@ func (e EventUsecases) CreateEvent(event entity.EventCreateEntity) (entity.Event
 
 }
 
-func (e EventUsecases) UpdateEvent(event entity.EventUpdateEntity) error {
+func (e EventUsecases) UpdateEvent(event entity.EventUpdateEntity) (entity.EventEntity, error) {
 
+	emptyEvent := entity.EventEntity{}
 	if !pkg.ValidateUUID(event.Id) {
 
-		return &customerrors.ValidationError{OrgError: "Invalid event id"}
+		return emptyEvent, &customerrors.ValidationError{OrgError: "Invalid event id"}
 	}
 
-	_, validationErr := e.validateEventDetailsAndCheckExistence(
+	validationErr := e.validateEventDetailsAndCheckExistence(
 		event.Name,
 		event.Description,
 		event.SpectrumId,
@@ -73,18 +89,18 @@ func (e EventUsecases) UpdateEvent(event entity.EventUpdateEntity) error {
 	)
 
 	if validationErr != nil {
-		return validationErr
+		return emptyEvent, validationErr
 	}
 
-	updationErr := e.eventRepo.UpdateEvent(event.Id, event)
+	newEvent, updationErr := e.eventRepo.UpdateEvent(event.Id, event)
 
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Event does not exist"}
+		return emptyEvent, &customerrors.NotFoundError{OrgError: "Event does not exist"}
 	} else if updationErr != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptyEvent, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
-	return nil
+	return newEvent, nil
 }
 
 func (e EventUsecases) DeleteEvent(eventId string) error {
@@ -94,7 +110,6 @@ func (e EventUsecases) DeleteEvent(eventId string) error {
 	}
 
 	err := e.eventRepo.DeleteEvent(eventId)
-
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &customerrors.NotFoundError{OrgError: "Event does not exist"}
 	}
@@ -105,60 +120,61 @@ func (e EventUsecases) DeleteEvent(eventId string) error {
 func (e EventUsecases) RetrieveEvents(limit int, page int) ([]entity.EventEntity, error) {
 
 	offset := pkg.GetOffset(limit, page)
-
 	events, err := e.eventRepo.RetrieveEvents(limit, offset)
-
 	if err != nil {
 		return events, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
 	return events, nil
 }
-func (e EventUsecases) validateEventDetailsAndCheckExistence(name string,
-	description string,
-	spectrumId string,
-	venueId string,
+func (e EventUsecases) validateEventDetailsAndCheckExistence(name *string,
+	description *string,
+	spectrumId *string,
+	venueId *string,
 	participantLimit *int,
 	startDate *string,
 	endDate *string,
-	eventMode enums.EventMode,
-	eventType enums.EventType,
-	status enums.EventStatus,
-	contactEmail string,
-	isFeatured bool,
+	eventMode *enums.EventMode,
+	eventType *enums.EventType,
+	status *enums.EventStatus,
+	contactEmail *string,
+	isFeatured *bool,
 
-) (entity.EventEntity, error) {
+) error {
 
-	emptyEntity := entity.EventEntity{}
-
-	nameErr := pkg.ValidateSpectrumOrEventName(name)
-	if nameErr != nil {
-		return emptyEntity, nameErr
+	if name != nil {
+		nameErr := pkg.ValidateSpectrumOrEventName(*name)
+		if nameErr != nil {
+			return nameErr
+		}
 	}
 
-	descriptionErr := pkg.ValidateSpectrumOrEventDescription(description)
-	if descriptionErr != nil {
-		return emptyEntity, descriptionErr
+	if description != nil {
+
+		descriptionErr := pkg.ValidateSpectrumOrEventDescription(*description)
+		if descriptionErr != nil {
+			return descriptionErr
+		}
 	}
 
-	isSpectrumIdCorrect := pkg.ValidateUUID(spectrumId)
-	if !isSpectrumIdCorrect {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
+	if spectrumId != nil && !pkg.ValidateUUID(*spectrumId) {
+		return &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
 	}
 
-	if !status.IsValid() {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid event status"}
+	if status != nil && !status.IsValid() {
+		return &customerrors.ValidationError{OrgError: "Invalid event status"}
+
 	}
 
 	if participantLimit != nil && *(participantLimit) < 0 {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid participant limit"}
+		return &customerrors.ValidationError{OrgError: "Invalid participant limit"}
 	}
 
 	var parsedStartTime *time.Time
 	if startDate != nil {
 		time, err := pkg.ParseTime(*startDate)
 		if err != nil {
-			return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid start date"}
+			return &customerrors.ValidationError{OrgError: "Invalid start date"}
 		}
 		parsedStartTime = &time
 
@@ -168,7 +184,7 @@ func (e EventUsecases) validateEventDetailsAndCheckExistence(name string,
 	if endDate != nil {
 		time, err := pkg.ParseTime(*(endDate))
 		if err != nil {
-			return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid end date"}
+			return &customerrors.ValidationError{OrgError: "Invalid end date"}
 		}
 		parsedEndTime = &time
 	}
@@ -178,58 +194,48 @@ func (e EventUsecases) validateEventDetailsAndCheckExistence(name string,
 		year, month, day := parsedStartTime.Date()
 		now := time.Now()
 		if year < now.Year() || month < now.Month() || day < now.Day() {
-			return emptyEntity, &customerrors.ValidationError{OrgError: "Start date should be today or after today"}
+			return &customerrors.ValidationError{OrgError: "Start date should be today or after today"}
 		} else if parsedStartTime.After(*parsedEndTime) {
-			return emptyEntity, &customerrors.ValidationError{OrgError: "Start date should be on same day as end date or before end date"}
+			return &customerrors.ValidationError{OrgError: "Start date should be on same day as end date or before end date"}
 		}
 	}
 
-	if !eventMode.IsValid() {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid event mode"}
+	if eventMode != nil && !eventMode.IsValid() {
+		return &customerrors.ValidationError{OrgError: "Invalid event mode"}
 	}
 
-	if !eventType.IsValid() {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid event type"}
+	if eventType != nil && !eventType.IsValid() {
+		return &customerrors.ValidationError{OrgError: "Invalid event type"}
 	}
 
-	if !pkg.ValidateEmail(contactEmail) {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid contact email"}
+	if contactEmail != nil && !pkg.ValidateEmail(*contactEmail) {
+		return &customerrors.ValidationError{OrgError: "Invalid contact email"}
 	}
 
-	if !pkg.ValidateUUID(venueId) {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid venue id"}
+	if venueId != nil && !pkg.ValidateUUID(*venueId) {
+		return &customerrors.ValidationError{OrgError: "Invalid venue id"}
 	}
 
-	spectrumExists, spectrumExistenceErr := e.spectrumRepo.CheckSpectrumExists(spectrumId)
+	if spectrumId != nil {
+		spectrumExists, spectrumExistenceErr := e.spectrumRepo.CheckSpectrumExists(*spectrumId)
 
-	if spectrumExistenceErr != nil {
-		return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-	} else if !spectrumExists {
-		return emptyEntity, &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
+		if spectrumExistenceErr != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		} else if !spectrumExists {
+			return &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
+		}
 	}
 
-	venueExists, venueExistanceErr := e.venueRepo.CheckVenueExists(venueId)
+	if venueId != nil {
+		venueExists, venueExistanceErr := e.venueRepo.CheckVenueExists(*venueId)
 
-	if venueExistanceErr != nil {
-		return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-	} else if !venueExists {
-		return emptyEntity, &customerrors.NotFoundError{OrgError: "Venue does not exist"}
+		if venueExistanceErr != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		} else if !venueExists {
+			return &customerrors.NotFoundError{OrgError: "Venue does not exist"}
+		}
+
 	}
 
-	eventToInsert := entity.EventEntity{
-		Name:             name,
-		Description:      description,
-		SpectrumId:       spectrumId,
-		Status:           status,
-		EventMode:        eventMode,
-		EventType:        eventType,
-		ParticipantLimit: participantLimit,
-		StartDate:        parsedStartTime,
-		EndDate:          parsedEndTime,
-		IsFeatured:       isFeatured,
-		ContactEmail:     contactEmail,
-		VenueId:          venueId,
-	}
-
-	return eventToInsert, nil
+	return nil
 }
