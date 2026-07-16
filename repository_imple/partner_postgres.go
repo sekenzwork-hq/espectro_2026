@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type PartnerPostgresRepo struct {
@@ -26,29 +25,13 @@ func (p PartnerPostgresRepo) AddPartner(partner entity.PartnerEntity) (entity.Pa
 
 func (p PartnerPostgresRepo) UpdatePartner(partnerId string, name *string, logoUrl *string) (entity.PartnerEntity, error) {
 
-	data := map[string]any{}
-
-	if logoUrl != nil {
-		data["logo_url"] = logoUrl
-	}
-	if name != nil {
-		data["name"] = *name
-	}
-
 	var newPartner entity.PartnerEntity
 
 	out := p.db.
-		Table("partners").
-		Where("id=? AND deleted_at IS NULL", partnerId).
-		Clauses(clause.Returning{
-			Columns: []clause.Column{
-				{Name: "id"},
-				{Name: "name"},
-				{Name: "logo_url"},
-				{Name: "created_at"},
-			},
-		}).
-		Updates(data).
+		Raw(`UPDATE partners 
+		SET name = COALESCE(?,name), 
+		    logo_url = COALESCE(?,logo_url)
+		WHERE id=? AND deleted_at IS NULL RETURNING id,name,logo_url,created_at`, name, logoUrl, partnerId).
 		Scan(&newPartner)
 
 	if out.Error != nil {

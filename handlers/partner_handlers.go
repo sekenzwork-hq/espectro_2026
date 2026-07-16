@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"espectro/entity"
 	"espectro/pkg"
 	"espectro/usecases"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,19 +33,26 @@ func (p PartnerHandlers) AddPartner(ctx *gin.Context) {
 
 func (p PartnerHandlers) UpdatePartner(ctx *gin.Context) {
 
-	var entity entity.PartnerUpdateEntity
-	canGo := pkg.ParseJson(ctx, &entity)
-	if !canGo {
-		return
-	}
+	var name *string
+	var logo *multipart.FileHeader
 
-	err := p.usecases.UpdatePartner(entity)
+	nameForm := ctx.PostForm("name")
+	logoForm, _ := ctx.FormFile("logo")
+	partnerId := ctx.PostForm("partner_id")
+
+	if len(nameForm) != 0 {
+		name = &nameForm
+	}
+	if logoForm != nil {
+		logo = logoForm
+	}
+	newPartner, err := p.usecases.UpdatePartner(partnerId, name, logo)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Partner has been updated"})
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Partner has been updated", "partner": newPartner})
 
 }
 

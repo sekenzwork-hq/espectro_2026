@@ -22,11 +22,13 @@ func (m MediaCloudinaryRepo) UploadFiles(imageFiles []*multipart.FileHeader, fol
 	urls := []string{}
 	ctx := context.Background()
 
+	b := true
 	for i := range imageFiles {
 
 		image := imageFiles[i]
 		res, err := m.cld.Upload.Upload(ctx, image, uploader.UploadParams{
-			Folder: folderId,
+			Folder:    folderId,
+			Overwrite: &b,
 		})
 		if err != nil {
 			return []string{}, err
@@ -40,8 +42,10 @@ func (m MediaCloudinaryRepo) UploadFile(imageFile *multipart.FileHeader, folderI
 
 	ctx := context.TODO()
 
+	b := true
 	res, err := m.cld.Upload.Upload(ctx, imageFile, uploader.UploadParams{
-		Folder: folderId,
+		Folder:    folderId,
+		Overwrite: &b,
 	})
 
 	return res.SecureURL, err
