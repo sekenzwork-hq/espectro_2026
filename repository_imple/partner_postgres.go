@@ -27,9 +27,6 @@ func (p PartnerPostgresRepo) UpdatePartner(partner entity.PartnerUpdateEntity) e
 
 	data := map[string]any{}
 
-	if partner.Amount != nil {
-		data["amount"] = *partner.Amount
-	}
 	if partner.LogoUrl != nil {
 		data["logo_url"] = *partner.LogoUrl
 	}
@@ -65,4 +62,20 @@ func (p PartnerPostgresRepo) DeletePartner(partnerId string) error {
 	}
 
 	return nil
+}
+
+func (p PartnerPostgresRepo) RetrievePartner(limit int, offset int) ([]entity.PartnerEntity, error) {
+
+	var partners []entity.PartnerEntity
+
+	err := p.db.
+		Table("partners").
+		Select("id,name,logo_url,created_at").
+		Where("deleted_at IS NULL").
+		Limit(limit).
+		Offset(offset).
+		Scan(&partners).Error
+
+	return partners, err
+
 }

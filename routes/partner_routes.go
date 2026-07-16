@@ -26,4 +26,5 @@ func RegisterPartnerRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	partnerApi.POST("/create", leaderAndMemberMiddleware.AdminMiddleWare, handlers.AddPartner)
 	partnerApi.PATCH("/update", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdatePartner)
 	partnerApi.DELETE("/delete", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeletePartner)
+	partnerApi.GET("", handlers.RetrievePartner)
 }

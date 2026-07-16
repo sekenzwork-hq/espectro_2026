@@ -68,3 +68,18 @@ func (p PartnerHandlers) DeletePartner(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Partner has been deleted"})
 
 }
+
+func (p PartnerHandlers) RetrievePartner(ctx *gin.Context) {
+
+	limit, page := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+
+	partners, err := p.usecases.RetrievePartner(limit, page)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "partners": partners})
+}
