@@ -19,7 +19,7 @@ func NewVenueUsecases(repo repository.VenueRepo) VenueUsecases {
 	return VenueUsecases{repo: repo}
 }
 
-func (v VenueUsecases) CreateVenue(venue entity.VenueFromJsonEntity) (uuid.UUID, error) {
+func (v VenueUsecases) CreateVenue(venue entity.VenueCreateEntity) (uuid.UUID, error) {
 
 	emptyUUID := uuid.UUID{}
 	isCountryCorrect := pkg.ValidateCountryOrState(venue.Country)

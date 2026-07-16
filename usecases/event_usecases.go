@@ -22,7 +22,7 @@ func NewEventUsecases(eventRepo repository.EventRepo, spectrumRepo repository.Sp
 	return EventUsecases{eventRepo: eventRepo, spectrumRepo: spectrumRepo, venueRepo: venueRepo}
 }
 
-func (e EventUsecases) CreateEvent(event entity.EventFromJsonEntity) (entity.EventEntity, error) {
+func (e EventUsecases) CreateEvent(event entity.EventCreateEntity) (entity.EventEntity, error) {
 
 	eventToInsert, err := e.validateEventDetailsAndCheckExistence(event.Name,
 		event.Description,

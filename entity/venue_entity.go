@@ -14,7 +14,7 @@ type VenueEntity struct {
 	CreatedAt time.Time `json:"created_at" gorm:"column:created_at"`
 }
 
-type VenueFromJsonEntity struct {
+type VenueCreateEntity struct {
 	Country string `json:"country"`
 	State   string `json:"state"`
 	City    string `json:"city"`

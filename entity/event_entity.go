@@ -22,7 +22,7 @@ type EventEntity struct {
 	CreatedAt        *time.Time        `json:"created_at" gorm:"type timestampz;default:now()"`
 }
 
-type EventFromJsonEntity struct {
+type EventCreateEntity struct {
 	Name             string            `json:"name"`
 	Description      string            `json:"description"`
 	SpectrumId       string            `json:"spectrum_id"`

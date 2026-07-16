@@ -19,20 +19,36 @@ func NewPartnerHandlers(usecases usecases.PartnerUsecases) PartnerHandlers {
 
 func (p PartnerHandlers) AddPartner(ctx *gin.Context) {
 
-	var entity entity.PartnerFromJsonEntity
+	var entity entity.PartnerCreateEntity
 	canGo := pkg.ParseJson(ctx, &entity)
-
 	if !canGo {
 		return
 	}
 
 	partner, err := p.usecases.AddPartner(entity)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Partner has been added", "id": partner.Id, "created_at": partner.CreatedAt})
 	}
+
+}
+
+func (p PartnerHandlers) UpdatePartner(ctx *gin.Context) {
+
+	var entity entity.PartnerUpdateEntity
+	canGo := pkg.ParseJson(ctx, &entity)
+	if !canGo {
+		return
+	}
+
+	err := p.usecases.UpdatePartner(entity)
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Partner has been updated"})
 
 }

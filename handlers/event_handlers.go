@@ -19,7 +19,7 @@ func NewEventHandlers(usecases usecases.EventUsecases) EventHandlers {
 
 func (e EventHandlers) CreateEvent(ctx *gin.Context) {
 
-	var entity entity.EventFromJsonEntity
+	var entity entity.EventCreateEntity
 
 	canGo := pkg.ParseJson(ctx, &entity)
 

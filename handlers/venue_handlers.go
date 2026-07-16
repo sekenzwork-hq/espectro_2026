@@ -19,7 +19,7 @@ func NewVenueHandlers(usecases usecases.VenueUsecases) VenueHandlers {
 
 func (v VenueHandlers) CreateVenue(ctx *gin.Context) {
 
-	var venue entity.VenueFromJsonEntity
+	var venue entity.VenueCreateEntity
 
 	canGo := pkg.ParseJson(ctx, &venue)
 	if !canGo {
