@@ -99,56 +99,6 @@ func (s SpectrumUsecases) UpdateSpectrum(
 		return emptyMedia, validationErr
 	}
 
-	baseFolder := "spectrum/" + spectrumId
-	logoFolder := "/logo"
-	imagesFolder := "/images"
-	videoFolder := "/video"
-
-	//This is for deleting the files those were uploaded previously to upload new media if the argument media is not null
-	if len(imageFiles) != 0 && logoFile != nil && videoFile != nil {
-		deletionErr := s.mediaRepo.DeleteMutiFoldersWithFiles(baseFolder, []string{logoFolder, imagesFolder, videoFolder})
-
-		if deletionErr != nil {
-			return emptyMedia, serverErr
-		}
-	} else if logoFile != nil && videoFile != nil {
-
-		deletionErr := s.mediaRepo.DeleteMutiFoldersWithFiles(baseFolder, []string{logoFolder, videoFolder})
-		if deletionErr != nil {
-			return emptyMedia, serverErr
-		}
-	} else if logoFile != nil && len(imageFiles) != 0 {
-		deletionErr := s.mediaRepo.DeleteMutiFoldersWithFiles(baseFolder, []string{logoFolder, imagesFolder})
-
-		if deletionErr != nil {
-			return emptyMedia, serverErr
-		}
-	} else if videoFile != nil && len(imageFiles) != 0 {
-		deletionErr := s.mediaRepo.DeleteMutiFoldersWithFiles(baseFolder, []string{imagesFolder, videoFolder})
-
-		if deletionErr != nil {
-			return emptyMedia, serverErr
-		}
-	} else if logoFile != nil {
-		deletionErr := s.mediaRepo.DeleteFolderWithFiles(baseFolder, logoFolder)
-
-		if deletionErr != nil {
-			return emptyMedia, serverErr
-		}
-	} else if videoFile != nil {
-		deletionErr := s.mediaRepo.DeleteFolderWithFiles(baseFolder, videoFolder)
-
-		if deletionErr != nil {
-			return emptyMedia, serverErr
-		}
-	} else if len(imageFiles) != 0 {
-		deletionErr := s.mediaRepo.DeleteFolderWithFiles(baseFolder, imagesFolder)
-
-		if deletionErr != nil {
-			return emptyMedia, serverErr
-		}
-	}
-
 	media, mediaErr := s.uploadMediaForSpectrum(spectrumId, logoFile, videoFile, imageFiles)
 
 	if mediaErr != nil {
