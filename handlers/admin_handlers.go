@@ -41,7 +41,7 @@ func (a AdminHandlers) Login(ctx *gin.Context) {
 
 func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
 
-	var newAdmin entity.AdminEntity
+	var newAdmin entity.AdminCreateEntity
 
 	canGo := pkg.ParseJson(ctx, &newAdmin)
 
@@ -78,23 +78,22 @@ func (a AdminHandlers) DeleteMemberOrVolunteer(ctx *gin.Context) {
 
 func (a AdminHandlers) UpdateCurrentAdmin(ctx *gin.Context) {
 
-	var adminEmailAndFullname entity.AdminUpdateEmailAndFullnameEntity
+	var entity entity.AdminUpdateEntity
 
-	canGo := pkg.ParseJson(ctx, &adminEmailAndFullname)
+	canGo := pkg.ParseJson(ctx, &entity)
 
 	if !canGo {
 		return
 	}
 
 	currentAdminId := ctx.GetString("admin_id")
-
-	err := a.usecases.UpdateCurrentAdmin(currentAdminId, adminEmailAndFullname.Email, adminEmailAndFullname.Fullname)
+	newAdmin, err := a.usecases.UpdateCurrentAdmin(currentAdminId, entity)
 
 	if err != nil {
 		statCode := pkg.GetStatusCodeForError(err)
 		ctx.JSON(statCode, gin.H{"status": statCode, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Updated successfully"})
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Current admin has been updated", "admin": newAdmin})
 	}
 }
 

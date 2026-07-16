@@ -1,7 +1,6 @@
 package repositoryimple
 
 import (
-	customerrors "espectro/custom_errors"
 	"espectro/entity"
 	"espectro/enums"
 
@@ -32,7 +31,7 @@ func (a AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminD
 	return cred, err
 }
 
-func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminEntity) (uuid.UUID, error) {
+func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminCreateEntity) (uuid.UUID, error) {
 	return admin.Id, a.db.
 		Table("admins").
 		Create(&admin).Error
@@ -81,43 +80,25 @@ func (a AdminPostgresRepo) CheckAdminExists(adminId string) (bool, error) {
 
 }
 
-func (a AdminPostgresRepo) UpdateCurrentAdmin(
-	adminId string,
-	newEmail string,
-	newFullname string,
-	updateMode enums.AdminUpdateMode) error {
+func (a AdminPostgresRepo) UpdateCurrentAdmin(adminId string, admin entity.AdminUpdateEntity) (entity.AdminEntity, error) {
 
-	data := map[string]any{}
-
-	switch updateMode {
-
-	case enums.EmailOnly:
-		data["email"] = newEmail
-
-	case enums.FullnameOnly:
-		data["fullname"] = newFullname
-
-	case enums.EmailAndFullname:
-		data["email"] = newEmail
-		data["fullname"] = newFullname
-
-	default:
-		return &customerrors.InvalidAdminUpdateModeError{OrgError: "Provide correct update mode"}
-
-	}
-
+	var newAdmin entity.AdminEntity
 	out := a.db.
-		Table("admins").
-		Where("id=? AND deleted_at IS NULL", adminId).
-		Updates(data)
+		Raw(
+			`
+			UPDATE admins SET fullname=COALESCE(?,fullname),email=COALESCE(?,email)
+			WHERE id=? AND deleted_at IS NULL 
+			RETURNING id,fullname,email,admin_role,created_at
+			`, admin.Fullname, admin.Email, adminId,
+		).Scan(&newAdmin)
 
 	if out.Error != nil {
-		return out.Error
+		return newAdmin, out.Error
 	} else if out.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return newAdmin, gorm.ErrRecordNotFound
 	}
 
-	return nil
+	return newAdmin, nil
 
 }
 

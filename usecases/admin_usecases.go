@@ -58,7 +58,7 @@ func (a AdminUsecases) Login(email string, password string) (string, error) {
 
 }
 
-func (a AdminUsecases) CreateNewAdmin(admin entity.AdminEntity, requestedAdminId string) (string, error) {
+func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedAdminId string) (string, error) {
 
 	var adminRole enums.AdminRole
 
@@ -78,12 +78,11 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminEntity, requestedAdminId
 	}
 
 	hashedPass, hashingErr := pkg.EncryptPassword(admin.Password)
-
 	if hashingErr != nil {
 		return "", &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
-	adminWithPasswordHashed := entity.AdminEntity{
+	adminWithPasswordHashed := entity.AdminCreateEntity{
 		Fullname: admin.Fullname,
 		Email:    admin.Email,
 		Role:     admin.Role,
@@ -107,7 +106,6 @@ func (a AdminUsecases) DeleteMemberOrVolunteer(adminId string, requestedAdminId 
 	}
 
 	deletionErr := a.repo.DeleteMemberOrVolunteer(adminId)
-
 	if errors.Is(deletionErr, gorm.ErrRecordNotFound) {
 		return &customerrors.NotFoundOrLeaderError{OrgError: "Deletion operation doesn't work whether admin doesn't exist or admin is a leader"}
 	} else if deletionErr != nil {
@@ -124,7 +122,6 @@ func (a AdminUsecases) CheckAdminExists(adminId string) error {
 	}
 
 	exists, err := a.repo.CheckAdminExists(adminId)
-
 	if err != nil {
 		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	} else if !exists {
@@ -134,79 +131,20 @@ func (a AdminUsecases) CheckAdminExists(adminId string) error {
 	return nil
 }
 
-func (a AdminUsecases) UpdateCurrentAdmin(adminId string, newEmail string, newFullname string) error {
+func (a AdminUsecases) UpdateCurrentAdmin(adminId string, newAdmin entity.AdminUpdateEntity) (entity.AdminEntity, error) {
 
-	if len(adminId) == 0 {
-		return &customerrors.AuthenticationError{OrgError: "Current admin is invalid"}
+	emptyAdmin := entity.AdminEntity{}
+	if !pkg.ValidateUUID(adminId) {
+		return emptyAdmin, &customerrors.AuthenticationError{OrgError: "Admin does not exist"}
 	}
 
-	var updationMode enums.AdminUpdateMode
-
-	if len(newEmail) != 0 && len(newFullname) != 0 {
-		updationMode = enums.EmailAndFullname
-	} else if len(newEmail) != 0 {
-		updationMode = enums.EmailOnly
-	} else {
-		updationMode = enums.FullnameOnly
+	updatedAdmin, err := a.repo.UpdateCurrentAdmin(adminId, newAdmin)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return emptyAdmin, &customerrors.NotFoundError{OrgError: "Current Admin is invalid"}
+	} else if err != nil {
+		return emptyAdmin, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
-
-	var outErr error
-
-	updateFunc := func(newEmail string, newFullname string, updateMode enums.AdminUpdateMode) error {
-
-		err := a.repo.UpdateCurrentAdmin(adminId, newEmail, newFullname, updateMode)
-
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &customerrors.NotFoundError{OrgError: "Current Admin is invalid"}
-		} else if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-		}
-
-		return nil
-
-	}
-	switch updationMode {
-
-	//First checking if the request is to update fullname and email
-	case enums.EmailAndFullname:
-		isEmailCorrect := pkg.ValidateEmail(newEmail)
-		fullnameErr := pkg.ValidateFullname(newFullname)
-
-		if !isEmailCorrect {
-			return &customerrors.ValidationError{OrgError: "Invalid email address"}
-		} else if fullnameErr != nil {
-			return &customerrors.ValidationError{OrgError: fullnameErr.Error()}
-		}
-		err := updateFunc(newEmail, newFullname, enums.EmailAndFullname)
-		outErr = err
-
-	//Checking if the request is to update fullname only
-	case enums.FullnameOnly:
-
-		fullnameErr := pkg.ValidateFullname(newFullname)
-
-		if fullnameErr != nil {
-			return &customerrors.ValidationError{OrgError: fullnameErr.Error()}
-		}
-		err := updateFunc("", newFullname, enums.FullnameOnly)
-		outErr = err
-
-	//Checking if the request is to update email only
-	case enums.EmailOnly:
-		isEmailCorrect := pkg.ValidateEmail(newEmail)
-
-		if !isEmailCorrect {
-			return &customerrors.ValidationError{OrgError: "Invalid email address"}
-		}
-		err := updateFunc(newEmail, "", enums.EmailOnly)
-		outErr = err
-
-	//If the above conditions are not satisfied, then [updationMode] may be not valid, so just returning validation error
-	default:
-		outErr = &customerrors.ValidationError{OrgError: "Provide email, fullname or both to update"}
-	}
-
-	return outErr
+	return updatedAdmin, nil
 
 }
 

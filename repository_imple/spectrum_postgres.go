@@ -3,7 +3,6 @@ package repositoryimple
 import (
 	"espectro/entity"
 	"espectro/enums"
-	"fmt"
 	"time"
 
 	"github.com/lib/pq"
@@ -59,8 +58,6 @@ func (s SpectrumPostgresRepo) UpdateSpectrum(
 			name, shortDescription, description, status, logoUrl, videoUrl, pgImageUrls, spectrumId,
 		).
 		Scan(&newSpectrum)
-
-	fmt.Println("Row affected : ", out.RowsAffected)
 
 	if out.Error != nil {
 		return newSpectrum, out.Error
