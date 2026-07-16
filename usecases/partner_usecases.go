@@ -6,52 +6,87 @@ import (
 	"espectro/entity"
 	"espectro/pkg"
 	"espectro/repository"
+	"mime/multipart"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type PartnerUsecases struct {
-	repo repository.PartnerRepo
+	repo      repository.PartnerRepo
+	mediaRepo repository.MediaServiceRepo
 }
 
-func NewPartnerUsecases(repo repository.PartnerRepo) PartnerUsecases {
-	return PartnerUsecases{repo: repo}
+func NewPartnerUsecases(repo repository.PartnerRepo, mediaRepo repository.MediaServiceRepo) PartnerUsecases {
+	return PartnerUsecases{repo: repo, mediaRepo: mediaRepo}
 }
 
-func (p PartnerUsecases) AddPartner(partner entity.PartnerCreateEntity) (entity.PartnerEntity, error) {
+func (p PartnerUsecases) AddPartner(name string, logo *multipart.FileHeader) (entity.PartnerEntity, error) {
 
 	emptyEntity := entity.PartnerEntity{}
-	if err := pkg.ValidateName(partner.Name); err != nil {
+	if err := pkg.ValidateName(name); err != nil {
 		return emptyEntity, &customerrors.ValidationError{OrgError: err.Error()}
 	}
 
+	partnerId := uuid.New().String()
+	var logoUrl *string
+
+	if logo != nil {
+		url, err := p.mediaRepo.UploadFile(logo, "partner/"+partnerId)
+		if err != nil {
+			return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		logoUrl = &url
+	}
+
 	newPartner, insertionErr := p.repo.AddPartner(entity.PartnerEntity{
-		Name:    partner.Name,
-		LogoUrl: partner.LogoUrl,
+		Name:    name,
+		LogoUrl: logoUrl,
+		Id:      partnerId,
 	})
 
 	if insertionErr != nil {
+		if logoUrl != nil {
+			p.mediaRepo.DeleteFolderWithFiles("partner/", partnerId)
+
+		}
 		return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
 	return newPartner, nil
 }
 
-func (p PartnerUsecases) UpdatePartner(newPartner entity.PartnerUpdateEntity) error {
+func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *multipart.FileHeader) (entity.PartnerEntity, error) {
 
-	if !pkg.ValidateUUID(newPartner.Id) {
-		return &customerrors.ValidationError{OrgError: "Invalid partner id"}
+	emptyPartner := entity.PartnerEntity{}
+	if !pkg.ValidateUUID(partnerId) {
+		return emptyPartner, &customerrors.ValidationError{OrgError: "Invalid partner id"}
 	}
 
-	err := p.repo.UpdatePartner(newPartner)
+	var logoUrl *string
+
+	if logo != nil {
+		url, err := p.mediaRepo.UploadFile(logo, "partner/"+partnerId)
+		if err != nil {
+			return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		logoUrl = &url
+	}
+
+	newPartner, err := p.repo.UpdatePartner(partnerId, name, logoUrl)
+	if err != nil {
+		if logoUrl != nil {
+			p.mediaRepo.DeleteFolderWithFiles("partner/", partnerId)
+		}
+	}
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Partner does not exist"}
+		return emptyPartner, &customerrors.NotFoundError{OrgError: "Partner does not exist"}
 	} else if err != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
-	return nil
+	return newPartner, nil
 
 }
 

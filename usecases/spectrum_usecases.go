@@ -195,13 +195,10 @@ func (s SpectrumUsecases) RetrieveSpectrums(limit int, page int) ([]entity.Spect
 	}
 
 	offset := pkg.GetOffset(limit, page)
-
 	spectrums, spectrumsErr := s.repo.RetrieveSpectrums(offset, limit)
-
 	if spectrumsErr != nil {
 		return emptySpectrums, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
-
 	return spectrums, nil
 }
 
@@ -221,7 +218,6 @@ func (s SpectrumUsecases) validateSpectrumData(
 
 	if name != nil {
 		nameErr := pkg.ValidateSpectrumOrEventName(*(name))
-
 		if nameErr != nil {
 			return nameErr
 		}
@@ -229,7 +225,6 @@ func (s SpectrumUsecases) validateSpectrumData(
 
 	if shortDescription != nil {
 		shortDescriptionErr := pkg.ValidateSpectrumShortDescription(*(shortDescription))
-
 		if shortDescriptionErr != nil {
 			return shortDescriptionErr
 		}
@@ -237,7 +232,6 @@ func (s SpectrumUsecases) validateSpectrumData(
 
 	if description != nil {
 		descriptionErr := pkg.ValidateSpectrumOrEventDescription(*(description))
-
 		if descriptionErr != nil {
 			return descriptionErr
 		}
@@ -261,9 +255,7 @@ func (s SpectrumUsecases) validateSpectrumData(
 	}
 
 	for i := range imageFiles {
-
 		mb := pkg.BytesToMB(imageFiles[i].Size)
-
 		if mb > 2 {
 			return &customerrors.SizeError{OrgError: "Images size should be less than or equal to 2 MB"}
 		}

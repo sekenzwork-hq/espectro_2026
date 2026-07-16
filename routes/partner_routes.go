@@ -7,14 +7,16 @@ import (
 	repositoryimple "espectro/repository_imple"
 	"espectro/usecases"
 
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func RegisterPartnerRoutes(r *gin.RouterGroup, db *gorm.DB) {
+func RegisterPartnerRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Cloudinary) {
 
 	partnerRepo := repositoryimple.NewPartnerPostgres(db)
-	partnerUsecases := usecases.NewPartnerUsecases(partnerRepo)
+	mediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
+	partnerUsecases := usecases.NewPartnerUsecases(partnerRepo, mediaRepo)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
 	handlers := handlers.NewPartnerHandlers(partnerUsecases)
