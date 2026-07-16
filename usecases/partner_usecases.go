@@ -63,3 +63,20 @@ func (p PartnerUsecases) UpdatePartner(newPartner entity.PartnerUpdateEntity) er
 	return nil
 
 }
+
+func (p PartnerUsecases) DeletePartner(partnerId string) error {
+
+	if !pkg.ValidateUUID(partnerId) {
+		return &customerrors.ValidationError{OrgError: "Invalid partner id"}
+	}
+
+	err := p.repo.DeletePartner(partnerId)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundError{OrgError: "Partner does not exist"}
+	} else if err != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return nil
+}

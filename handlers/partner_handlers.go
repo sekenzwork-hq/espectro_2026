@@ -52,3 +52,19 @@ func (p PartnerHandlers) UpdatePartner(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Partner has been updated"})
 
 }
+
+func (p PartnerHandlers) DeletePartner(ctx *gin.Context) {
+
+	partnerId := ctx.Query("partner_id")
+
+	err := p.usecases.DeletePartner(partnerId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Partner has been deleted"})
+
+}

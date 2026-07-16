@@ -51,7 +51,7 @@ func (p PartnerPostgresRepo) UpdatePartner(partner entity.PartnerUpdateEntity) e
 	return nil
 }
 
-func (p PartnerPostgresRepo) DaletePartner(partnerId string) error {
+func (p PartnerPostgresRepo) DeletePartner(partnerId string) error {
 
 	out := p.db.
 		Table("partners").
