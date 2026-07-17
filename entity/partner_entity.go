@@ -9,11 +9,6 @@ type PartnerEntity struct {
 	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;type timestampz;default:now()"`
 }
 
-type PartnerCreateEntity struct {
-	Name    string  `json:"name"`
-	LogoUrl *string `json:"logo_url"`
-}
-
 type PartnerUpdateEntity struct {
 	Id      string  `json:"id"`
 	Name    *string `json:"name" gorm:"column:name"`
