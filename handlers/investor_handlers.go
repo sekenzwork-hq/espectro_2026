@@ -39,3 +39,45 @@ func (i InvestorHandlers) AddInvestor(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Investor has been added", "investor": investor})
 }
+
+func (i InvestorHandlers) UpdateInvestor(ctx *gin.Context) {
+
+	investorId, idExists := ctx.GetPostForm("investor_id")
+	nameForm, nameExists := ctx.GetPostForm("name")
+	websiteUrlForm, websiteUrlExists := ctx.GetPostForm("website_url")
+	phoneNumberForm, phoneNumberExists := ctx.GetPostForm("phone_number")
+	emailForm, emailExists := ctx.GetPostForm("email")
+	logo, _ := ctx.FormFile("logo")
+
+	if !idExists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide investor id"})
+		return
+	}
+
+	var name *string
+	var websiteUrl *string
+	var phoneNumber *string
+	var email *string
+
+	if nameExists {
+		name = &nameForm
+	}
+	if websiteUrlExists {
+		websiteUrl = &websiteUrlForm
+	}
+	if phoneNumberExists {
+		phoneNumber = &phoneNumberForm
+	}
+	if emailExists {
+		email = &emailForm
+	}
+
+	newInvestor, err := i.usecases.UpdateInvestor(investorId, name, phoneNumber, email, websiteUrl, logo)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Investor has been updated", "investor": newInvestor})
+	}
+}
