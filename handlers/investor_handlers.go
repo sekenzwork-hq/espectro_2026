@@ -95,3 +95,23 @@ func (i InvestorHandlers) DeleteInvestor(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Investor has been deleted"})
 	}
 }
+
+func (i InvestorHandlers) RetrieveInvestors(ctx *gin.Context) {
+
+	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+
+	if limitErr != nil {
+		code := pkg.GetStatusCodeForError(limitErr)
+		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
+		return
+	}
+
+	investors, retrievalErr := i.usecases.RetrieveInvestors(limit, page)
+
+	if retrievalErr != nil {
+		code := pkg.GetStatusCodeForError(retrievalErr)
+		ctx.JSON(code, gin.H{"status": code, "message": retrievalErr.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "investors": investors})
+	}
+}

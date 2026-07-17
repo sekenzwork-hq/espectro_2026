@@ -120,6 +120,17 @@ func (i InvestorUsecases) DeleteInvestor(investorId string) error {
 
 }
 
+func (i InvestorUsecases) RetrieveInvestors(limit int, page int) ([]entity.InvestorEntity, error) {
+
+	offset := pkg.GetOffset(limit, page)
+	investors, err := i.investorRepo.RetrieveInvestors(limit, offset)
+	if err != nil {
+		return investors, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return investors, nil
+}
+
 func (i InvestorUsecases) validateInvestorDetails(id *string, name *string, phoneNumber *string, email *string, websiteUrl *string) error {
 	if id != nil && !pkg.ValidateUUID(*id) {
 		return &customerrors.ValidationError{OrgError: "Invalid investor id"}
