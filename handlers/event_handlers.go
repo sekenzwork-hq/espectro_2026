@@ -71,7 +71,12 @@ func (e EventHandlers) DeleteEvent(ctx *gin.Context) {
 
 func (e EventHandlers) RetrieveEvents(ctx *gin.Context) {
 
-	limit, page := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+
+	if limitErr != nil {
+		code := pkg.GetStatusCodeForError(limitErr)
+		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
+	}
 
 	events, err := e.usecases.RetrieveEvents(limit, page)
 
