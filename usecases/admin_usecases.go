@@ -70,7 +70,7 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedA
 	if fullnameErr != nil {
 		return "", &customerrors.ValidationError{OrgError: fullnameErr.Error()}
 	} else if !isEmailCorrect {
-		return "", &customerrors.ValidationError{OrgError: "Invalid email address"}
+		return "", &customerrors.ValidationError{OrgError: "Invalid email"}
 	} else if passwordErr != nil {
 		return "", &customerrors.ValidationError{OrgError: passwordErr.Error()}
 	} else if !isAdminRoleCorrect {

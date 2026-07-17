@@ -3,6 +3,7 @@ package pkg
 import (
 	"errors"
 	customerrors "espectro/custom_errors"
+	"fmt"
 	"regexp"
 	"slices"
 	"strings"
@@ -259,6 +260,24 @@ func ValidateName(name string) error {
 
 	if !correct {
 		return errors.New("Name should not contain any special character, symbols and digits")
+	}
+
+	return nil
+
+}
+
+func ValidateUrl(url string, placeholder string) error {
+
+	p := placeholder
+	if len(placeholder) == 0 {
+		p = "url"
+	}
+	if len(url) < 7 {
+		return fmt.Errorf("Invalid %v", p)
+	} else if len(url) > 4100 {
+		return errors.New("Url length is too long")
+	} else if !strings.Contains(url, "http://") || !strings.Contains(url, "https://") {
+		return fmt.Errorf("Invalid %v", p)
 	}
 
 	return nil

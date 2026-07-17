@@ -31,7 +31,7 @@ func (u *UserUsecases) RegisterUser(user entity.UserEntity) (uuid.UUID, error) {
 	isEmailCorrect := pkg.ValidateEmail(user.Email)
 
 	if !isEmailCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid email address"}
+		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid email"}
 	}
 
 	isCountryCodeCorrect := pkg.ValidateCountryCode(user.CountryCode)
