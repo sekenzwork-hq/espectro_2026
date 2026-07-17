@@ -2,6 +2,7 @@ package repositoryimple
 
 import (
 	"espectro/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -50,4 +51,20 @@ func (i InvestorPostgresRepo) UpdateInvestor(investorId string, newInvestor enti
 
 	return investor, nil
 
+}
+
+func (i InvestorPostgresRepo) DeleteInvestor(investorId string) error {
+
+	out := i.db.
+		Table("investors").
+		Where("id=? AND deleted_at IS NULL", investorId).
+		Update("deleted_at", time.Now().UTC())
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

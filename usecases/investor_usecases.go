@@ -65,7 +65,6 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 	emptyInvestor := entity.InvestorEntity{}
 
 	if err := i.validateInvestorDetails(&investorId, name, phoneNumber, email, websiteUrl); err != nil {
-		fmt.Println("Err : ", err)
 		return emptyInvestor, err
 	}
 
@@ -100,6 +99,24 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 	}
 
 	return newInvestor, nil
+
+}
+
+func (i InvestorUsecases) DeleteInvestor(investorId string) error {
+
+	if !pkg.ValidateUUID(investorId) {
+		return &customerrors.ValidationError{OrgError: "Invalid investor id"}
+	}
+
+	err := i.investorRepo.DeleteInvestor(investorId)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundError{OrgError: "Investor does not exist"}
+	} else if err != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return nil
 
 }
 

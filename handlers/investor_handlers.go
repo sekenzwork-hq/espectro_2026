@@ -81,3 +81,17 @@ func (i InvestorHandlers) UpdateInvestor(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Investor has been updated", "investor": newInvestor})
 	}
 }
+
+func (i InvestorHandlers) DeleteInvestor(ctx *gin.Context) {
+
+	investorId := ctx.Query("investor_id")
+
+	err := i.usecases.DeleteInvestor(investorId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Investor has been deleted"})
+	}
+}
