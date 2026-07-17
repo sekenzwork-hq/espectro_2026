@@ -103,9 +103,11 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 
-		addingErr := s.eventSponsorRepo.AddSponsor(newSponsor.Id, eventIds)
-		if addingErr != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		if len(eventIds) != 0 {
+			addingErr := s.eventSponsorRepo.AddSponsor(newSponsor.Id, eventIds)
+			if addingErr != nil {
+				return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			}
 		}
 		sponsor = newSponsor
 		return nil

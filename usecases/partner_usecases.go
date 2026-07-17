@@ -39,7 +39,7 @@ func (p PartnerUsecases) AddPartner(name string, logo *multipart.FileHeader) (en
 		logoUrl = &url
 	}
 
-	newPartner, insertionErr := p.repo.AddPartner(entity.PartnerEntity{
+	newPartner, insertionErr := p.repo.CreatePartner(entity.PartnerEntity{
 		Name:    name,
 		LogoUrl: logoUrl,
 		Id:      partnerId,
