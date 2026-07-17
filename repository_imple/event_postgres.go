@@ -97,3 +97,14 @@ func (e EventPostgresRepo) RetrieveEvents(limit int, offset int) ([]entity.Event
 
 	return events, err
 }
+
+func (e EventPostgresRepo) CheckMultipleEventsExist(eventIds []string) (bool, error) {
+
+	var count int64
+
+	err := e.db.
+		Raw(`SELECT COUNT(*) FROM events WHERE id=ANY(?)`, eventIds).
+		Scan(&count).Error
+
+	return int(count) == len(eventIds), err
+}

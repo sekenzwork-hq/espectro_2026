@@ -7,4 +7,5 @@ type EventRepo interface {
 	UpdateEvent(eventId string, newEvent entity.EventUpdateEntity) (entity.EventEntity, error)
 	DeleteEvent(eventId string) error
 	RetrieveEvents(limit int, offset int) ([]entity.EventEntity, error)
+	CheckMultipleEventsExist(eventIds []string) (bool, error)
 }

@@ -42,17 +42,12 @@ func (i InvestorHandlers) AddInvestor(ctx *gin.Context) {
 
 func (i InvestorHandlers) UpdateInvestor(ctx *gin.Context) {
 
-	investorId, idExists := ctx.GetPostForm("investor_id")
+	investorId, _ := ctx.GetPostForm("investor_id")
 	nameForm, nameExists := ctx.GetPostForm("name")
 	websiteUrlForm, websiteUrlExists := ctx.GetPostForm("website_url")
 	phoneNumberForm, phoneNumberExists := ctx.GetPostForm("phone_number")
 	emailForm, emailExists := ctx.GetPostForm("email")
 	logo, _ := ctx.FormFile("logo")
-
-	if !idExists {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide investor id"})
-		return
-	}
 
 	var name *string
 	var websiteUrl *string
@@ -73,7 +68,6 @@ func (i InvestorHandlers) UpdateInvestor(ctx *gin.Context) {
 	}
 
 	newInvestor, err := i.usecases.UpdateInvestor(investorId, name, phoneNumber, email, websiteUrl, logo)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -87,7 +81,6 @@ func (i InvestorHandlers) DeleteInvestor(ctx *gin.Context) {
 	investorId := ctx.Query("investor_id")
 
 	err := i.usecases.DeleteInvestor(investorId)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -99,7 +92,6 @@ func (i InvestorHandlers) DeleteInvestor(ctx *gin.Context) {
 func (i InvestorHandlers) RetrieveInvestors(ctx *gin.Context) {
 
 	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
-
 	if limitErr != nil {
 		code := pkg.GetStatusCodeForError(limitErr)
 		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
@@ -107,7 +99,6 @@ func (i InvestorHandlers) RetrieveInvestors(ctx *gin.Context) {
 	}
 
 	investors, retrievalErr := i.usecases.RetrieveInvestors(limit, page)
-
 	if retrievalErr != nil {
 		code := pkg.GetStatusCodeForError(retrievalErr)
 		ctx.JSON(code, gin.H{"status": code, "message": retrievalErr.Error()})

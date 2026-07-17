@@ -10,6 +10,6 @@ type SponsorEntity struct {
 	Name            string              `json:"name" gorm:"column:name"`
 	Amount          float32             `json:"amount" gorm:"column:amount"`
 	ProfileOrOrgUrl *string             `json:"profile_or_org_url" gorm:"column:profile_or_org_url"`
-	Sponsored       enums.SponsoredType `json:"sponsored" gorm:"column:sponsored_type"`
+	Sponsored       enums.SponsoredType `json:"sponsored_type" gorm:"column:sponsored_type"`
 	CreatedAt       time.Time           `json:"created_at" gorm:"column:created_at;type timestampz;default:now()"`
 }
