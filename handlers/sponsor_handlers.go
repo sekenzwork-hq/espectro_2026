@@ -107,6 +107,12 @@ func (s SponsorHandlers) DeleteSponsor(ctx *gin.Context) {
 
 func (s SponsorHandlers) RetrieveSponsors(ctx *gin.Context) {
 
+	var eventId *string
+	eventIdQ, exists := ctx.GetQuery("event_id")
+	if exists {
+		eventId = &eventIdQ
+	}
+
 	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
 	if limitErr != nil {
 		code := pkg.GetStatusCodeForError(limitErr)
@@ -114,7 +120,7 @@ func (s SponsorHandlers) RetrieveSponsors(ctx *gin.Context) {
 		return
 	}
 
-	sponsors, err := s.usecases.RetrieveSponsors(limit, page)
+	sponsors, err := s.usecases.RetrieveSponsors(eventId, limit, page)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})

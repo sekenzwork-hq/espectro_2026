@@ -8,7 +8,6 @@ import (
 	"espectro/enums"
 	"espectro/pkg"
 	"espectro/repository"
-	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -53,8 +52,16 @@ func (e EventUsecases) CreateEvent(event entity.EventCreateEntity) (entity.Event
 		return entity.EventEntity{}, err
 	}
 
-	startDate, _ := pkg.ParseTime(*event.StartDate)
-	endDate, _ := pkg.ParseTime(*event.EndDate)
+	var startDate *time.Time
+	var endDate *time.Time
+	if event.StartDate != nil {
+		date, _ := pkg.ParseTime(*event.StartDate)
+		startDate = &date
+	}
+	if event.EndDate != nil {
+		date, _ := pkg.ParseTime(*event.EndDate)
+		endDate = &date
+	}
 
 	var newEvent entity.EventEntity
 
@@ -66,8 +73,8 @@ func (e EventUsecases) CreateEvent(event entity.EventCreateEntity) (entity.Event
 			SpectrumId:       event.SpectrumId,
 			Status:           event.Status,
 			ParticipantLimit: event.ParticipantLimit,
-			StartDate:        &startDate,
-			EndDate:          &endDate,
+			StartDate:        startDate,
+			EndDate:          endDate,
 			EventMode:        event.EventMode,
 			EventType:        event.EventType,
 			IsFeatured:       event.IsFeatured,
@@ -95,7 +102,6 @@ func (e EventUsecases) UpdateEvent(event entity.EventUpdateEntity) (entity.Event
 
 	emptyEvent := entity.EventEntity{}
 	if !pkg.ValidateUUID(event.Id) {
-
 		return emptyEvent, &customerrors.ValidationError{OrgError: "Invalid event id"}
 	}
 
@@ -206,7 +212,7 @@ func (e EventUsecases) validateEventDetailsAndCheckExistence(name *string,
 
 	var parsedEndTime *time.Time
 	if endDate != nil {
-		time, err := pkg.ParseTime(*(endDate))
+		time, err := pkg.ParseTime(*endDate)
 		if err != nil {
 			return &customerrors.ValidationError{OrgError: "Invalid end date"}
 		}
@@ -214,9 +220,7 @@ func (e EventUsecases) validateEventDetailsAndCheckExistence(name *string,
 	}
 
 	if parsedStartTime != nil {
-
 		year, month, day := parsedStartTime.Date()
-		fmt.Printf("Year : %d, month : %d, day : %d\n", year, month, day)
 		now := time.Now()
 		if year < now.Year() || month < now.Month() || day < now.Day() {
 			return &customerrors.ValidationError{OrgError: "Start date should be today or after today"}

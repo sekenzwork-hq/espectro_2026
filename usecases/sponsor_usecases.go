@@ -167,10 +167,21 @@ func (s SponsorUsecases) DeleteSponsor(sponsorId string) error {
 	return nil
 }
 
-func (s SponsorUsecases) RetrieveSponsors(limit int, page int) ([]entity.SponsorEntity, error) {
+func (s SponsorUsecases) RetrieveSponsors(eventId *string, limit int, page int) ([]entity.SponsorEntity, error) {
 
+	if eventId != nil && !pkg.ValidateUUID(*eventId) {
+		return []entity.SponsorEntity{}, &customerrors.ValidationError{OrgError: "Invalid event id"}
+	}
 	offset := pkg.GetOffset(limit, page)
-	sponsors, err := s.sponsorRepo.RetrieveSponsors(limit, offset)
+	var err error
+	var sponsors []entity.SponsorEntity
+
+	if eventId != nil {
+		sponsors, err = s.eventSponsorRepo.RetrieveSponsorsBasedOnEvent(*eventId, limit, offset)
+	} else {
+		sponsors, err = s.sponsorRepo.RetrieveSponsors(limit, offset)
+	}
+
 	if err != nil {
 		return sponsors, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
