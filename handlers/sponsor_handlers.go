@@ -45,7 +45,7 @@ func (s SponsorHandlers) CreateSponsor(ctx *gin.Context) {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Sponsor has been created", "sponsor": newSponsor})
+		ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Sponsor has been created", "sponsor": newSponsor})
 	}
 }
 

@@ -7,7 +7,7 @@ const (
 	Equipment           SponsoredType = "equipment"
 	Electronics         SponsoredType = "electronics"
 	Furnitures          SponsoredType = "furnitures"
-	GalleryArrangements SponsoredType = "gallary_arrangements"
+	GalleryArrangements SponsoredType = "gallery_arrangements"
 	Others              SponsoredType = "others"
 )
 

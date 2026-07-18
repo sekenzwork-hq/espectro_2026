@@ -7,6 +7,7 @@ import (
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/admin"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
+	"github.com/google/uuid"
 )
 
 type MediaCloudinaryRepo struct {
@@ -17,35 +18,36 @@ func NewMediaCloudinaryRepo(cld *cloudinary.Cloudinary) MediaCloudinaryRepo {
 	return MediaCloudinaryRepo{cld: cld}
 }
 
-func (m MediaCloudinaryRepo) UploadFiles(imageFiles []*multipart.FileHeader, folderId string) ([]string, error) {
+func (m MediaCloudinaryRepo) UploadFiles(files []*multipart.FileHeader, folderId string, override bool) ([]string, error) {
 
 	urls := []string{}
-	ctx := context.Background()
 
-	b := true
-	for i := range imageFiles {
-		image := imageFiles[i]
-		res, err := m.cld.Upload.Upload(ctx, image, uploader.UploadParams{
-			Folder:    folderId,
-			Overwrite: &b,
-			PublicID:  folderId,
-		})
+	for i := range files {
+		file := files[i]
+		url, err := m.UploadFile(file, folderId, override)
 		if err != nil {
 			return []string{}, err
 		}
-		urls = append(urls, res.SecureURL)
+		urls = append(urls, url)
 	}
 
 	return urls, nil
 }
-func (m MediaCloudinaryRepo) UploadFile(imageFile *multipart.FileHeader, folderId string) (string, error) {
+func (m MediaCloudinaryRepo) UploadFile(file *multipart.FileHeader, folderId string, override bool) (string, error) {
 
 	ctx := context.TODO()
-	b := true
-	res, err := m.cld.Upload.Upload(ctx, imageFile, uploader.UploadParams{
+
+	var publicId string
+	if override {
+		publicId = folderId
+	} else {
+		publicId = uuid.NewString()
+	}
+
+	res, err := m.cld.Upload.Upload(ctx, file, uploader.UploadParams{
 		Folder:    folderId,
-		Overwrite: &b,
-		PublicID:  folderId,
+		Overwrite: &override,
+		PublicID:  publicId,
 	})
 	return res.SecureURL, err
 }

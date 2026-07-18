@@ -68,7 +68,7 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 	sponsorId := uuid.New().String()
 
 	if profileOrOrg != nil {
-		url, err := s.mediaRepo.UploadFile(profileOrOrg, "sponsor/"+sponsorId)
+		url, err := s.mediaRepo.UploadFile(profileOrOrg, "sponsor/"+sponsorId, true)
 		if err != nil {
 			return emptySponsor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
@@ -124,7 +124,7 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 
 	var logoOrImageUrl *string
 	if profileOrOrgImage != nil {
-		url, err := s.mediaRepo.UploadFile(profileOrOrgImage, "sponsor/"+sponsorId)
+		url, err := s.mediaRepo.UploadFile(profileOrOrgImage, "sponsor/"+sponsorId, true)
 		if err != nil {
 			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
@@ -140,7 +140,9 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 		Sponsored:       sponsoredType,
 	})
 	if updationErr != nil {
+
 		s.mediaRepo.DeleteFolderWithFiles("sponsor/", sponsorId)
+
 		if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 			return empty, &customerrors.NotFoundError{OrgError: "Sponsor does not exist"}
 		} else {
@@ -207,6 +209,10 @@ func (s SponsorUsecases) validateSponsorDetails(sponsorId *string, name string, 
 
 	if profileOrOrgImage != nil && !pkg.ValidateImageSize(*profileOrOrgImage) {
 		return &customerrors.SizeError{OrgError: "Profile or organization logo size should be less than or equal to 2 MB"}
+	}
+
+	if amount != nil && sponsoredType == enums.Amount {
+		return &customerrors.ValidationError{OrgError: "Provide amount if sponsored type is amount"}
 	}
 
 	return nil

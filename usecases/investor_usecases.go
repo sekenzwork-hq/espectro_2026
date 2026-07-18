@@ -33,7 +33,7 @@ func (i InvestorUsecases) CreateInvestor(name string, websiteUrl *string, phoneN
 	investorId := uuid.New().String()
 
 	if logo != nil {
-		url, uploadErr := i.mediaRepo.UploadFile(logo, "investor/"+investorId)
+		url, uploadErr := i.mediaRepo.UploadFile(logo, "investor/"+investorId, true)
 		if uploadErr != nil {
 			return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
@@ -70,7 +70,7 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 	var logoUrl *string
 
 	if logo != nil {
-		url, err := i.mediaRepo.UploadFile(logo, "investor/"+investorId)
+		url, err := i.mediaRepo.UploadFile(logo, "investor/"+investorId, true)
 		if err != nil {
 			return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
