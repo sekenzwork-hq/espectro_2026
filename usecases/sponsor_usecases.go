@@ -166,6 +166,17 @@ func (s SponsorUsecases) DeleteSponsor(sponsorId string) error {
 
 	return nil
 }
+
+func (s SponsorUsecases) RetrieveSponsors(limit int, page int) ([]entity.SponsorEntity, error) {
+
+	offset := pkg.GetOffset(limit, page)
+	sponsors, err := s.sponsorRepo.RetrieveSponsors(limit, offset)
+	if err != nil {
+		return sponsors, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+	return sponsors, nil
+}
+
 func (s SponsorUsecases) validateSponsorDetails(sponsorId *string, name string, amount *float32, sponsoredType enums.SponsoredType, profileOrOrgImage *multipart.FileHeader) error {
 
 	if sponsorId != nil && !pkg.ValidateUUID(*sponsorId) {

@@ -102,6 +102,25 @@ func (s SponsorHandlers) DeleteSponsor(ctx *gin.Context) {
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 		return
 	}
-
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Sponsor has been deleted"})
+}
+
+func (s SponsorHandlers) RetrieveSponsors(ctx *gin.Context) {
+
+	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+	if limitErr != nil {
+		code := pkg.GetStatusCodeForError(limitErr)
+		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
+		return
+	}
+
+	sponsors, err := s.usecases.RetrieveSponsors(limit, page)
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "sponsors": sponsors})
+
 }
