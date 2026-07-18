@@ -21,7 +21,7 @@ func NewPartnerUsecases(repo repository.PartnerRepo, mediaRepo repository.MediaS
 	return PartnerUsecases{repo: repo, mediaRepo: mediaRepo}
 }
 
-func (p PartnerUsecases) AddPartner(name string, logo *multipart.FileHeader) (entity.PartnerEntity, error) {
+func (p PartnerUsecases) CreatePartner(name string, logo *multipart.FileHeader) (entity.PartnerEntity, error) {
 
 	emptyEntity := entity.PartnerEntity{}
 	if err := pkg.ValidateName(name); err != nil {

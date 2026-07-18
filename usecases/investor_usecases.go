@@ -6,7 +6,6 @@ import (
 	"espectro/entity"
 	"espectro/pkg"
 	"espectro/repository"
-	"fmt"
 	"mime/multipart"
 
 	"github.com/google/uuid"
@@ -22,7 +21,7 @@ func NewInvestorUsecases(investorRepo repository.InvestorRepo, mediaRepo reposit
 	return InvestorUsecases{investorRepo: investorRepo, mediaRepo: mediaRepo}
 }
 
-func (i InvestorUsecases) AddInvestor(name string, websiteUrl *string, phoneNumber string, email string, logo *multipart.FileHeader) (entity.InvestorEntity, error) {
+func (i InvestorUsecases) CreateInvestor(name string, websiteUrl *string, phoneNumber string, email string, logo *multipart.FileHeader) (entity.InvestorEntity, error) {
 
 	emptyInvestor := entity.InvestorEntity{}
 
@@ -50,7 +49,7 @@ func (i InvestorUsecases) AddInvestor(name string, websiteUrl *string, phoneNumb
 		Name:        name,
 	}
 
-	newInvestor, insertionErr := i.investorRepo.AddInvestor(investorToInsert)
+	newInvestor, insertionErr := i.investorRepo.CreateInvestor(investorToInsert)
 	if insertionErr != nil {
 		i.mediaRepo.DeleteFolderWithFiles("investor/", investorId)
 		return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
@@ -67,8 +66,6 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 	if err := i.validateInvestorDetails(&investorId, name, phoneNumber, email, websiteUrl); err != nil {
 		return emptyInvestor, err
 	}
-
-	fmt.Println("Validation was correct")
 
 	var logoUrl *string
 

@@ -17,16 +17,16 @@ func NewPartnerHandlers(usecases usecases.PartnerUsecases) PartnerHandlers {
 	return PartnerHandlers{usecases: usecases}
 }
 
-func (p PartnerHandlers) AddPartner(ctx *gin.Context) {
+func (p PartnerHandlers) CreatePartner(ctx *gin.Context) {
 	name := ctx.PostForm("name")
 	logo, err := ctx.FormFile("logo")
 
-	partner, err := p.usecases.AddPartner(name, logo)
+	partner, err := p.usecases.CreatePartner(name, logo)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Partner has been added", "partner": partner})
+		ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Partner has been created", "partner": partner})
 	}
 
 }

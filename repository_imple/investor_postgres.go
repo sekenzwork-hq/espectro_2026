@@ -15,7 +15,7 @@ func NewInvestorPostgresRepo(db *gorm.DB) InvestorPostgresRepo {
 	return InvestorPostgresRepo{db: db}
 }
 
-func (i InvestorPostgresRepo) AddInvestor(investor entity.InvestorEntity) (entity.InvestorEntity, error) {
+func (i InvestorPostgresRepo) CreateInvestor(investor entity.InvestorEntity) (entity.InvestorEntity, error) {
 
 	err := i.db.
 		Table("investors").

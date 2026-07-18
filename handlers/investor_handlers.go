@@ -16,7 +16,7 @@ func NewInvestorHandlers(usecases usecases.InvestorUsecases) InvestorHandlers {
 	return InvestorHandlers{usecases: usecases}
 }
 
-func (i InvestorHandlers) AddInvestor(ctx *gin.Context) {
+func (i InvestorHandlers) CreateInvestor(ctx *gin.Context) {
 
 	nameForm := ctx.PostForm("name")
 	websiteUrlForm := ctx.PostForm("website_url")
@@ -30,14 +30,14 @@ func (i InvestorHandlers) AddInvestor(ctx *gin.Context) {
 		websiteUrl = &websiteUrlForm
 	}
 
-	investor, err := i.usecases.AddInvestor(nameForm, websiteUrl, phoneNumberForm, emailForm, logo)
+	investor, err := i.usecases.CreateInvestor(nameForm, websiteUrl, phoneNumberForm, emailForm, logo)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Investor has been added", "investor": investor})
+	ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Investor has been created", "investor": investor})
 }
 
 func (i InvestorHandlers) UpdateInvestor(ctx *gin.Context) {
