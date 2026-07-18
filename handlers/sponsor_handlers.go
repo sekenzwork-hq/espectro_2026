@@ -41,7 +41,6 @@ func (s SponsorHandlers) CreateSponsor(ctx *gin.Context) {
 		enums.SponsoredType(sponsoredType),
 		eventIds,
 	)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -83,7 +82,6 @@ func (s SponsorHandlers) UpdateSponsor(ctx *gin.Context) {
 	}
 
 	newSponsor, err := s.usecases.UpdateSponsor(sponsorId, name, amountFloat, profileOrOrgImage, sponsoredType)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -92,4 +90,18 @@ func (s SponsorHandlers) UpdateSponsor(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Sponsor has been updated", "sponsor": newSponsor})
 
+}
+
+func (s SponsorHandlers) DeleteSponsor(ctx *gin.Context) {
+
+	sponsorId := ctx.Query("sponsor_id")
+
+	err := s.usecases.DeleteSponsor(sponsorId)
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Sponsor has been deleted"})
 }

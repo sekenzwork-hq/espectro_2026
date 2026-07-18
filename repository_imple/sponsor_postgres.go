@@ -2,6 +2,7 @@ package repositoryimple
 
 import (
 	"espectro/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -47,4 +48,20 @@ func (s SponsorPostgresRepo) UpdateSponsor(sponsor entity.SponsorUpdateEntity) (
 	}
 
 	return entity, nil
+}
+
+func (s SponsorPostgresRepo) DeleteSponsor(sponsorId string) error {
+
+	out := s.db.
+		Table("sponsors").
+		Where("id=? AND deleted_at IS NULL", sponsorId).
+		Update("deleted_at", time.Now().UTC())
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

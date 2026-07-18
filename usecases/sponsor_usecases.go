@@ -113,18 +113,18 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 
 }
 
-func (s SponsorUsecases) UpdateSponsor(id string, name *string, amount *float32, profileOrOrgImage *multipart.FileHeader, sponsoredType *enums.SponsoredType) (entity.SponsorEntity, error) {
+func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *float32, profileOrOrgImage *multipart.FileHeader, sponsoredType *enums.SponsoredType) (entity.SponsorEntity, error) {
 
 	empty := entity.SponsorEntity{}
 
-	validationErr := s.validateSponsorDetails(&id, *name, amount, *sponsoredType, profileOrOrgImage)
+	validationErr := s.validateSponsorDetails(&sponsorId, *name, amount, *sponsoredType, profileOrOrgImage)
 	if validationErr != nil {
 		return empty, validationErr
 	}
 
 	var logoOrImageUrl *string
 	if profileOrOrgImage != nil {
-		url, err := s.mediaRepo.UploadFile(profileOrOrgImage, "sponsor/"+id)
+		url, err := s.mediaRepo.UploadFile(profileOrOrgImage, "sponsor/"+sponsorId)
 		if err != nil {
 			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
@@ -133,14 +133,14 @@ func (s SponsorUsecases) UpdateSponsor(id string, name *string, amount *float32,
 	}
 
 	newSponsor, updationErr := s.sponsorRepo.UpdateSponsor(entity.SponsorUpdateEntity{
-		Id:              id,
+		Id:              sponsorId,
 		Name:            name,
 		Amount:          amount,
 		ProfileOrOrgUrl: logoOrImageUrl,
 		Sponsored:       sponsoredType,
 	})
 	if updationErr != nil {
-		s.mediaRepo.DeleteFolderWithFiles("sponsor/", id)
+		s.mediaRepo.DeleteFolderWithFiles("sponsor/", sponsorId)
 		if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 			return empty, &customerrors.NotFoundError{OrgError: "Sponsor does not exist"}
 		} else {
@@ -151,9 +151,24 @@ func (s SponsorUsecases) UpdateSponsor(id string, name *string, amount *float32,
 
 }
 
-func (s SponsorUsecases) validateSponsorDetails(id *string, name string, amount *float32, sponsoredType enums.SponsoredType, profileOrOrgImage *multipart.FileHeader) error {
+func (s SponsorUsecases) DeleteSponsor(sponsorId string) error {
 
-	if id != nil && !pkg.ValidateUUID(*id) {
+	if !pkg.ValidateUUID(sponsorId) {
+		return &customerrors.ValidationError{OrgError: "Invalid sponsor id"}
+	}
+
+	err := s.sponsorRepo.DeleteSponsor(sponsorId)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundError{OrgError: "Sponsor does not exist"}
+	} else if err != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return nil
+}
+func (s SponsorUsecases) validateSponsorDetails(sponsorId *string, name string, amount *float32, sponsoredType enums.SponsoredType, profileOrOrgImage *multipart.FileHeader) error {
+
+	if sponsorId != nil && !pkg.ValidateUUID(*sponsorId) {
 		return &customerrors.ValidationError{OrgError: "Invalid sponsor id"}
 	}
 	if err := pkg.ValidateName(name); err != nil {
