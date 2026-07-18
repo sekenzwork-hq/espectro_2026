@@ -29,4 +29,5 @@ func RegisterSponsorRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 
 	sponsorApi := r.Group("sponsor")
 	sponsorApi.POST("/create", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreateSponsor)
+	sponsorApi.PATCH("/update", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdateSponsor)
 }

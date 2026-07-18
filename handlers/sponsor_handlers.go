@@ -49,3 +49,47 @@ func (s SponsorHandlers) CreateSponsor(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Sponsor has been created", "sponsor": newSponsor})
 	}
 }
+
+func (s SponsorHandlers) UpdateSponsor(ctx *gin.Context) {
+	sponsorId := ctx.PostForm("sponsor_id")
+	nameForm := ctx.PostForm("name")
+	amountForm := ctx.PostForm("amount")
+	profileOrOrgImage, _ := ctx.FormFile("profile_or_org")
+	sponsoredTypeForm := ctx.PostForm("sponsored_type")
+
+	var name *string
+	var amountFloat *float32
+	var sponsoredType *enums.SponsoredType
+
+	if len(nameForm) != 0 {
+		name = &nameForm
+	}
+
+	if len(amountForm) != 0 {
+		value, err := strconv.ParseFloat(amountForm, 32)
+
+		if err != nil {
+			ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Invalid amount"})
+			return
+		}
+		f := float32(value)
+		amountFloat = &f
+
+	}
+
+	if len(sponsoredTypeForm) != 0 {
+		st := enums.SponsoredType(sponsoredTypeForm)
+		sponsoredType = &st
+	}
+
+	newSponsor, err := s.usecases.UpdateSponsor(sponsorId, name, amountFloat, profileOrOrgImage, sponsoredType)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Sponsor has been updated", "sponsor": newSponsor})
+
+}

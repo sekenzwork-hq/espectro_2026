@@ -204,15 +204,14 @@ func (s SpectrumUsecases) validateSpectrumData(
 		return &customerrors.SizeError{OrgError: "Maximum number of images is 10"}
 	}
 
-	if logoFile != nil && pkg.BytesToMB(logoFile.Size) > 2 {
+	if logoFile != nil && pkg.ValidateImageSize(*logoFile) {
 		return &customerrors.SizeError{OrgError: "Logo image size should be less than or equal to 2 MB"}
-	} else if videoFile != nil && pkg.BytesToMB(videoFile.Size) > 50 {
+	} else if videoFile != nil && pkg.ValidateVideoSize(*videoFile) {
 		return &customerrors.SizeError{OrgError: "Video size should be less than or equal to 50 MB"}
 	}
 
 	for i := range imageFiles {
-		mb := pkg.BytesToMB(imageFiles[i].Size)
-		if mb > 2 {
+		if !pkg.ValidateImageSize(*imageFiles[i]) {
 			return &customerrors.SizeError{OrgError: "Images size should be less than or equal to 2 MB"}
 		}
 	}

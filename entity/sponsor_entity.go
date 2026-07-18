@@ -13,3 +13,11 @@ type SponsorEntity struct {
 	Sponsored       enums.SponsoredType `json:"sponsored_type" gorm:"column:sponsored_type"`
 	CreatedAt       time.Time           `json:"created_at" gorm:"column:created_at;type timestampz;default:now()"`
 }
+
+type SponsorUpdateEntity struct {
+	Id              string
+	Name            *string
+	Amount          *float32
+	ProfileOrOrgUrl *string
+	Sponsored       *enums.SponsoredType
+}

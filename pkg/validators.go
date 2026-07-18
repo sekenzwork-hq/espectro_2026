@@ -4,6 +4,7 @@ import (
 	"errors"
 	customerrors "espectro/custom_errors"
 	"fmt"
+	"mime/multipart"
 	"regexp"
 	"slices"
 	"strings"
@@ -282,4 +283,12 @@ func ValidateUrl(url string, placeholder string) error {
 
 	return nil
 
+}
+
+func ValidateImageSize(image multipart.FileHeader) bool {
+	return int64(BytesToMB(image.Size)) <= 2
+}
+
+func ValidateVideoSize(video multipart.FileHeader) bool {
+	return int64(BytesToMB(video.Size)) <= 50
 }

@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"errors"
 	customerrors "espectro/custom_errors"
 	"espectro/database"
 	"espectro/entity"
@@ -10,6 +11,7 @@ import (
 	"mime/multipart"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type SponsorUsecases struct {
@@ -39,25 +41,14 @@ func NewSponsorUsecases(
 func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOrg *multipart.FileHeader, sponsoredType enums.SponsoredType, eventIds []string) (entity.SponsorEntity, error) {
 
 	emptySponsor := entity.SponsorEntity{}
-	if err := pkg.ValidateName(name); err != nil {
-		return emptySponsor, &customerrors.ValidationError{OrgError: err.Error()}
-	}
 
-	if amount != nil && *amount < 0 {
-		return emptySponsor, &customerrors.ValidationError{OrgError: "Amount should be 0 or greater"}
-	}
-
-	if !sponsoredType.IsValid() {
-		return emptySponsor, &customerrors.ValidationError{OrgError: "Invalid sponsor type"}
-	}
-
-	if len(eventIds) > 10 {
-		return emptySponsor, &customerrors.SizeError{OrgError: "Maximum number of event ids is 10"}
+	validationErr := s.validateSponsorDetails(nil, name, amount, sponsoredType, profileOrOrg)
+	if validationErr != nil {
+		return emptySponsor, validationErr
 	}
 
 	for i := range eventIds {
 		eventId := eventIds[i]
-
 		if !pkg.ValidateUUID(eventId) {
 			return emptySponsor, &customerrors.ValidationError{OrgError: "One of the event ids is invalid"}
 		}
@@ -119,5 +110,68 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 	}
 
 	return sponsor, nil
+
+}
+
+func (s SponsorUsecases) UpdateSponsor(id string, name *string, amount *float32, profileOrOrgImage *multipart.FileHeader, sponsoredType *enums.SponsoredType) (entity.SponsorEntity, error) {
+
+	empty := entity.SponsorEntity{}
+
+	validationErr := s.validateSponsorDetails(&id, *name, amount, *sponsoredType, profileOrOrgImage)
+	if validationErr != nil {
+		return empty, validationErr
+	}
+
+	var logoOrImageUrl *string
+	if profileOrOrgImage != nil {
+		url, err := s.mediaRepo.UploadFile(profileOrOrgImage, "sponsor/"+id)
+		if err != nil {
+			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		logoOrImageUrl = &url
+
+	}
+
+	newSponsor, updationErr := s.sponsorRepo.UpdateSponsor(entity.SponsorUpdateEntity{
+		Id:              id,
+		Name:            name,
+		Amount:          amount,
+		ProfileOrOrgUrl: logoOrImageUrl,
+		Sponsored:       sponsoredType,
+	})
+	if updationErr != nil {
+		s.mediaRepo.DeleteFolderWithFiles("sponsor/", id)
+		if errors.Is(updationErr, gorm.ErrRecordNotFound) {
+			return empty, &customerrors.NotFoundError{OrgError: "Sponsor does not exist"}
+		} else {
+			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+	}
+	return newSponsor, nil
+
+}
+
+func (s SponsorUsecases) validateSponsorDetails(id *string, name string, amount *float32, sponsoredType enums.SponsoredType, profileOrOrgImage *multipart.FileHeader) error {
+
+	if id != nil && !pkg.ValidateUUID(*id) {
+		return &customerrors.ValidationError{OrgError: "Invalid sponsor id"}
+	}
+	if err := pkg.ValidateName(name); err != nil {
+		return &customerrors.ValidationError{OrgError: err.Error()}
+	}
+
+	if amount != nil && *amount < 0 {
+		return &customerrors.ValidationError{OrgError: "Amount should be 0 or greater"}
+	}
+
+	if !sponsoredType.IsValid() {
+		return &customerrors.ValidationError{OrgError: "Invalid sponsor type"}
+	}
+
+	if profileOrOrgImage != nil && !pkg.ValidateImageSize(*profileOrOrgImage) {
+		return &customerrors.SizeError{OrgError: "Profile or organization logo size should be less than or equal to 2 MB"}
+	}
+
+	return nil
 
 }

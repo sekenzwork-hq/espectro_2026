@@ -41,14 +41,12 @@ func (m MediaCloudinaryRepo) UploadFiles(imageFiles []*multipart.FileHeader, fol
 func (m MediaCloudinaryRepo) UploadFile(imageFile *multipart.FileHeader, folderId string) (string, error) {
 
 	ctx := context.TODO()
-
 	b := true
 	res, err := m.cld.Upload.Upload(ctx, imageFile, uploader.UploadParams{
 		Folder:    folderId,
 		Overwrite: &b,
 		PublicID:  folderId,
 	})
-
 	return res.SecureURL, err
 }
 
