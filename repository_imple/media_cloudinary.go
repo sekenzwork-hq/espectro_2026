@@ -52,7 +52,7 @@ func (m MediaCloudinaryRepo) UploadFile(file *multipart.FileHeader, folderId str
 	return res.SecureURL, err
 }
 
-func (m MediaCloudinaryRepo) DeleteFolderWithFiles(globalFolderId string, endpointFolder string) error {
+func (m MediaCloudinaryRepo) DeleteFile(globalFolderId string, endpointFolder string) error {
 
 	ctx := context.TODO()
 
@@ -74,12 +74,11 @@ func (m MediaCloudinaryRepo) DeleteFolderWithFiles(globalFolderId string, endpoi
 
 }
 
-func (m MediaCloudinaryRepo) DeleteMutiFoldersWithFiles(globalFolderId string, endpointFolders []string) error {
+func (m MediaCloudinaryRepo) DeleteMutipleFiles(globalFolderId string, endpointFolders []string) error {
 
 	for i := range endpointFolders {
-
 		endpointFolder := endpointFolders[i]
-		err := m.DeleteFolderWithFiles(globalFolderId, endpointFolder)
+		err := m.DeleteFile(globalFolderId, endpointFolder)
 		if err != nil {
 			return err
 		}

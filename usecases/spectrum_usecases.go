@@ -251,7 +251,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 		if urlErr != nil {
 			//Deleting the above uploaded logo (if it is provided ) if video is failed while uploading
 			if logoUrl != nil {
-				s.mediaRepo.DeleteFolderWithFiles(baseFolder, logoFolder)
+				s.mediaRepo.DeleteFile(baseFolder, logoFolder)
 			}
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
@@ -263,7 +263,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 		if urlsErr != nil {
 			//Deleting the above upload video and logo (if those are provided) and deleting rest of the images
 			//we were uploading if it is failed.
-			s.mediaRepo.DeleteMutiFoldersWithFiles(baseFolder, []string{logoFolder, videoFolder, imagesFolder})
+			s.mediaRepo.DeleteMutipleFiles(baseFolder, []string{logoFolder, videoFolder, imagesFolder})
 
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}

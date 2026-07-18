@@ -51,7 +51,7 @@ func (i InvestorUsecases) CreateInvestor(name string, websiteUrl *string, phoneN
 
 	newInvestor, insertionErr := i.investorRepo.CreateInvestor(investorToInsert)
 	if insertionErr != nil {
-		i.mediaRepo.DeleteFolderWithFiles("investor/", investorId)
+		i.mediaRepo.DeleteFile("investor/", investorId)
 		return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
@@ -88,10 +88,10 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 	newInvestor, updationErr := i.investorRepo.UpdateInvestor(investorId, investorToUpdate)
 
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
-		i.mediaRepo.DeleteFolderWithFiles("investor/", investorId)
+		i.mediaRepo.DeleteFile("investor/", investorId)
 		return newInvestor, &customerrors.NotFoundError{OrgError: "Investor does not exist"}
 	} else if updationErr != nil {
-		i.mediaRepo.DeleteFolderWithFiles("investor/", investorId)
+		i.mediaRepo.DeleteFile("investor/", investorId)
 		return newInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 

@@ -47,7 +47,7 @@ func (p PartnerUsecases) CreatePartner(name string, logo *multipart.FileHeader) 
 
 	if insertionErr != nil {
 		if logoUrl != nil {
-			p.mediaRepo.DeleteFolderWithFiles("partner/", partnerId)
+			p.mediaRepo.DeleteFile("partner/", partnerId)
 
 		}
 		return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
@@ -76,7 +76,7 @@ func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *mul
 	newPartner, err := p.repo.UpdatePartner(partnerId, name, logoUrl)
 	if err != nil {
 		if logoUrl != nil {
-			p.mediaRepo.DeleteFolderWithFiles("partner/", partnerId)
+			p.mediaRepo.DeleteFile("partner/", partnerId)
 		}
 	}
 

@@ -105,7 +105,7 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 	})
 
 	if trmErr != nil {
-		s.mediaRepo.DeleteFolderWithFiles("sponsor/", sponsorId)
+		s.mediaRepo.DeleteFile("sponsor/", sponsorId)
 		return emptySponsor, trmErr
 	}
 
@@ -141,7 +141,7 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 	})
 	if updationErr != nil {
 
-		s.mediaRepo.DeleteFolderWithFiles("sponsor/", sponsorId)
+		s.mediaRepo.DeleteFile("sponsor/", sponsorId)
 
 		if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 			return empty, &customerrors.NotFoundError{OrgError: "Sponsor does not exist"}
