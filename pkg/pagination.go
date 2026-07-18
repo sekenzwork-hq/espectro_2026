@@ -24,7 +24,7 @@ func ParsePageAndLimit(limitStr string, pageStr string) (limit int, page int, li
 
 	if limitIntErr != nil || limitQ < 0 {
 		limitV = 50
-	} else if limit > 150 {
+	} else if limitQ > 150 {
 		return 0, 0, &customerrors.SizeError{OrgError: "Limit should be less than or equal to 150"}
 
 	} else {
