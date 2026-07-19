@@ -139,3 +139,17 @@ func (e EventPostgresRepo) DeleteEventBySpectrumId(spectrumId string) error {
 
 	return nil
 }
+
+func (e EventPostgresRepo) RetrieveEventsBySpectrumId(spectrumId string, limit int, offset int) ([]entity.EventEntity, error) {
+	var events []entity.EventEntity
+
+	err := e.db.
+		Table("events").
+		Select("id,name,description,spectrum_id,status,start_date,end_date,limit,event_mode,event_type,is_featured,contact_email,venue_id,created_at").
+		Where("spectrum_id=? AND deleted_at IS NULL", spectrumId).
+		Offset(offset).
+		Limit(limit).
+		Scan(&events).Error
+
+	return events, err
+}

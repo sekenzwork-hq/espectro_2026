@@ -172,10 +172,20 @@ func (e EventUsecases) DeleteEvent(eventId string) error {
 	return nil
 }
 
-func (e EventUsecases) RetrieveEvents(limit int, page int) ([]entity.EventEntity, error) {
+func (e EventUsecases) RetrieveEvents(spectrumId *string, limit int, page int) ([]entity.EventEntity, error) {
 
+	if spectrumId != nil && !pkg.ValidateUUID(*spectrumId) {
+		return []entity.EventEntity{}, &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
+	}
 	offset := pkg.GetOffset(limit, page)
-	events, err := e.eventRepo.RetrieveEvents(limit, offset)
+	var events []entity.EventEntity
+	var err error
+
+	if spectrumId != nil {
+		events, err = e.eventRepo.RetrieveEventsBySpectrumId(*spectrumId, limit, offset)
+	} else {
+		events, err = e.eventRepo.RetrieveEvents(limit, offset)
+	}
 	if err != nil {
 		return events, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}

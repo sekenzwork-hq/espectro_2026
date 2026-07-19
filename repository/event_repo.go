@@ -10,4 +10,5 @@ type EventRepo interface {
 	CheckMultipleEventsExist(eventIds []string) (bool, error)
 	RetrieveSpectrumId(eventId string) (string, error)
 	DeleteEventBySpectrumId(spectrumId string) error
+	RetrieveEventsBySpectrumId(spectrumId string, limit int, offset int) ([]entity.EventEntity, error)
 }

@@ -71,6 +71,12 @@ func (e EventHandlers) DeleteEvent(ctx *gin.Context) {
 
 func (e EventHandlers) RetrieveEvents(ctx *gin.Context) {
 
+	var spectrumId *string
+	spectrumIdQ, exists := ctx.GetQuery("spectrum_id")
+	if exists {
+		spectrumId = &spectrumIdQ
+	}
+
 	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
 
 	if limitErr != nil {
@@ -78,7 +84,7 @@ func (e EventHandlers) RetrieveEvents(ctx *gin.Context) {
 		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
 	}
 
-	events, err := e.usecases.RetrieveEvents(limit, page)
+	events, err := e.usecases.RetrieveEvents(spectrumId, limit, page)
 
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
