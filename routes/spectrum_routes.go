@@ -9,15 +9,17 @@ import (
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-func RegisterSpectrumRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Cloudinary) {
+func RegisterSpectrumRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Cloudinary, rds *redis.Client) {
 
 	spectrumRepo := repositoryimple.NewSpectrumPostgresRepo(db)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
 	cldMediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
-	spectrumUsecase := usecases.NewSpectrumUsecases(spectrumRepo, cldMediaRepo)
+	redisRepo := repositoryimple.NewCacheRedisRepo(rds)
+	spectrumUsecase := usecases.NewSpectrumUsecases(spectrumRepo, cldMediaRepo, redisRepo)
 	adminUsecase := usecases.NewAdminUsecases(adminRepo)
 	handlers := handlers.NewSpectrumHandlers(spectrumUsecase)
 

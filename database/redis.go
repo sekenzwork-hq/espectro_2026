@@ -1,13 +1,20 @@
 package database
 
-import "github.com/redis/go-redis/v9"
+import (
+	"context"
+	"fmt"
 
-func NewRedis(ip string, password string) *redis.Client {
+	"github.com/redis/go-redis/v9"
+)
+
+func NewRedis(ip string) *redis.Client {
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     ip,
-		Password: password,
+		Addr: ip,
 	})
+
+	status := rdb.Ping(context.TODO())
+	fmt.Println(status)
 
 	return rdb
 }

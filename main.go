@@ -35,9 +35,7 @@ func main() {
 		return
 	}
 
-	defer func() {
-		db.Close()
-	}()
+	defer db.Close()
 
 	cld, cldErr := services.NewCloudinary(cfg.CloudinaryUrl)
 	if cldErr != nil {
@@ -45,7 +43,8 @@ func main() {
 		return
 	}
 
-	//redisClient := database.NewRedis(cfg.RedisIP, cfg.RedisPassword)
+	redisClient := database.NewRedis(cfg.RedisIP)
+	defer redisClient.Close()
 
 	gin := gin.Default()
 
@@ -54,7 +53,7 @@ func main() {
 
 	routes.RegisterUserRoutes(api, gormDB)
 	routes.RegisterAdminRoutes(api, gormDB)
-	routes.RegisterSpectrumRoutes(api, gormDB, cld)
+	routes.RegisterSpectrumRoutes(api, gormDB, cld, redisClient)
 	routes.RegisterVenueRoutes(api, gormDB)
 	routes.RegisterEventRoutes(api, gormDB)
 	routes.RegisterPartnerRoutes(api, gormDB, cld)

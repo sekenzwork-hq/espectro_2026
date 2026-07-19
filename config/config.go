@@ -10,7 +10,6 @@ type Config struct {
 	DBUrl         string
 	Version       string
 	RedisIP       string
-	RedisPassword string
 	CloudinaryUrl string
 }
 
@@ -26,7 +25,6 @@ func Load(path string) (*Config, error) {
 		DBUrl:         os.Getenv("POSTGRES"),
 		Version:       os.Getenv("VERSION"),
 		RedisIP:       os.Getenv("REDIS_IP"),
-		RedisPassword: os.Getenv("REDIS_PASSWORD"),
 		CloudinaryUrl: os.Getenv("CLOUDINARY_URL"),
 	}, nil
 }
