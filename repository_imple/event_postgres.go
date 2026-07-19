@@ -86,7 +86,6 @@ func (e EventPostgresRepo) DeleteEvent(eventId string) error {
 func (e EventPostgresRepo) RetrieveEvents(limit int, offset int) ([]entity.EventEntity, error) {
 
 	var events []entity.EventEntity
-
 	err := e.db.
 		Table("events").
 		Select("id,name,description,status,event_mode,event_type,participant_limit,start_date,end_date,spectrum_id,venue_id,contact_email,created_at").
@@ -101,10 +100,42 @@ func (e EventPostgresRepo) RetrieveEvents(limit int, offset int) ([]entity.Event
 func (e EventPostgresRepo) CheckMultipleEventsExist(eventIds []string) (bool, error) {
 
 	var count int64
-
 	err := e.db.
 		Raw(`SELECT COUNT(*) FROM events WHERE id=ANY(?)`, eventIds).
 		Scan(&count).Error
 
 	return int(count) == len(eventIds), err
+}
+
+func (e EventPostgresRepo) RetrieveSpectrumId(eventId string) (string, error) {
+
+	var id string
+	err := e.db.
+		Table("events").
+		Select("spectrum_id").
+		Where("id=? AND deleted_at IS NULL").
+		Scan(&id).Error
+
+	if err != nil {
+		return "", err
+	} else if id == "" {
+		return "", gorm.ErrRecordNotFound
+	}
+
+	return id, nil
+}
+func (e EventPostgresRepo) DeleteEventBySpectrumId(spectrumId string) error {
+
+	out := e.db.
+		Table("events").
+		Where("spectrum_id=? AND deleted_at IS NULL", spectrumId).
+		UpdateColumn("deleted_at", time.Now().UTC())
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

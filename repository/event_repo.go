@@ -8,4 +8,6 @@ type EventRepo interface {
 	DeleteEvent(eventId string) error
 	RetrieveEvents(limit int, offset int) ([]entity.EventEntity, error)
 	CheckMultipleEventsExist(eventIds []string) (bool, error)
+	RetrieveSpectrumId(eventId string) (string, error)
+	DeleteEventBySpectrumId(spectrumId string) error
 }

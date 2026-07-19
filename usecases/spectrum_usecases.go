@@ -3,6 +3,7 @@ package usecases
 import (
 	"errors"
 	customerrors "espectro/custom_errors"
+	"espectro/database"
 	"espectro/entity"
 	"espectro/enums"
 	"espectro/models"
@@ -18,15 +19,19 @@ import (
 type SpectrumUsecases struct {
 	spectrumRepo repository.SpectrumRepo
 	mediaRepo    repository.MediaServiceRepo
+	eventRepo    repository.EventRepo
 	cacheRepo    repository.CacheRepo
+	transaction  database.TransactionManager
 }
 
 func NewSpectrumUsecases(
 	spectrumRepo repository.SpectrumRepo,
 	mediaRepo repository.MediaServiceRepo,
+	eventRepo repository.EventRepo,
 	cacheRepo repository.CacheRepo,
+	transaction database.TransactionManager,
 ) SpectrumUsecases {
-	return SpectrumUsecases{spectrumRepo: spectrumRepo, mediaRepo: mediaRepo, cacheRepo: cacheRepo}
+	return SpectrumUsecases{spectrumRepo: spectrumRepo, mediaRepo: mediaRepo, eventRepo: eventRepo, cacheRepo: cacheRepo, transaction: transaction}
 }
 
 func (s SpectrumUsecases) CreateSpectrum(
@@ -122,8 +127,6 @@ func (s SpectrumUsecases) UpdateSpectrum(
 		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
-	//s.mediaRepo.DeleteStoredFiles()
-
 	return newSpectrum, nil
 
 }
@@ -136,15 +139,23 @@ func (s SpectrumUsecases) DeleteSpectrum(spectrumId string) error {
 		return &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
 	}
 
-	deletionErr := s.spectrumRepo.DeleteSpectrum(spectrumId)
+	err := s.transaction.Run(func() error {
+		err := s.spectrumRepo.DeleteSpectrum(spectrumId)
 
-	if errors.Is(deletionErr, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
-	} else if deletionErr != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-	}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
+		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
 
-	return nil
+		err = s.eventRepo.DeleteEventBySpectrumId(spectrumId)
+		if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		return nil
+	})
+
+	return err
 }
 
 func (s SpectrumUsecases) RetrieveSpectrums(limit int, page int) ([]entity.SpectrumEntity, error) {
@@ -163,10 +174,6 @@ func (s SpectrumUsecases) RetrieveSpectrums(limit int, page int) ([]entity.Spect
 	return spectrums, nil
 }
 
-/*
-For validating the basic spectrum data and if one of those is null, then it won't validate that.
-Maybe this function is called for updating few fields only. Here passing the media files only for checking size and limit.
-*/
 func (s SpectrumUsecases) validateSpectrumData(
 	name *string,
 	shortDescription *string,

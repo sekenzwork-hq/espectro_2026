@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"espectro/database"
 	"espectro/enums"
 	"espectro/handlers"
 	"espectro/middlewares"
@@ -17,9 +18,11 @@ func RegisterSpectrumRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clo
 
 	spectrumRepo := repositoryimple.NewSpectrumPostgresRepo(db)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
+	transactionM := database.NewTransactionManager(db)
 	cldMediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
+	eventRepo := repositoryimple.NewEventPostgresRepo(db)
 	redisRepo := repositoryimple.NewCacheRedisRepo(rds)
-	spectrumUsecase := usecases.NewSpectrumUsecases(spectrumRepo, cldMediaRepo, redisRepo)
+	spectrumUsecase := usecases.NewSpectrumUsecases(spectrumRepo, cldMediaRepo, eventRepo, redisRepo, transactionM)
 	adminUsecase := usecases.NewAdminUsecases(adminRepo)
 	handlers := handlers.NewSpectrumHandlers(spectrumUsecase)
 

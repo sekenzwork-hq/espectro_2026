@@ -85,7 +85,7 @@ func (e EventUsecases) CreateEvent(event entity.EventCreateEntity) (entity.Event
 			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 
-		incrementErr := e.spectrumRepo.IncrementTotalEventsCount(event.SpectrumId)
+		incrementErr := e.spectrumRepo.IncrementTotalEventsCountBy1(event.SpectrumId)
 
 		if incrementErr != nil {
 			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
@@ -140,9 +140,33 @@ func (e EventUsecases) DeleteEvent(eventId string) error {
 		return &customerrors.ValidationError{OrgError: "Invalid event id"}
 	}
 
-	err := e.eventRepo.DeleteEvent(eventId)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Event does not exist"}
+	err := e.transaction.Run(func() error {
+
+		spectrumId, err := e.eventRepo.RetrieveSpectrumId(eventId)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Spectrum of event does not exist"}
+		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		err = e.eventRepo.DeleteEvent(eventId)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Event does not exist"}
+		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		err = e.spectrumRepo.DecrementTotalEventsCountBy1(spectrumId)
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Spectrum of event does not exist"}
+		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
 	}
 
 	return nil

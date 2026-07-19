@@ -109,7 +109,7 @@ func (s SpectrumPostgresRepo) CheckSpectrumExists(spectrumId string) (bool, erro
 	return exists, err
 }
 
-func (s SpectrumPostgresRepo) IncrementTotalEventsCount(spectrumId string) error {
+func (s SpectrumPostgresRepo) IncrementTotalEventsCountBy1(spectrumId string) error {
 
 	out := s.db.
 		Table("spectrums").
@@ -120,6 +120,19 @@ func (s SpectrumPostgresRepo) IncrementTotalEventsCount(spectrumId string) error
 		return out.Error
 	} else if out.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+}
+
+func (s SpectrumPostgresRepo) DecrementTotalEventsCountBy1(spectrumId string) error {
+	out := s.db.
+		Table("spectrums").
+		Where("id=? AND deleted_at IS NULL", spectrumId).
+		UpdateColumn("total_events", gorm.Expr("total_events-1"))
+
+	if out.Error != nil {
+		return out.Error
 	}
 
 	return nil
