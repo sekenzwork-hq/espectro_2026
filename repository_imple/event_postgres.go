@@ -145,7 +145,7 @@ func (e EventPostgresRepo) RetrieveEventsBySpectrumId(spectrumId string, limit i
 
 	err := e.db.
 		Table("events").
-		Select("id,name,description,spectrum_id,status,start_date,end_date,limit,event_mode,event_type,is_featured,contact_email,venue_id,created_at").
+		Select("id,name,description,spectrum_id,status,start_date,end_date,participant_limit,event_mode,event_type,is_featured,contact_email,venue_id,created_at").
 		Where("spectrum_id=? AND deleted_at IS NULL", spectrumId).
 		Offset(offset).
 		Limit(limit).

@@ -260,7 +260,7 @@ func ValidateName(name string) error {
 	correct := reg.MatchString(strings.TrimSpace(name))
 
 	if !correct {
-		return errors.New("Name should not contain any special character, symbols and digits")
+		return errors.New("Name should not contain any special character")
 	}
 
 	return nil
