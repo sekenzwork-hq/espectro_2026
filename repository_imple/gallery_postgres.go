@@ -63,3 +63,19 @@ func (g GalleryPostgresRepo) DeleteGallery(galleryId string) error {
 
 	return nil
 }
+
+func (g GalleryPostgresRepo) RetrieveGalleries(limit int, offset int) ([]entity.GalleryWithVenueEntity, error) {
+
+	var galleries []entity.GalleryWithVenueEntity
+
+	err := g.db.
+		Table("gallery g").
+		Select("g.id,g.name,g.venue_id,g.created_at,g.image_urls, v.country as country, v.state as state, v.city as city").
+		Joins("JOIN venue v ON v.id = g.venue_id AND v.deleted_at IS NULL").
+		Where("g.deleted_at IS NULL").
+		Offset(offset).
+		Limit(limit).
+		Scan(&galleries).Error
+
+	return galleries, err
+}

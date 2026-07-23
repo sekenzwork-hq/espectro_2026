@@ -120,6 +120,18 @@ func (g GalleryUsecases) DeleteGallery(galleryId string) error {
 	return nil
 }
 
+func (g GalleryUsecases) RetrieveGalleries(limit int, page int) ([]entity.GalleryWithVenueEntity, error) {
+
+	offset := pkg.GetOffset(limit, page)
+
+	galleries, err := g.galleryRepo.RetrieveGalleries(limit, offset)
+	if err != nil {
+		return galleries, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+	return galleries, nil
+
+}
+
 func (g GalleryUsecases) validateGalleryData(galleryId *string, venueId *string, name *string, images []*multipart.FileHeader) error {
 
 	if galleryId != nil && !pkg.ValidateUUID(*galleryId) {
