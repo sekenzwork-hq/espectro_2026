@@ -52,7 +52,7 @@ func (g GalleryPostgresRepo) DeleteGallery(galleryId string) error {
 
 	out := g.db.
 		Table("gallery").
-		Where("id=? AND deleted_at IS NULL").
+		Where("id=? AND deleted_at IS NULL", galleryId).
 		Update("deleted_at", time.Now().UTC())
 
 	if out.Error != nil {
