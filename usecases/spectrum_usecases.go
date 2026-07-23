@@ -214,7 +214,7 @@ func (s SpectrumUsecases) validateSpectrumData(
 	}
 
 	if len(imageFiles) > 10 {
-		return &customerrors.SizeError{OrgError: "Maximum number of images is 10"}
+		return &customerrors.ValidationError{OrgError: "Maximum number of images is 10"}
 	}
 
 	if logoFile != nil && pkg.ValidateImageSize(*logoFile) {
