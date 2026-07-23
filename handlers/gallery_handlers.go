@@ -34,7 +34,6 @@ func (g GalleryHandlers) CreateGallery(ctx *gin.Context) {
 	}
 
 	gallery, err := g.usecases.CreateGallery(name, venueId, images)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -42,4 +41,59 @@ func (g GalleryHandlers) CreateGallery(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Gallery has been created", "gallery": gallery})
+}
+
+func (g GalleryHandlers) UpdateGallery(ctx *gin.Context) {
+
+	galleryId, galleryIdExists := ctx.GetPostForm("gallery_id")
+
+	if !galleryIdExists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide gallery id"})
+		return
+	}
+	nameForm, nameExists := ctx.GetPostForm("name")
+	venueIdForm, venueIdExists := ctx.GetPostForm("venue_id")
+	imagesForm, _ := ctx.MultipartForm()
+
+	images := imagesForm.File["images"]
+	var name *string
+	var venueId *string
+
+	if nameExists {
+		name = &nameForm
+	}
+	if venueIdExists {
+		venueId = &venueIdForm
+	}
+
+	newGallery, updationErr := g.usecases.UpdateGallery(galleryId, name, venueId, images)
+
+	if updationErr != nil {
+		code := pkg.GetStatusCodeForError(updationErr)
+		ctx.JSON(code, gin.H{"status": code, "message": updationErr.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Gallery has been updated", "gallery": newGallery})
+
+}
+
+func (g GalleryHandlers) DeleteGallery(ctx *gin.Context) {
+
+	galleryId, exists := ctx.GetQuery("gallery_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide gallery id"})
+		return
+	}
+
+	err := g.usecases.DeleteGallery(galleryId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Gallery has been deleted"})
 }

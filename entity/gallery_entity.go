@@ -13,3 +13,10 @@ type GalleryEntity struct {
 	VenueId   string         `json:"venue_id" gorm:"column:venue_id"`
 	CreatedAt time.Time      `json:"created_at" gorm:"column:created_at;type timestampz;default:now()"`
 }
+
+type GalleryUpdateEntity struct {
+	GallerId  string
+	Name      *string
+	ImageUrls *pq.StringArray
+	VenueId   *string
+}

@@ -26,4 +26,6 @@ func RegisterGalleryRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	galleryApi := r.Group("/gallery")
 
 	galleryApi.POST("/create", adminMiddleware.AdminMiddleWare, handlers.CreateGallery)
+	galleryApi.PATCH("/update", adminMiddleware.AdminMiddleWare, handlers.UpdateGallery)
+	galleryApi.DELETE("/delete", adminMiddleware.AdminMiddleWare, handlers.DeleteGallery)
 }
