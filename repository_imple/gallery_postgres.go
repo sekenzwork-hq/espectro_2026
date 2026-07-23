@@ -34,7 +34,7 @@ func (g GalleryPostgresRepo) UpdateGallery(newGallery entity.GalleryUpdateEntity
 		image_urls=COALESCE(?,image_urls)
 		
 		WHERE id=? AND deleted_at IS NULL
-		RETURNING id,name,venue_id,created_at,image_urls
+		RETURNING id,name,created_at,image_urls
 		`,
 		newGallery.Name, newGallery.ImageUrls, newGallery.GallerId,
 	).Scan(&entity)

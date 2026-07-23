@@ -33,7 +33,7 @@ func (s SpectrumHandlers) CreateSpectrum(ctx *gin.Context) {
 	statusForm := form.Value["status"]
 	logoFileForm := form.File["logo"]
 	videoFileForm := form.File["video"]
-	imageForm := form.File["image"]
+	imageForm := form.File["images"]
 
 	if len(nameForm) == 0 {
 		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Invalid name"})

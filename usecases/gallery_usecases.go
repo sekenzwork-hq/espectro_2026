@@ -28,7 +28,6 @@ func (g GalleryUsecases) CreateGallery(name string, images []*multipart.FileHead
 	emptyGallery := entity.GalleryEntity{}
 
 	validationErr := g.validateGalleryData(nil, &name, images)
-
 	if validationErr != nil {
 		return emptyGallery, validationErr
 	}

@@ -64,7 +64,12 @@ func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
 func (a AdminHandlers) DeleteMemberOrVolunteer(ctx *gin.Context) {
 
 	currentAdminId := ctx.GetString("admin_id")
-	oneToDelete := ctx.Query("admin_id")
+	oneToDelete, exists := ctx.GetQuery("admin_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide the admin id"})
+		return
+	}
 
 	err := a.usecases.DeleteMemberOrVolunteer(oneToDelete, currentAdminId)
 
