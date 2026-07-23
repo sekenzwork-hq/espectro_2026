@@ -68,23 +68,17 @@ func (s SpectrumHandlers) CreateSpectrum(ctx *gin.Context) {
 
 func (s SpectrumHandlers) UpdateSpectrum(ctx *gin.Context) {
 
-	form, err := ctx.MultipartForm()
+	spectrumId, spectrumIdExists := ctx.GetQuery("spectrum_id")
 
-	if err != nil {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Invalid form"})
-		return
-	}
-
-	spectrumIdForm := form.Value["spectrum_id"]
-
-	if len(spectrumIdForm) == 0 {
+	if !spectrumIdExists {
 		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide spectrum id"})
 		return
 	}
-	nameForm := form.Value["name"]
-	shortDescriptionForm := form.Value["short_description"]
-	descriptionForm := form.Value["description"]
-	statusForm := form.Value["status"]
+	nameForm, nameExists := ctx.GetQuery("name")
+	shortDescriptionForm, shortDesExists := ctx.GetQuery("short_description")
+	descriptionForm, desExists := ctx.GetQuery("description")
+	statusForm, statusExists := ctx.GetQuery("status")
+	form, _ := ctx.MultipartForm()
 	logoFileForm := form.File["logo"]
 	videoFileForm := form.File["video"]
 	imageForm := form.File["image"]
@@ -96,17 +90,17 @@ func (s SpectrumHandlers) UpdateSpectrum(ctx *gin.Context) {
 	var logoFile *multipart.FileHeader
 	var videoFile *multipart.FileHeader
 
-	if len(nameForm) != 0 {
-		name = &nameForm[0]
+	if nameExists {
+		name = &nameForm
 	}
-	if len(shortDescriptionForm) != 0 {
-		shortDes = &shortDescriptionForm[0]
+	if shortDesExists {
+		shortDes = &shortDescriptionForm
 	}
-	if len(descriptionForm) != 0 {
-		des = &descriptionForm[0]
+	if desExists {
+		des = &descriptionForm
 	}
-	if len(statusForm) != 0 {
-		status = &statusForm[0]
+	if statusExists {
+		status = &statusForm
 	}
 	if len(logoFileForm) != 0 {
 		logoFile = logoFileForm[0]
@@ -116,7 +110,7 @@ func (s SpectrumHandlers) UpdateSpectrum(ctx *gin.Context) {
 	}
 
 	newSpectrum, err := s.usecases.UpdateSpectrum(
-		spectrumIdForm[0],
+		spectrumId,
 		name,
 		shortDes,
 		des, (*enums.SpectrumStatus)(status),

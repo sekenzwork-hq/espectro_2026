@@ -41,11 +41,15 @@ func (p PartnerHandlers) UpdatePartner(ctx *gin.Context) {
 	var name *string
 	var logo *multipart.FileHeader
 
-	nameForm := ctx.PostForm("name")
+	nameForm, nameExists := ctx.GetPostForm("name")
 	logoForm, _ := ctx.FormFile("logo")
-	partnerId := ctx.PostForm("partner_id")
+	partnerId, idExists := ctx.GetPostForm("partner_id")
 
-	if len(nameForm) != 0 {
+	if !idExists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide partner id"})
+		return
+	}
+	if nameExists {
 		name = &nameForm
 	}
 	if logoForm != nil {
