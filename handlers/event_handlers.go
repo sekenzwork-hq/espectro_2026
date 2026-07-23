@@ -22,13 +22,11 @@ func (e EventHandlers) CreateEvent(ctx *gin.Context) {
 	var entity entity.EventCreateEntity
 
 	canGo := pkg.ParseJson(ctx, &entity)
-
 	if !canGo {
 		return
 	}
 
 	event, err := e.usecases.CreateEvent(entity)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -41,7 +39,6 @@ func (e EventHandlers) UpdateEvent(ctx *gin.Context) {
 	var entity entity.EventUpdateEntity
 
 	canGo := pkg.ParseJson(ctx, &entity)
-
 	if !canGo {
 		return
 	}
@@ -58,7 +55,12 @@ func (e EventHandlers) UpdateEvent(ctx *gin.Context) {
 
 func (e EventHandlers) DeleteEvent(ctx *gin.Context) {
 
-	eventId := ctx.Query("event_id")
+	eventId, exists := ctx.GetQuery("event_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide event id"})
+		return
+	}
 
 	err := e.usecases.DeleteEvent(eventId)
 	if err != nil {
