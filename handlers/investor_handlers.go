@@ -18,15 +18,29 @@ func NewInvestorHandlers(usecases usecases.InvestorUsecases) InvestorHandlers {
 
 func (i InvestorHandlers) CreateInvestor(ctx *gin.Context) {
 
-	nameForm := ctx.PostForm("name")
-	websiteUrlForm := ctx.PostForm("website_url")
-	phoneNumberForm := ctx.PostForm("phone_number")
-	emailForm := ctx.PostForm("email")
+	nameForm, nameExists := ctx.GetPostForm("name")
+	websiteUrlForm, websiteUrlExists := ctx.GetPostForm("website_url")
+	phoneNumberForm, phoneNumExists := ctx.GetPostForm("phone_number")
+	emailForm, emailExists := ctx.GetPostForm("email")
 	logo, _ := ctx.FormFile("logo")
+
+	if !nameExists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide name"})
+		return
+	}
+	if !phoneNumExists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide phone number"})
+		return
+	}
+
+	if !emailExists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide email"})
+		return
+	}
 
 	var websiteUrl *string
 
-	if len(websiteUrlForm) != 0 {
+	if websiteUrlExists {
 		websiteUrl = &websiteUrlForm
 	}
 
@@ -78,7 +92,12 @@ func (i InvestorHandlers) UpdateInvestor(ctx *gin.Context) {
 
 func (i InvestorHandlers) DeleteInvestor(ctx *gin.Context) {
 
-	investorId := ctx.Query("investor_id")
+	investorId, exists := ctx.GetQuery("investor_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide investor id"})
+		return
+	}
 
 	err := i.usecases.DeleteInvestor(investorId)
 	if err != nil {
