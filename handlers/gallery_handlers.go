@@ -19,7 +19,6 @@ func NewGalleryHandlers(usecases usecases.GalleryUsecases) GalleryHandlers {
 func (g GalleryHandlers) CreateGallery(ctx *gin.Context) {
 
 	name, nameExists := ctx.GetPostForm("name")
-	venueId, venueIdExists := ctx.GetPostForm("venue_id")
 	imagesForms, _ := ctx.MultipartForm()
 	images := imagesForms.File["images"]
 
@@ -28,12 +27,7 @@ func (g GalleryHandlers) CreateGallery(ctx *gin.Context) {
 		return
 	}
 
-	if !venueIdExists {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide venue id"})
-		return
-	}
-
-	gallery, err := g.usecases.CreateGallery(name, venueId, images)
+	gallery, err := g.usecases.CreateGallery(name, images)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -52,21 +46,16 @@ func (g GalleryHandlers) UpdateGallery(ctx *gin.Context) {
 		return
 	}
 	nameForm, nameExists := ctx.GetPostForm("name")
-	venueIdForm, venueIdExists := ctx.GetPostForm("venue_id")
 	imagesForm, _ := ctx.MultipartForm()
 
 	images := imagesForm.File["images"]
 	var name *string
-	var venueId *string
 
 	if nameExists {
 		name = &nameForm
 	}
-	if venueIdExists {
-		venueId = &venueIdForm
-	}
 
-	newGallery, updationErr := g.usecases.UpdateGallery(galleryId, name, venueId, images)
+	newGallery, updationErr := g.usecases.UpdateGallery(galleryId, name, images)
 
 	if updationErr != nil {
 		code := pkg.GetStatusCodeForError(updationErr)

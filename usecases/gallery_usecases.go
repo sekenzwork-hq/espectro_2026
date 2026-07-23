@@ -23,11 +23,11 @@ func NewGalleryUsecases(galleryRepo repository.GalleryRepo, mediaRepo repository
 	return GalleryUsecases{galleryRepo: galleryRepo, mediaRepo: mediaRepo, venueRepo: venueRepo}
 }
 
-func (g GalleryUsecases) CreateGallery(name string, venueId string, images []*multipart.FileHeader) (entity.GalleryEntity, error) {
+func (g GalleryUsecases) CreateGallery(name string, images []*multipart.FileHeader) (entity.GalleryEntity, error) {
 
 	emptyGallery := entity.GalleryEntity{}
 
-	validationErr := g.validateGalleryData(nil, &venueId, &name, images)
+	validationErr := g.validateGalleryData(nil, &name, images)
 
 	if validationErr != nil {
 		return emptyGallery, validationErr
@@ -49,7 +49,6 @@ func (g GalleryUsecases) CreateGallery(name string, venueId string, images []*mu
 		Id:        galleryId,
 		Name:      name,
 		ImageUrls: imageUrls,
-		VenueId:   venueId,
 	})
 
 	if insertionErr != nil {
@@ -62,11 +61,11 @@ func (g GalleryUsecases) CreateGallery(name string, venueId string, images []*mu
 	return gallery, nil
 
 }
-func (g GalleryUsecases) UpdateGallery(galleryId string, name *string, venueId *string, images []*multipart.FileHeader) (entity.GalleryEntity, error) {
+func (g GalleryUsecases) UpdateGallery(galleryId string, name *string, images []*multipart.FileHeader) (entity.GalleryEntity, error) {
 
 	emptyGallery := entity.GalleryEntity{}
 
-	validationErr := g.validateGalleryData(&galleryId, venueId, name, images)
+	validationErr := g.validateGalleryData(&galleryId, name, images)
 	if validationErr != nil {
 		return emptyGallery, validationErr
 	}
@@ -86,7 +85,6 @@ func (g GalleryUsecases) UpdateGallery(galleryId string, name *string, venueId *
 		GallerId:  galleryId,
 		Name:      name,
 		ImageUrls: &imageUrls,
-		VenueId:   venueId,
 	})
 
 	if updationErr != nil {
@@ -120,7 +118,7 @@ func (g GalleryUsecases) DeleteGallery(galleryId string) error {
 	return nil
 }
 
-func (g GalleryUsecases) RetrieveGalleries(limit int, page int) ([]entity.GalleryWithVenueEntity, error) {
+func (g GalleryUsecases) RetrieveGalleries(limit int, page int) ([]entity.GalleryEntity, error) {
 
 	offset := pkg.GetOffset(limit, page)
 
@@ -132,13 +130,10 @@ func (g GalleryUsecases) RetrieveGalleries(limit int, page int) ([]entity.Galler
 
 }
 
-func (g GalleryUsecases) validateGalleryData(galleryId *string, venueId *string, name *string, images []*multipart.FileHeader) error {
+func (g GalleryUsecases) validateGalleryData(galleryId *string, name *string, images []*multipart.FileHeader) error {
 
 	if galleryId != nil && !pkg.ValidateUUID(*galleryId) {
 		return &customerrors.ValidationError{OrgError: "Invalid gallery id"}
-	}
-	if venueId != nil && !pkg.ValidateUUID(*venueId) {
-		return &customerrors.ValidationError{OrgError: "Invalid venue id"}
 	}
 
 	if name != nil {
@@ -150,19 +145,7 @@ func (g GalleryUsecases) validateGalleryData(galleryId *string, venueId *string,
 	if len(images) > 10 {
 		return &customerrors.ValidationError{OrgError: "Maximum number of images is 10"}
 	}
-	if venueId != nil {
 
-		venueExists, checkingErr := g.venueRepo.CheckVenueExists(*venueId)
-
-		if checkingErr != nil || !venueExists {
-			if checkingErr != nil {
-				return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-			} else {
-				return &customerrors.NotFoundError{OrgError: "Venue does not exist"}
-			}
-		}
-
-	}
 	for i := range images {
 		image := images[i]
 		if image != nil && !pkg.ValidateImageSize(*image) {
