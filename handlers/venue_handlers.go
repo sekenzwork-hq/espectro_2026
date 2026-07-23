@@ -38,7 +38,12 @@ func (v VenueHandlers) CreateVenue(ctx *gin.Context) {
 
 func (v VenueHandlers) DeleteVenue(ctx *gin.Context) {
 
-	venueId := ctx.Query("venue_id")
+	venueId, exists := ctx.GetQuery("venue_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide venue id"})
+		return
+	}
 
 	err := v.usecases.DeleteVenue(venueId)
 
