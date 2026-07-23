@@ -68,7 +68,7 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 	sponsorId := uuid.New().String()
 
 	if profileOrOrg != nil {
-		url, err := s.mediaRepo.UploadFile(profileOrOrg, "sponsor/"+sponsorId, true)
+		url, _, err := s.mediaRepo.UploadFile(profileOrOrg, "sponsor/"+sponsorId, true)
 		if err != nil {
 			return emptySponsor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
@@ -124,7 +124,7 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 
 	var logoOrImageUrl *string
 	if profileOrOrgImage != nil {
-		url, err := s.mediaRepo.UploadFile(profileOrOrgImage, "sponsor/"+sponsorId, true)
+		url, _, err := s.mediaRepo.UploadFile(profileOrOrgImage, "sponsor/"+sponsorId, true)
 		if err != nil {
 			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}

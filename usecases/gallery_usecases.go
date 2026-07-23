@@ -37,7 +37,7 @@ func (g GalleryUsecases) CreateGallery(name string, images []*multipart.FileHead
 
 	folderId := "gallery/" + galleryId
 	if len(images) != 0 {
-		urls, err := g.uploadGalleryImages(folderId, images)
+		urls, _, _, err := g.uploadGalleryImages(folderId, images)
 		if err != nil {
 			return emptyGallery, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
@@ -72,12 +72,16 @@ func (g GalleryUsecases) UpdateGallery(galleryId string, name *string, images []
 	var imageUrls pq.StringArray
 	folderId := "gallery/" + galleryId
 
+	prevPublicIds := []string{}
+	newPublicIds := []string{}
 	if len(images) != 0 {
-		urls, err := g.mediaRepo.UploadFiles(images, folderId, true)
+		urls, prevIds, newIds, err := g.uploadGalleryImages(folderId, images)
 		if err != nil {
 			return emptyGallery, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 		imageUrls = pq.StringArray(urls)
+		prevPublicIds = prevIds
+		newPublicIds = newIds
 	}
 
 	newGallery, updationErr := g.galleryRepo.UpdateGallery(entity.GalleryUpdateEntity{
@@ -88,13 +92,15 @@ func (g GalleryUsecases) UpdateGallery(galleryId string, name *string, images []
 
 	if updationErr != nil {
 		if len(imageUrls) != 0 {
-			go g.mediaRepo.DeleteFile("gallery/", galleryId)
+			go g.mediaRepo.DeleteAssetsWithPublicIds(newPublicIds)
 		}
 		if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 			return emptyGallery, &customerrors.NotFoundError{OrgError: "Gallery does not exist"}
 		}
 		return emptyGallery, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
+
+	go g.mediaRepo.DeleteAssetsWithPublicIds(prevPublicIds)
 
 	return newGallery, updationErr
 
@@ -154,21 +160,19 @@ func (g GalleryUsecases) validateGalleryData(galleryId *string, name *string, im
 	return nil
 }
 
-func (g GalleryUsecases) uploadGalleryImages(folderId string, images []*multipart.FileHeader) ([]string, error) {
+func (g GalleryUsecases) uploadGalleryImages(folderId string, images []*multipart.FileHeader) (urls []string, prevPublicIds []string, newPublicIds []string, err error) {
 
 	prevPublicIds, retrivalErr := g.mediaRepo.RetrieveAssetPublicIds(folderId)
 
 	if retrivalErr != nil {
-		return []string{}, retrivalErr
+		return []string{}, []string{}, []string{}, retrivalErr
 	}
 
-	urls, uploadErr := g.mediaRepo.UploadFiles(images, folderId, true)
+	urls, newPublicIds, err = g.mediaRepo.UploadFiles(images, folderId, false)
 
-	if uploadErr != nil {
-		return []string{}, uploadErr
+	if err != nil {
+		return []string{}, []string{}, []string{}, err
 	}
 
-	go g.mediaRepo.DeleteAssetsWithPublicIds(prevPublicIds)
-
-	return urls, nil
+	return urls, prevPublicIds, newPublicIds, nil
 }

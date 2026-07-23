@@ -120,13 +120,15 @@ func (s SpectrumUsecases) UpdateSpectrum(
 	)
 
 	if updationErr != nil {
-		go s.mediaRepo.DeleteMutipleFiles("spectrum/"+spectrumId, []string{"logo", "video", "images"})
+		go s.mediaRepo.DeleteAssetsWithPublicIds(media.NewImagePublicIds)
 	}
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 		return emptySpectrum, &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
 	} else if updationErr != nil {
 		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
+
+	go s.mediaRepo.DeleteAssetsWithPublicIds(media.PreviousImagePublicIds)
 
 	return newSpectrum, nil
 
@@ -255,7 +257,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	}
 
 	if logoFile != nil {
-		url, urlErr := s.mediaRepo.UploadFile(logoFile, logoFolder, true)
+		url, _, urlErr := s.mediaRepo.UploadFile(logoFile, logoFolder, true)
 		if urlErr != nil {
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
@@ -263,7 +265,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	}
 
 	if videoFile != nil {
-		url, urlErr := s.mediaRepo.UploadFile(logoFile, videoFolder, true)
+		url, _, urlErr := s.mediaRepo.UploadFile(logoFile, videoFolder, true)
 		if urlErr != nil {
 			//Deleting the above uploaded logo (if it is provided ) if video is failed while uploading
 			if logoUrl != nil {
@@ -274,15 +276,16 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 		videoUrl = &url
 	}
 
+	var prevImagePublicIds []string
+	var newImagePublicIds []string
 	if len(imageFiles) != 0 {
 		prevPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(imagesFolder)
-
 		if err != nil {
 			funcToDeleteUploadedMedia()
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 
-		urls, urlsErr := s.mediaRepo.UploadFiles(imageFiles, imagesFolder, false)
+		urls, newPublicIds, urlsErr := s.mediaRepo.UploadFiles(imageFiles, imagesFolder, false)
 		if urlsErr != nil {
 			//Deleting the above upload video and logo (if those are provided) and deleting rest of the images
 			//we were uploading if it is failed.
@@ -290,12 +293,10 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 		imageUrls = urls
-		if len(prevPublicIds) != 0 {
-			go s.mediaRepo.DeleteAssetsWithPublicIds(prevPublicIds)
-
-		}
+		prevImagePublicIds = prevPublicIds
+		newImagePublicIds = newPublicIds
 	}
 
-	return models.SpectrumMediaModel{LogoUrl: logoUrl, VideoUrl: videoUrl, ImageUrls: imageUrls}, nil
+	return models.SpectrumMediaModel{LogoUrl: logoUrl, VideoUrl: videoUrl, ImageUrls: imageUrls, PreviousImagePublicIds: prevImagePublicIds, NewImagePublicIds: newImagePublicIds}, nil
 
 }

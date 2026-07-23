@@ -18,29 +18,30 @@ func NewMediaCloudinaryRepo(cld *cloudinary.Cloudinary) MediaCloudinaryRepo {
 	return MediaCloudinaryRepo{cld: cld}
 }
 
-func (m MediaCloudinaryRepo) UploadFiles(files []*multipart.FileHeader, folderId string, override bool) ([]string, error) {
+func (m MediaCloudinaryRepo) UploadFiles(files []*multipart.FileHeader, folderId string, override bool) (urls []string, publicIds []string, err error) {
 
-	urls := []string{}
+	urls = []string{}
+	publicIds = []string{}
 
 	for i := range files {
 		file := files[i]
 		if file == nil {
 			continue
 		}
-		url, err := m.UploadFile(file, folderId, override)
+		url, publicId, err := m.UploadFile(file, folderId, override)
 		if err != nil {
-			return []string{}, err
+			return []string{}, []string{}, err
 		}
 		urls = append(urls, url)
+		publicIds = append(publicIds, publicId)
 	}
 
-	return urls, nil
+	return urls, publicIds, nil
 }
-func (m MediaCloudinaryRepo) UploadFile(file *multipart.FileHeader, folderId string, override bool) (string, error) {
+func (m MediaCloudinaryRepo) UploadFile(file *multipart.FileHeader, folderId string, override bool) (url string, publicId string, err error) {
 
 	ctx := context.TODO()
 
-	var publicId string
 	if override {
 		publicId = folderId
 	} else {
@@ -52,7 +53,7 @@ func (m MediaCloudinaryRepo) UploadFile(file *multipart.FileHeader, folderId str
 		Overwrite: &override,
 		PublicID:  publicId,
 	})
-	return res.SecureURL, err
+	return res.SecureURL, publicId, err
 }
 
 func (m MediaCloudinaryRepo) DeleteFile(globalFolderId string, endpointFolder string) error {
