@@ -18,8 +18,13 @@ func NewPartnerHandlers(usecases usecases.PartnerUsecases) PartnerHandlers {
 }
 
 func (p PartnerHandlers) CreatePartner(ctx *gin.Context) {
-	name := ctx.PostForm("name")
+	name, nameExists := ctx.GetPostForm("name")
 	logo, err := ctx.FormFile("logo")
+
+	if !nameExists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide name"})
+		return
+	}
 
 	partner, err := p.usecases.CreatePartner(name, logo)
 	if err != nil {
@@ -58,7 +63,13 @@ func (p PartnerHandlers) UpdatePartner(ctx *gin.Context) {
 
 func (p PartnerHandlers) DeletePartner(ctx *gin.Context) {
 
-	partnerId := ctx.Query("partner_id")
+	partnerId, exists := ctx.GetQuery("partner_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide partner id"})
+		return
+	}
+
 	err := p.usecases.DeletePartner(partnerId)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
