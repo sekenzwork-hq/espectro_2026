@@ -130,7 +130,12 @@ func (s SpectrumHandlers) UpdateSpectrum(ctx *gin.Context) {
 
 func (s SpectrumHandlers) DeleteSpectrum(ctx *gin.Context) {
 
-	spectrumId := ctx.Query("spectrum_id")
+	spectrumId, exists := ctx.GetQuery("spectrum_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide spectrum id"})
+		return
+	}
 
 	err := s.usecases.DeleteSpectrum(spectrumId)
 

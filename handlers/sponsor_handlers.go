@@ -19,15 +19,19 @@ func NewSponsorHandlers(usecases usecases.SponsorUsecases) SponsorHandlers {
 }
 
 func (s SponsorHandlers) CreateSponsor(ctx *gin.Context) {
-	name := ctx.PostForm("name")
-	amount := ctx.PostForm("amount")
+	name, nameExists := ctx.GetPostForm("name")
+	amount, amountExists := ctx.GetPostForm("amount")
 	profileOrOrgImage, _ := ctx.FormFile("profile_or_org")
 	sponsoredType := ctx.PostForm("sponsored_type")
 	eventIds := ctx.PostFormArray("event_id")
 
-	var amountFloat *float32
+	if !nameExists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide name"})
+		return
+	}
 
-	if len(amount) != 0 {
+	var amountFloat *float32
+	if amountExists {
 		value, err := strconv.ParseFloat(amount, 32)
 		if err != nil {
 			f := float32(value)
@@ -50,23 +54,27 @@ func (s SponsorHandlers) CreateSponsor(ctx *gin.Context) {
 }
 
 func (s SponsorHandlers) UpdateSponsor(ctx *gin.Context) {
-	sponsorId := ctx.PostForm("sponsor_id")
-	nameForm := ctx.PostForm("name")
-	amountForm := ctx.PostForm("amount")
+	sponsorId, sponsorIdExists := ctx.GetPostForm("sponsor_id")
+	nameForm, nameExists := ctx.GetPostForm("name")
+	amountForm, amountExists := ctx.GetPostForm("amount")
 	profileOrOrgImage, _ := ctx.FormFile("profile_or_org")
-	sponsoredTypeForm := ctx.PostForm("sponsored_type")
+	sponsoredTypeForm, typeExists := ctx.GetPostForm("sponsored_type")
+
+	if !sponsorIdExists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide sponsor id"})
+		return
+	}
 
 	var name *string
 	var amountFloat *float32
 	var sponsoredType *enums.SponsoredType
 
-	if len(nameForm) != 0 {
+	if nameExists {
 		name = &nameForm
 	}
 
-	if len(amountForm) != 0 {
+	if amountExists {
 		value, err := strconv.ParseFloat(amountForm, 32)
-
 		if err != nil {
 			ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Invalid amount"})
 			return
@@ -76,7 +84,7 @@ func (s SponsorHandlers) UpdateSponsor(ctx *gin.Context) {
 
 	}
 
-	if len(sponsoredTypeForm) != 0 {
+	if typeExists {
 		st := enums.SponsoredType(sponsoredTypeForm)
 		sponsoredType = &st
 	}
@@ -94,7 +102,12 @@ func (s SponsorHandlers) UpdateSponsor(ctx *gin.Context) {
 
 func (s SponsorHandlers) DeleteSponsor(ctx *gin.Context) {
 
-	sponsorId := ctx.Query("sponsor_id")
+	sponsorId, exists := ctx.GetQuery("sponsor_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide sponsor id"})
+		return
+	}
 
 	err := s.usecases.DeleteSponsor(sponsorId)
 	if err != nil {
