@@ -49,12 +49,9 @@ func (s SpectrumUsecases) CreateSpectrum(
 		return emptySpectrum, validationErr
 	}
 
-	spectrumId, idErr := uuid.NewUUID()
-	if idErr != nil {
-		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-	}
+	spectrumId := uuid.NewString()
 
-	media, mediaErr := s.uploadMediaForSpectrum(spectrumId.String(), logoFile, videoFile, imageFiles)
+	media, mediaErr := s.uploadMediaForSpectrum(spectrumId, logoFile, videoFile, imageFiles)
 	if mediaErr != nil {
 		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
@@ -72,6 +69,10 @@ func (s SpectrumUsecases) CreateSpectrum(
 	}
 
 	spectrum, creationErr := s.spectrumRepo.CreateSpectrum(spectrumData)
+
+	if creationErr != nil {
+		go s.mediaRepo.DeleteMutipleFiles("spectrum/"+spectrumId, []string{"logo", "video", "images"})
+	}
 
 	if creationErr != nil {
 		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
@@ -118,6 +119,9 @@ func (s SpectrumUsecases) UpdateSpectrum(
 		media.ImageUrls,
 	)
 
+	if updationErr != nil {
+		go s.mediaRepo.DeleteMutipleFiles("spectrum/"+spectrumId, []string{"logo", "video", "images"})
+	}
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 		return emptySpectrum, &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
 	} else if updationErr != nil {
@@ -247,9 +251,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	emptyModel := models.SpectrumMediaModel{}
 
 	funcToDeleteUploadedMedia := func() {
-		go func() {
-			s.mediaRepo.DeleteMutipleFiles(baseFolder, []string{logoFolder, videoFolder})
-		}()
+		s.mediaRepo.DeleteMutipleFiles(baseFolder, []string{logoFolder, videoFolder})
 	}
 
 	if logoFile != nil {

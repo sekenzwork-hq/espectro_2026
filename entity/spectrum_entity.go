@@ -4,12 +4,11 @@ import (
 	"espectro/enums"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
 type SpectrumEntity struct {
-	Id               uuid.UUID            `json:"id" gorm:"column:id;type uuid;primaryKey"`
+	Id               string               `json:"id" gorm:"column:id;type uuid;primaryKey"`
 	Name             string               `json:"name" gorm:"column:name"`
 	ShortDescription string               `json:"short_description" gorm:"column:short_description"`
 	Description      string               `json:"description" gorm:"column:description"`

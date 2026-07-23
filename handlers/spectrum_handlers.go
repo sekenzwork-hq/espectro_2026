@@ -4,7 +4,6 @@ import (
 	"espectro/enums"
 	"espectro/pkg"
 	"espectro/usecases"
-	"fmt"
 	"mime/multipart"
 	"net/http"
 
@@ -35,8 +34,6 @@ func (s SpectrumHandlers) CreateSpectrum(ctx *gin.Context) {
 	logoFileForm := form.File["logo"]
 	videoFileForm := form.File["video"]
 	imageForm := form.File["image"]
-
-	fmt.Println("Images from controller : ", imageForm)
 
 	if len(nameForm) == 0 {
 		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Invalid name"})
