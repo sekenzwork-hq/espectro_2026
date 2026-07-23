@@ -53,7 +53,7 @@ func main() {
 
 	routes.RegisterUserRoutes(api, gormDB)
 	routes.RegisterAdminRoutes(api, gormDB)
-	routes.RegisterSpectrumRoutes(api, gormDB, cld, redisClient)
+	routes.RegisterSpectrumRoutes(api, gormDB, cld)
 	routes.RegisterVenueRoutes(api, gormDB)
 	routes.RegisterEventRoutes(api, gormDB)
 	routes.RegisterPartnerRoutes(api, gormDB, cld)

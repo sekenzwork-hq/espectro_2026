@@ -1,5 +1,7 @@
 package repository
 
+import "espectro/entity"
+
 type GalleryRepo interface {
-	CreateGallery()
+	CreateGallery(gallery entity.GalleryEntity) (entity.GalleryEntity, error)
 }

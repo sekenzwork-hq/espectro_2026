@@ -24,6 +24,9 @@ func (m MediaCloudinaryRepo) UploadFiles(files []*multipart.FileHeader, folderId
 
 	for i := range files {
 		file := files[i]
+		if file == nil {
+			continue
+		}
 		url, err := m.UploadFile(file, folderId, override)
 		if err != nil {
 			return []string{}, err

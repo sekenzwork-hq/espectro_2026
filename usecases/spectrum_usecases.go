@@ -11,7 +11,6 @@ import (
 	"espectro/repository"
 	"mime/multipart"
 
-	"github.com/bytedance/gopkg/util/logger"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -20,7 +19,6 @@ type SpectrumUsecases struct {
 	spectrumRepo repository.SpectrumRepo
 	mediaRepo    repository.MediaServiceRepo
 	eventRepo    repository.EventRepo
-	cacheRepo    repository.CacheRepo
 	transaction  database.TransactionManager
 }
 
@@ -28,10 +26,9 @@ func NewSpectrumUsecases(
 	spectrumRepo repository.SpectrumRepo,
 	mediaRepo repository.MediaServiceRepo,
 	eventRepo repository.EventRepo,
-	cacheRepo repository.CacheRepo,
 	transaction database.TransactionManager,
 ) SpectrumUsecases {
-	return SpectrumUsecases{spectrumRepo: spectrumRepo, mediaRepo: mediaRepo, eventRepo: eventRepo, cacheRepo: cacheRepo, transaction: transaction}
+	return SpectrumUsecases{spectrumRepo: spectrumRepo, mediaRepo: mediaRepo, eventRepo: eventRepo, transaction: transaction}
 }
 
 func (s SpectrumUsecases) CreateSpectrum(
@@ -223,8 +220,8 @@ func (s SpectrumUsecases) validateSpectrumData(
 	}
 
 	for i := range imageFiles {
-		if !pkg.ValidateImageSize(*imageFiles[i]) {
-			return &customerrors.SizeError{OrgError: "Images size should be less than or equal to 2 MB"}
+		if imageFiles[i] != nil && !pkg.ValidateImageSize(*imageFiles[i]) {
+			return &customerrors.SizeError{OrgError: "Size of each image should be less than or equal to 2 MB"}
 		}
 	}
 
@@ -250,7 +247,9 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	emptyModel := models.SpectrumMediaModel{}
 
 	funcToDeleteUploadedMedia := func() {
-		go s.mediaRepo.DeleteMutipleFiles(baseFolder, []string{logoFolder, videoFolder})
+		go func() {
+			s.mediaRepo.DeleteMutipleFiles(baseFolder, []string{logoFolder, videoFolder})
+		}()
 	}
 
 	if logoFile != nil {
@@ -281,15 +280,6 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 
-		cacheId := "spectrum_images"
-		if len(prevPublicIds) != 0 {
-			cacheErr := s.cacheRepo.StoreStrings(cacheId, prevPublicIds)
-			if cacheErr != nil {
-				funcToDeleteUploadedMedia()
-				return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-			}
-		}
-
 		urls, urlsErr := s.mediaRepo.UploadFiles(imageFiles, imagesFolder, false)
 		if urlsErr != nil {
 			//Deleting the above upload video and logo (if those are provided) and deleting rest of the images
@@ -298,15 +288,10 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 		imageUrls = urls
-		go func() {
-			prevImagePublicIds, err := s.cacheRepo.RetrieveStrings(cacheId, 0, len(prevPublicIds)-1)
-			if err != nil {
-				logger.Info("Cache repo strings retrival error : ", err)
-				return
-			}
-			s.mediaRepo.DeleteAssetsWithPublicIds(prevImagePublicIds)
-		}()
+		if len(prevPublicIds) != 0 {
+			go s.mediaRepo.DeleteAssetsWithPublicIds(prevPublicIds)
 
+		}
 	}
 
 	return models.SpectrumMediaModel{LogoUrl: logoUrl, VideoUrl: videoUrl, ImageUrls: imageUrls}, nil
