@@ -30,6 +30,7 @@ func RegisterGalleryRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	galleryApi.POST("/create", adminMiddleware.AdminMiddleWare, handlers.CreateGallery)
 	galleryApi.PATCH("/update", adminMiddleware.AdminMiddleWare, handlers.UpdateGallery)
 	galleryApi.DELETE("/delete", adminMiddleware.AdminMiddleWare, handlers.DeleteGallery)
-	galleryApi.POST("/add-event", adminMiddleware.AdminMiddleWare, handlers.AddGalleryToEvent)
 	galleryApi.GET("", handlers.RetrieveGalleries)
+	galleryApi.POST("/add-event", adminMiddleware.AdminMiddleWare, handlers.AddGalleryToEvent)
+	galleryApi.DELETE("/delete-from-event", adminMiddleware.AdminMiddleWare, handlers.DeleteGalleryFromEvent)
 }

@@ -173,12 +173,38 @@ func (e GalleryUsecases) AddGalleryToEvent(eventAndGallery entity.EventGalleryEn
 		return &customerrors.NotFoundError{OrgError: "Gallery does not exist"}
 	}
 
+	galleryAndEventExists, galleryAndEventErr := e.eventGalleryRepo.IsGalleryAddedToEvent(eventAndGallery)
+
+	if galleryAndEventErr != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	} else if galleryAndEventExists {
+		return &customerrors.ValidationError{OrgError: "The gallery is already added to this event"}
+	}
+
 	insertionErr := e.eventGalleryRepo.AddGalleryToEvent(eventAndGallery)
 
 	if insertionErr != nil {
 		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
+	return nil
+}
+
+func (e GalleryUsecases) DeleteGalleryFromAnEvent(eventAndGallery entity.EventGalleryEntity) error {
+
+	if !pkg.ValidateUUID(eventAndGallery.EventId) {
+		return &customerrors.ValidationError{OrgError: "Invalid event id"}
+	} else if !pkg.ValidateUUID(eventAndGallery.GalleryId) {
+		return &customerrors.ValidationError{OrgError: "Invalid gallery id"}
+	}
+
+	err := e.eventGalleryRepo.DeleteGalleryFromAnEvent(eventAndGallery)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundError{OrgError: "The gallery isn't added to the event"}
+	} else if err != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
 	return nil
 }
 

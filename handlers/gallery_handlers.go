@@ -115,7 +115,6 @@ func (g GalleryHandlers) AddGalleryToEvent(ctx *gin.Context) {
 	}
 
 	err := g.usecases.AddGalleryToEvent(entity)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -123,4 +122,22 @@ func (g GalleryHandlers) AddGalleryToEvent(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Gallery has been added"})
+}
+func (g GalleryHandlers) DeleteGalleryFromEvent(ctx *gin.Context) {
+
+	var entity entity.EventGalleryEntity
+	canGo := pkg.ParseJson(ctx, &entity)
+
+	if !canGo {
+		return
+	}
+
+	err := g.usecases.DeleteGalleryFromAnEvent(entity)
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Gallery has been deleted from the event"})
 }
