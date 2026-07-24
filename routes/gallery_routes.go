@@ -19,7 +19,9 @@ func RegisterGalleryRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	galleryRepo := repositoryimple.NewGalleryPostgresRepo(db)
 	venueRepo := repositoryimple.NewVenuePostgresRepo(db)
 	mediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
-	galleryUsecases := usecases.NewGalleryUsecases(galleryRepo, mediaRepo, venueRepo)
+	eventRepo := repositoryimple.NewEventPostgresRepo(db)
+	eventGalleryRepo := repositoryimple.NewEventGalleryPostgresRepo(db)
+	galleryUsecases := usecases.NewGalleryUsecases(galleryRepo, mediaRepo, venueRepo, eventGalleryRepo, eventRepo)
 	handlers := handlers.NewGalleryHandlers(galleryUsecases)
 	adminMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
 
@@ -28,5 +30,6 @@ func RegisterGalleryRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	galleryApi.POST("/create", adminMiddleware.AdminMiddleWare, handlers.CreateGallery)
 	galleryApi.PATCH("/update", adminMiddleware.AdminMiddleWare, handlers.UpdateGallery)
 	galleryApi.DELETE("/delete", adminMiddleware.AdminMiddleWare, handlers.DeleteGallery)
+	galleryApi.POST("/add-event", adminMiddleware.AdminMiddleWare, handlers.AddGalleryToEvent)
 	galleryApi.GET("", handlers.RetrieveGalleries)
 }

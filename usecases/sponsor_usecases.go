@@ -47,6 +47,13 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 		return emptySponsor, validationErr
 	}
 
+	valid, err := pkg.ValidateImage(profileOrOrg)
+	if err != nil {
+		return emptySponsor, &customerrors.ServerError{OrgError: "Something went wrong"}
+	} else if !valid {
+		return emptySponsor, &customerrors.ValidationError{OrgError: "Invalid image format"}
+	}
+
 	for i := range eventIds {
 		eventId := eventIds[i]
 		if !pkg.ValidateUUID(eventId) {
@@ -124,6 +131,12 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 
 	var logoOrImageUrl *string
 	if profileOrOrgImage != nil {
+		valid, err := pkg.ValidateImage(profileOrOrgImage)
+		if err != nil {
+			return empty, &customerrors.ServerError{OrgError: "Something went wrong"}
+		} else if !valid {
+			return empty, &customerrors.ValidationError{OrgError: "Invalid image format"}
+		}
 		url, _, err := s.mediaRepo.UploadFile(profileOrOrgImage, "sponsor/"+sponsorId, true)
 		if err != nil {
 			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}

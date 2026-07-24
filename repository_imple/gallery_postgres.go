@@ -77,3 +77,14 @@ func (g GalleryPostgresRepo) RetrieveGalleries(limit int, offset int) ([]entity.
 
 	return galleries, err
 }
+
+func (g GalleryPostgresRepo) GalleryExists(galleryId string) (bool, error) {
+
+	var exists bool
+	err := g.db.Raw(
+		`SELECT EXISTS (SELECT 1 FROM gallery WHERE id=? AND deleted_at IS NULL)`,
+		galleryId,
+	).Scan(&exists).Error
+
+	return exists, err
+}

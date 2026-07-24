@@ -229,6 +229,13 @@ func (s SpectrumUsecases) validateSpectrumData(
 		if imageFiles[i] != nil && !pkg.ValidateImageSize(*imageFiles[i]) {
 			return &customerrors.SizeError{OrgError: "Size of each image should be less than or equal to 2 MB"}
 		}
+
+		valid, err := pkg.ValidateImage(imageFiles[i])
+		if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong"}
+		} else if !valid {
+			return &customerrors.ValidationError{OrgError: "Invalid image format"}
+		}
 	}
 
 	return nil

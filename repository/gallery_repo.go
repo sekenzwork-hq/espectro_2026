@@ -7,4 +7,5 @@ type GalleryRepo interface {
 	UpdateGallery(newGallery entity.GalleryUpdateEntity) (entity.GalleryEntity, error)
 	DeleteGallery(galleryId string) error
 	RetrieveGalleries(limit int, offset int) ([]entity.GalleryEntity, error)
+	GalleryExists(galleryId string) (bool, error)
 }

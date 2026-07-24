@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"espectro/entity"
 	"espectro/pkg"
 	"espectro/usecases"
 	"net/http"
@@ -102,4 +103,24 @@ func (g GalleryHandlers) RetrieveGalleries(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "galleries": galleries})
+}
+
+func (g GalleryHandlers) AddGalleryToEvent(ctx *gin.Context) {
+
+	var entity entity.EventGalleryEntity
+	canGo := pkg.ParseJson(ctx, &entity)
+
+	if !canGo {
+		return
+	}
+
+	err := g.usecases.AddGalleryToEvent(entity)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Gallery has been added"})
 }

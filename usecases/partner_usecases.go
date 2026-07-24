@@ -32,6 +32,12 @@ func (p PartnerUsecases) CreatePartner(name string, logo *multipart.FileHeader) 
 	var logoUrl *string
 
 	if logo != nil {
+		valid, err := pkg.ValidateImage(logo)
+		if err != nil {
+			return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong"}
+		} else if !valid {
+			return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid image format"}
+		}
 		url, _, err := p.mediaRepo.UploadFile(logo, "partner/"+partnerId, true)
 		if err != nil {
 			return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
@@ -66,6 +72,12 @@ func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *mul
 	var logoUrl *string
 
 	if logo != nil {
+		valid, err := pkg.ValidateImage(logo)
+		if err != nil {
+			return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong"}
+		} else if !valid {
+			return emptyPartner, &customerrors.ValidationError{OrgError: "Invalid image format"}
+		}
 		url, _, err := p.mediaRepo.UploadFile(logo, "partner/"+partnerId, true)
 		if err != nil {
 			return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong while operating"}

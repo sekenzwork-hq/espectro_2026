@@ -14,13 +14,27 @@ import (
 )
 
 type GalleryUsecases struct {
-	galleryRepo repository.GalleryRepo
-	mediaRepo   repository.MediaServiceRepo
-	venueRepo   repository.VenueRepo
+	galleryRepo      repository.GalleryRepo
+	mediaRepo        repository.MediaServiceRepo
+	venueRepo        repository.VenueRepo
+	eventGalleryRepo repository.EventGalleryRepo
+	eventRepo        repository.EventRepo
 }
 
-func NewGalleryUsecases(galleryRepo repository.GalleryRepo, mediaRepo repository.MediaServiceRepo, venueRepo repository.VenueRepo) GalleryUsecases {
-	return GalleryUsecases{galleryRepo: galleryRepo, mediaRepo: mediaRepo, venueRepo: venueRepo}
+func NewGalleryUsecases(
+	galleryRepo repository.GalleryRepo,
+	mediaRepo repository.MediaServiceRepo,
+	venueRepo repository.VenueRepo,
+	eventGalleryRepo repository.EventGalleryRepo,
+	eventRepo repository.EventRepo,
+) GalleryUsecases {
+	return GalleryUsecases{
+		galleryRepo:      galleryRepo,
+		mediaRepo:        mediaRepo,
+		venueRepo:        venueRepo,
+		eventGalleryRepo: eventGalleryRepo,
+		eventRepo:        eventRepo,
+	}
 }
 
 func (g GalleryUsecases) CreateGallery(name string, images []*multipart.FileHeader) (entity.GalleryEntity, error) {
@@ -135,6 +149,39 @@ func (g GalleryUsecases) RetrieveGalleries(limit int, page int) ([]entity.Galler
 
 }
 
+func (e GalleryUsecases) AddGalleryToEvent(eventAndGallery entity.EventGalleryEntity) error {
+
+	if !pkg.ValidateUUID(eventAndGallery.EventId) {
+		return &customerrors.ValidationError{OrgError: "Invalid event id"}
+	} else if !pkg.ValidateUUID(eventAndGallery.GalleryId) {
+		return &customerrors.ValidationError{OrgError: "Invalid gallery id"}
+	}
+
+	eventExists, eventErr := e.eventRepo.EventExists(eventAndGallery.EventId)
+
+	if eventErr != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	} else if !eventExists {
+		return &customerrors.NotFoundError{OrgError: "Event does not exist"}
+	}
+
+	galleryExists, galleryErr := e.galleryRepo.GalleryExists(eventAndGallery.GalleryId)
+
+	if galleryErr != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	} else if !galleryExists {
+		return &customerrors.NotFoundError{OrgError: "Gallery does not exist"}
+	}
+
+	insertionErr := e.eventGalleryRepo.AddGalleryToEvent(eventAndGallery)
+
+	if insertionErr != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return nil
+}
+
 func (g GalleryUsecases) validateGalleryData(galleryId *string, name *string, images []*multipart.FileHeader) error {
 
 	if galleryId != nil && !pkg.ValidateUUID(*galleryId) {
@@ -156,6 +203,12 @@ func (g GalleryUsecases) validateGalleryData(galleryId *string, name *string, im
 		if image != nil && !pkg.ValidateImageSize(*image) {
 			return &customerrors.ValidationError{OrgError: "Size of each image should be less than or equal to 2 MB"}
 		}
+		valid, err := pkg.ValidateImage(image)
+		if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		} else if !valid {
+			return &customerrors.ValidationError{OrgError: "Invalid image format"}
+		}
 	}
 	return nil
 }
@@ -163,16 +216,13 @@ func (g GalleryUsecases) validateGalleryData(galleryId *string, name *string, im
 func (g GalleryUsecases) uploadGalleryImages(folderId string, images []*multipart.FileHeader) (urls []string, prevPublicIds []string, newPublicIds []string, err error) {
 
 	prevPublicIds, retrivalErr := g.mediaRepo.RetrieveAssetPublicIds(folderId)
-
 	if retrivalErr != nil {
 		return []string{}, []string{}, []string{}, retrivalErr
 	}
 
 	urls, newPublicIds, err = g.mediaRepo.UploadFiles(images, folderId, false)
-
 	if err != nil {
 		return []string{}, []string{}, []string{}, err
 	}
-
 	return urls, prevPublicIds, newPublicIds, nil
 }

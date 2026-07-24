@@ -153,3 +153,15 @@ func (e EventPostgresRepo) RetrieveEventsBySpectrumId(spectrumId string, limit i
 
 	return events, err
 }
+
+func (e EventPostgresRepo) EventExists(eventId string) (bool, error) {
+
+	var exists bool
+
+	err := e.db.Raw(
+		`SELECT EXISTS (SELECT 1 FROM events WHERE id=? AND deleted_at IS NULL)`,
+		eventId,
+	).Scan(&exists).Error
+
+	return exists, err
+}

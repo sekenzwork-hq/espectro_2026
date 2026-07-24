@@ -4,6 +4,7 @@ import (
 	"errors"
 	customerrors "espectro/custom_errors"
 	"fmt"
+	"image"
 	"mime/multipart"
 	"regexp"
 	"slices"
@@ -282,6 +283,29 @@ func ValidateUrl(url string, placeholder string) error {
 	}
 
 	return nil
+
+}
+
+func ValidateImage(file *multipart.FileHeader) (bool, error) {
+
+	openedFile, err := file.Open()
+
+	if err != nil {
+		return false, err
+	}
+	defer openedFile.Close()
+
+	_, format, err := image.DecodeConfig(openedFile)
+	if err != nil {
+		return false, err
+	}
+
+	switch format {
+	case "jpeg", "jpg", "png", "svg", "gif", "webp":
+		return true, nil
+	default:
+		return false, nil
+	}
 
 }
 

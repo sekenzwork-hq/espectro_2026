@@ -68,13 +68,14 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 	}
 
 	var logoUrl *string
-
+	var publicId string
 	if logo != nil {
-		url, _, err := i.mediaRepo.UploadFile(logo, "investor/"+investorId, true)
+		url, id, err := i.mediaRepo.UploadFile(logo, "investor/"+investorId, false)
 		if err != nil {
 			return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 		logoUrl = &url
+		publicId = id
 	}
 
 	investorToUpdate := entity.InvestorUpdateEntity{
@@ -87,11 +88,13 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 
 	newInvestor, updationErr := i.investorRepo.UpdateInvestor(investorId, investorToUpdate)
 
+	if updationErr != nil {
+		go i.mediaRepo.DeleteAssetsWithPublicIds([]string{publicId})
+	}
+
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
-		i.mediaRepo.DeleteFile("investor/", investorId)
 		return newInvestor, &customerrors.NotFoundError{OrgError: "Investor does not exist"}
 	} else if updationErr != nil {
-		i.mediaRepo.DeleteFile("investor/", investorId)
 		return newInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 
