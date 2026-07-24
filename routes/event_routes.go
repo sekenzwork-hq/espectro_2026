@@ -19,7 +19,8 @@ func RegisterEventRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	spectrumRepo := repositoryimple.NewSpectrumPostgresRepo(db)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
 	transactionManager := database.NewTransactionManager(db)
-	eventUsecases := usecases.NewEventUsecases(eventRepo, spectrumRepo, venueRepo, transactionManager)
+	eventsGalleryRepo := repositoryimple.NewEventGalleryPostgresRepo(db)
+	eventUsecases := usecases.NewEventUsecases(eventRepo, spectrumRepo, venueRepo, transactionManager, eventsGalleryRepo)
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
 
 	eventHandlers := handlers.NewEventHandlers(eventUsecases)

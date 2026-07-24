@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"espectro/database"
 	"espectro/enums"
 	"espectro/handlers"
 	"espectro/middlewares"
@@ -21,7 +22,8 @@ func RegisterGalleryRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	mediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
 	eventRepo := repositoryimple.NewEventPostgresRepo(db)
 	eventGalleryRepo := repositoryimple.NewEventGalleryPostgresRepo(db)
-	galleryUsecases := usecases.NewGalleryUsecases(galleryRepo, mediaRepo, venueRepo, eventGalleryRepo, eventRepo)
+	transaction := database.NewTransactionManager(db)
+	galleryUsecases := usecases.NewGalleryUsecases(galleryRepo, mediaRepo, venueRepo, eventGalleryRepo, eventRepo, transaction)
 	handlers := handlers.NewGalleryHandlers(galleryUsecases)
 	adminMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
 

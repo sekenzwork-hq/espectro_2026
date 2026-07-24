@@ -3,6 +3,7 @@ package usecases
 import (
 	"errors"
 	customerrors "espectro/custom_errors"
+	"espectro/database"
 	"espectro/entity"
 	"espectro/pkg"
 	"espectro/repository"
@@ -19,6 +20,7 @@ type GalleryUsecases struct {
 	venueRepo        repository.VenueRepo
 	eventGalleryRepo repository.EventGalleryRepo
 	eventRepo        repository.EventRepo
+	transaction      database.TransactionManager
 }
 
 func NewGalleryUsecases(
@@ -27,6 +29,7 @@ func NewGalleryUsecases(
 	venueRepo repository.VenueRepo,
 	eventGalleryRepo repository.EventGalleryRepo,
 	eventRepo repository.EventRepo,
+	transaction database.TransactionManager,
 ) GalleryUsecases {
 	return GalleryUsecases{
 		galleryRepo:      galleryRepo,
@@ -34,6 +37,7 @@ func NewGalleryUsecases(
 		venueRepo:        venueRepo,
 		eventGalleryRepo: eventGalleryRepo,
 		eventRepo:        eventRepo,
+		transaction:      transaction,
 	}
 }
 
@@ -126,15 +130,22 @@ func (g GalleryUsecases) DeleteGallery(galleryId string) error {
 		return &customerrors.ValidationError{OrgError: "Invalid gallery id"}
 	}
 
-	err := g.galleryRepo.DeleteGallery(galleryId)
+	err := g.transaction.Run(func() error {
+		err := g.galleryRepo.DeleteGallery(galleryId)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Gallery does not exist"}
+		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Gallery does not exist"}
-	} else if err != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-	}
+		err = g.eventGalleryRepo.DeleteEventOrGallery(galleryId)
+		if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		return nil
+	})
 
-	return nil
+	return err
 }
 
 func (g GalleryUsecases) RetrieveGalleries(limit int, page int) ([]entity.GalleryEntity, error) {

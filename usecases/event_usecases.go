@@ -14,10 +14,11 @@ import (
 )
 
 type EventUsecases struct {
-	eventRepo    repository.EventRepo
-	spectrumRepo repository.SpectrumRepo
-	venueRepo    repository.VenueRepo
-	transaction  database.TransactionManager
+	eventRepo         repository.EventRepo
+	spectrumRepo      repository.SpectrumRepo
+	venueRepo         repository.VenueRepo
+	transaction       database.TransactionManager
+	eventsGalleryRepo repository.EventGalleryRepo
 }
 
 func NewEventUsecases(
@@ -25,11 +26,13 @@ func NewEventUsecases(
 	spectrumRepo repository.SpectrumRepo,
 	venueRepo repository.VenueRepo,
 	transaction database.TransactionManager,
+	eventsGalleryRepo repository.EventGalleryRepo,
 ) EventUsecases {
 	return EventUsecases{eventRepo: eventRepo,
-		spectrumRepo: spectrumRepo,
-		venueRepo:    venueRepo,
-		transaction:  transaction,
+		spectrumRepo:      spectrumRepo,
+		venueRepo:         venueRepo,
+		transaction:       transaction,
+		eventsGalleryRepo: eventsGalleryRepo,
 	}
 }
 
@@ -148,17 +151,23 @@ func (e EventUsecases) DeleteEvent(eventId string) error {
 		} else if err != nil {
 			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
+
 		err = e.eventRepo.DeleteEvent(eventId)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &customerrors.NotFoundError{OrgError: "Event does not exist"}
 		} else if err != nil {
 			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
-		err = e.spectrumRepo.DecrementTotalEventsCountBy1(spectrumId)
 
+		err = e.spectrumRepo.DecrementTotalEventsCountBy1(spectrumId)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &customerrors.NotFoundError{OrgError: "Spectrum of event does not exist"}
 		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+
+		err = e.eventsGalleryRepo.DeleteEventOrGallery(eventId)
+		if err != nil {
 			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 
