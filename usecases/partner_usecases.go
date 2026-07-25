@@ -70,7 +70,9 @@ func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *mul
 	}
 
 	var logoUrl *string
-
+	var publicId string
+	var oldPublicId string
+	folderId := "partner/" + partnerId
 	if logo != nil {
 		valid, err := pkg.ValidateImage(logo)
 		if err != nil {
@@ -78,20 +80,29 @@ func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *mul
 		} else if !valid {
 			return emptyPartner, &customerrors.ValidationError{OrgError: "Invalid image format"}
 		}
-		url, _, err := p.mediaRepo.UploadFile(logo, "partner/"+partnerId, true)
+		oldPublicIds, err := p.mediaRepo.RetrieveAssetPublicIds(folderId)
+		if err != nil {
+			return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		} else if len(oldPublicIds) != 0 {
+			oldPublicId = oldPublicIds[0]
+		}
+		url, pubId, err := p.mediaRepo.UploadFile(logo, folderId, true)
 		if err != nil {
 			return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
+		publicId = pubId
 		logoUrl = &url
 	}
 
 	newPartner, err := p.repo.UpdatePartner(partnerId, name, logoUrl)
-	if err != nil {
-		if logoUrl != nil {
-			p.mediaRepo.DeleteFile("partner/", partnerId)
+	go func() {
+		if err != nil && logoUrl != nil {
+			p.mediaRepo.DeleteAssetsWithPublicIds([]string{publicId})
+		} else if oldPublicId != "" {
+			p.mediaRepo.DeleteAssetsWithPublicIds([]string{oldPublicId})
 		}
-	}
 
+	}()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return emptyPartner, &customerrors.NotFoundError{OrgError: "Partner does not exist"}
 	} else if err != nil {

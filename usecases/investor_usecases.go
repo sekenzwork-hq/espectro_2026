@@ -25,12 +25,12 @@ func (i InvestorUsecases) CreateInvestor(name string, websiteUrl *string, phoneN
 
 	emptyInvestor := entity.InvestorEntity{}
 
-	if err := i.validateInvestorDetails(nil, &name, &phoneNumber, &email, websiteUrl); err != nil {
+	if err := i.validateInvestorDetails(nil, &name, &phoneNumber, &email, websiteUrl, logo); err != nil {
 		return emptyInvestor, err
 	}
 
 	var logoUrl *string
-	investorId := uuid.New().String()
+	investorId := uuid.NewString()
 
 	if logo != nil {
 		url, _, uploadErr := i.mediaRepo.UploadFile(logo, "investor/"+investorId, true)
@@ -63,19 +63,28 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 
 	emptyInvestor := entity.InvestorEntity{}
 
-	if err := i.validateInvestorDetails(&investorId, name, phoneNumber, email, websiteUrl); err != nil {
+	if err := i.validateInvestorDetails(&investorId, name, phoneNumber, email, websiteUrl, logo); err != nil {
 		return emptyInvestor, err
 	}
 
 	var logoUrl *string
-	var publicId string
+	var newPublicId string
+	var oldPublicId string
+	folderId := "investor/" + investorId
 	if logo != nil {
-		url, id, err := i.mediaRepo.UploadFile(logo, "investor/"+investorId, false)
+		oldId, err := i.mediaRepo.RetrieveAssetPublicIds(folderId)
+		if err != nil {
+			return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		if len(oldId) != 0 {
+			oldPublicId = oldId[0]
+		}
+		url, id, err := i.mediaRepo.UploadFile(logo, folderId, false)
 		if err != nil {
 			return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 		logoUrl = &url
-		publicId = id
+		newPublicId = id
 	}
 
 	investorToUpdate := entity.InvestorUpdateEntity{
@@ -88,9 +97,13 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 
 	newInvestor, updationErr := i.investorRepo.UpdateInvestor(investorId, investorToUpdate)
 
-	if updationErr != nil {
-		go i.mediaRepo.DeleteAssetsWithPublicIds([]string{publicId})
-	}
+	go func() {
+		if updationErr != nil {
+			i.mediaRepo.DeleteAssetsWithPublicIds([]string{newPublicId})
+		} else {
+			i.mediaRepo.DeleteAssetsWithPublicIds([]string{oldPublicId})
+		}
+	}()
 
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 		return newInvestor, &customerrors.NotFoundError{OrgError: "Investor does not exist"}
@@ -131,7 +144,7 @@ func (i InvestorUsecases) RetrieveInvestors(limit int, page int) ([]entity.Inves
 	return investors, nil
 }
 
-func (i InvestorUsecases) validateInvestorDetails(id *string, name *string, phoneNumber *string, email *string, websiteUrl *string) error {
+func (i InvestorUsecases) validateInvestorDetails(id *string, name *string, phoneNumber *string, email *string, websiteUrl *string, logo *multipart.FileHeader) error {
 
 	if id != nil && !pkg.ValidateUUID(*id) {
 		return &customerrors.ValidationError{OrgError: "Invalid investor id"}
@@ -150,6 +163,14 @@ func (i InvestorUsecases) validateInvestorDetails(id *string, name *string, phon
 	if websiteUrl != nil {
 		if err := pkg.ValidateUrl(*websiteUrl, "website url"); err != nil {
 			return err
+		}
+	}
+	if logo != nil {
+		correct, err := pkg.ValidateImage(logo)
+		if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		} else if !correct {
+			return &customerrors.ValidationError{OrgError: "Invalid image format"}
 		}
 	}
 	return nil

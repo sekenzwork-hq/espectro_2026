@@ -130,6 +130,9 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 	}
 
 	var logoOrImageUrl *string
+	folderId := "sponsor/" + sponsorId
+	var logoPublicId string
+	var prevLogoPublicId *string
 	if profileOrOrgImage != nil {
 		valid, err := pkg.ValidateImage(profileOrOrgImage)
 		if err != nil {
@@ -137,12 +140,18 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 		} else if !valid {
 			return empty, &customerrors.ValidationError{OrgError: "Invalid image format"}
 		}
-		url, _, err := s.mediaRepo.UploadFile(profileOrOrgImage, "sponsor/"+sponsorId, true)
+		prevIds, err := s.mediaRepo.RetrieveAssetPublicIds(folderId)
+		if err != nil {
+			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		} else if len(prevIds) != 0 {
+			prevLogoPublicId = &prevIds[0]
+		}
+		url, pubId, err := s.mediaRepo.UploadFile(profileOrOrgImage, folderId, true)
 		if err != nil {
 			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 		logoOrImageUrl = &url
-
+		logoPublicId = pubId
 	}
 
 	newSponsor, updationErr := s.sponsorRepo.UpdateSponsor(entity.SponsorUpdateEntity{
@@ -152,10 +161,15 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 		ProfileOrOrgUrl: logoOrImageUrl,
 		Sponsored:       sponsoredType,
 	})
+
+	go func() {
+		if updationErr != nil && logoOrImageUrl != nil {
+			s.mediaRepo.DeleteAssetsWithPublicIds([]string{logoPublicId})
+		} else if prevLogoPublicId != nil {
+			s.mediaRepo.DeleteAssetsWithPublicIds([]string{*prevLogoPublicId})
+		}
+	}()
 	if updationErr != nil {
-
-		s.mediaRepo.DeleteFile("sponsor/", sponsorId)
-
 		if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 			return empty, &customerrors.NotFoundError{OrgError: "Sponsor does not exist"}
 		} else {

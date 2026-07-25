@@ -121,7 +121,7 @@ func (g GalleryHandlers) AddGalleryToEvent(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Gallery has been added"})
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Gallery has been added to the event"})
 }
 func (g GalleryHandlers) DeleteGalleryFromEvent(ctx *gin.Context) {
 

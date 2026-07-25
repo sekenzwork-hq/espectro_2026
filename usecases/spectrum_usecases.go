@@ -119,16 +119,38 @@ func (s SpectrumUsecases) UpdateSpectrum(
 		media.ImageUrls,
 	)
 
-	if updationErr != nil {
-		go s.mediaRepo.DeleteAssetsWithPublicIds(media.NewImagePublicIds)
-	}
+	go func() {
+		if updationErr != nil {
+			s.mediaRepo.DeleteAssetsWithPublicIds(media.NewImagePublicIds)
+			if media.LogoUrl != nil {
+				s.mediaRepo.DeleteAssetsWithPublicIds([]string{*media.LogoPublicId})
+			}
+			if media.VideoUrl != nil {
+				s.mediaRepo.DeleteAssetsWithPublicIds([]string{*media.VideoPublicId})
+			}
+		} else {
+			baseFolder := "spectrum/" + spectrumId
+			logoFolder := baseFolder + "/logo"
+			videoFolder := baseFolder + "/video"
+
+			s.mediaRepo.DeleteAssetsWithPublicIds(media.PreviousImagePublicIds)
+			logoPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(logoFolder)
+
+			if err != nil {
+				s.mediaRepo.DeleteAssetsWithPublicIds(logoPublicIds)
+			}
+			videoPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(videoFolder)
+			if err != nil {
+				s.mediaRepo.DeleteAssetsWithPublicIds(videoPublicIds)
+			}
+		}
+
+	}()
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 		return emptySpectrum, &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
 	} else if updationErr != nil {
 		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
-
-	go s.mediaRepo.DeleteAssetsWithPublicIds(media.PreviousImagePublicIds)
 
 	return newSpectrum, nil
 
@@ -250,7 +272,9 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 ) (models.SpectrumMediaModel, error) {
 
 	var logoUrl *string
+	var logoPublicId *string
 	var videoUrl *string
+	var videoPublicId *string
 	var imageUrls []string
 
 	baseFolder := "spectrum/" + spectrumId
@@ -264,15 +288,16 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	}
 
 	if logoFile != nil {
-		url, _, urlErr := s.mediaRepo.UploadFile(logoFile, logoFolder, true)
+		url, pubId, urlErr := s.mediaRepo.UploadFile(logoFile, logoFolder, true)
 		if urlErr != nil {
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 		logoUrl = &url
+		logoPublicId = &pubId
 	}
 
 	if videoFile != nil {
-		url, _, urlErr := s.mediaRepo.UploadFile(logoFile, videoFolder, true)
+		url, pubId, urlErr := s.mediaRepo.UploadFile(logoFile, videoFolder, true)
 		if urlErr != nil {
 			//Deleting the above uploaded logo (if it is provided ) if video is failed while uploading
 			if logoUrl != nil {
@@ -281,6 +306,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}
 		videoUrl = &url
+		videoPublicId = &pubId
 	}
 
 	var prevImagePublicIds []string
@@ -304,6 +330,6 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 		newImagePublicIds = newPublicIds
 	}
 
-	return models.SpectrumMediaModel{LogoUrl: logoUrl, VideoUrl: videoUrl, ImageUrls: imageUrls, PreviousImagePublicIds: prevImagePublicIds, NewImagePublicIds: newImagePublicIds}, nil
+	return models.SpectrumMediaModel{LogoUrl: logoUrl, VideoUrl: videoUrl, ImageUrls: imageUrls, PreviousImagePublicIds: prevImagePublicIds, NewImagePublicIds: newImagePublicIds, LogoPublicId: logoPublicId, VideoPublicId: videoPublicId}, nil
 
 }
