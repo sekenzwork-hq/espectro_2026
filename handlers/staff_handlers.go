@@ -18,6 +18,7 @@ func NewStaffHandlers(usecases usecases.StaffUsecases) StaffHandlers {
 }
 
 func (s StaffHandlers) CreateStaff(ctx *gin.Context) {
+
 	var entity entity.StaffFromJsonEntity
 	canGo := pkg.ParseJson(ctx, &entity)
 
@@ -26,6 +27,24 @@ func (s StaffHandlers) CreateStaff(ctx *gin.Context) {
 	}
 
 	newStaff, err := s.usecases.CreateStaff(entity)
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Staff has been created", "staff": newStaff})
+}
+
+func (s StaffHandlers) UpdateStaff(ctx *gin.Context) {
+
+	var entity entity.StaffUpdateEntity
+	canGo := pkg.ParseJson(ctx, &entity)
+
+	if !canGo {
+		return
+	}
+
+	newStaff, err := s.usecases.UpdateStaff(entity)
 
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
@@ -33,5 +52,5 @@ func (s StaffHandlers) CreateStaff(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Staff has been created", "staff": newStaff})
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Staff has been updated", "staff": newStaff})
 }

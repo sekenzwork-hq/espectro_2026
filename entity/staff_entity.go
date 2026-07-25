@@ -20,3 +20,11 @@ type StaffFromJsonEntity struct {
 	PhoneNumber string          `json:"phone_number"`
 	Email       string          `json:"email"`
 }
+
+type StaffUpdateEntity struct {
+	StaffId     string           `json:"staff_id"`
+	Name        *string          `json:"fullname"`
+	Role        *enums.StaffRole `json:"role"`
+	PhoneNumber *string          `json:"phone_number"`
+	Email       *string          `json:"email"`
+}

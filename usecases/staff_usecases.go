@@ -1,11 +1,14 @@
 package usecases
 
 import (
+	"errors"
 	customerrors "espectro/custom_errors"
 	"espectro/entity"
+	"espectro/enums"
 	"espectro/pkg"
 	"espectro/repository"
-	"fmt"
+
+	"gorm.io/gorm"
 )
 
 type StaffUsecases struct {
@@ -18,20 +21,12 @@ func NewStaffUsecases(staffRepo repository.StaffRepo) StaffUsecases {
 
 func (e StaffUsecases) CreateStaff(staff entity.StaffFromJsonEntity) (entity.StaffEntity, error) {
 
-	fmt.Println(staff.Name)
 	emptyEntity := entity.StaffEntity{}
-	nameErr := pkg.ValidateFullname(staff.Name)
 
-	if nameErr != nil {
-		return emptyEntity, &customerrors.ValidationError{OrgError: nameErr.Error()}
-	} else if !staff.Role.IsValid() {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid role"}
-	} else if !pkg.ValidateEmail(staff.Email) {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid email"}
-	} else if !pkg.ValidatePhoneNumber(staff.PhoneNumber) {
-		return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid phone number"}
+	validationErr := e.validateStaffData(nil, &staff.Name, &staff.Role, &staff.PhoneNumber, &staff.Email)
+	if validationErr != nil {
+		return emptyEntity, validationErr
 	}
-
 	newStaff, err := e.staffRepo.CreateStaff(entity.StaffEntity{
 		Name:        staff.Name,
 		Role:        staff.Role,
@@ -45,4 +40,47 @@ func (e StaffUsecases) CreateStaff(staff entity.StaffFromJsonEntity) (entity.Sta
 
 	return newStaff, nil
 
+}
+
+func (e StaffUsecases) UpdateStaff(staff entity.StaffUpdateEntity) (entity.StaffEntity, error) {
+
+	empty := entity.StaffEntity{}
+	validationErr := e.validateStaffData(&staff.StaffId, staff.Name, staff.Role, staff.PhoneNumber, staff.Email)
+	if validationErr != nil {
+		return empty, validationErr
+	}
+
+	newStaff, updationErr := e.staffRepo.UpdateStaff(staff)
+
+	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
+		return empty, &customerrors.NotFoundError{OrgError: "Staff does not exist"}
+	} else if updationErr != nil {
+		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return newStaff, nil
+}
+
+func (e StaffUsecases) validateStaffData(staffId *string, fullname *string, role *enums.StaffRole, phoneNumber *string, email *string) error {
+
+	if staffId != nil && !pkg.ValidateUUID(*staffId) {
+		return &customerrors.ValidationError{OrgError: "Invalid staff id"}
+	}
+	if fullname != nil {
+		nameErr := pkg.ValidateFullname(*fullname)
+
+		if nameErr != nil {
+			return &customerrors.ValidationError{OrgError: nameErr.Error()}
+		}
+	}
+
+	if role != nil && !role.IsValid() {
+		return &customerrors.ValidationError{OrgError: "Invalid role"}
+	} else if email != nil && !pkg.ValidateEmail(*email) {
+		return &customerrors.ValidationError{OrgError: "Invalid email"}
+	} else if phoneNumber != nil && !pkg.ValidatePhoneNumber(*phoneNumber) {
+		return &customerrors.ValidationError{OrgError: "Invalid phone number"}
+	}
+
+	return nil
 }

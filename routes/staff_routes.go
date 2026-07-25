@@ -23,4 +23,5 @@ func RegisterStaffRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 	staffApi := r.Group("/staff")
 	staffApi.POST("/create", adminMiddleware.AdminMiddleWare, handlers.CreateStaff)
+	staffApi.PATCH("/update", adminMiddleware.AdminMiddleWare, handlers.UpdateStaff)
 }
