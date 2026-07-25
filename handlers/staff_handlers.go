@@ -56,7 +56,6 @@ func (s StaffHandlers) UpdateStaff(ctx *gin.Context) {
 func (s StaffHandlers) DeleteStaff(ctx *gin.Context) {
 
 	staffId, exists := ctx.GetQuery("staff_id")
-
 	if !exists {
 		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide staff id"})
 		return
@@ -71,4 +70,22 @@ func (s StaffHandlers) DeleteStaff(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Staff has been deleted"})
+}
+
+func (s StaffHandlers) RetrieveStaffs(ctx *gin.Context) {
+
+	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+	if limitErr != nil {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": limitErr.Error()})
+		return
+	}
+
+	staffs, err := s.usecases.RetrieveStaffs(limit, page)
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "staffs": staffs})
 }

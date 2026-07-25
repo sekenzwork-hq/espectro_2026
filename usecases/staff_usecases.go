@@ -68,15 +68,24 @@ func (e StaffUsecases) DeleteStaff(staffId string) error {
 	}
 
 	err := e.staffRepo.DeleteStaff(staffId)
-
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &customerrors.NotFoundError{OrgError: "Staff does not exist"}
 	} else if err != nil {
 		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
-
 	return nil
 }
+
+func (e StaffUsecases) RetrieveStaffs(limit int, page int) ([]entity.StaffEntity, error) {
+
+	offset := pkg.GetOffset(limit, page)
+	staffs, err := e.staffRepo.RetrieveStaffs(limit, offset)
+	if err != nil {
+		return []entity.StaffEntity{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+	return staffs, nil
+}
+
 func (e StaffUsecases) validateStaffData(staffId *string, fullname *string, role *enums.StaffRole, phoneNumber *string, email *string) error {
 
 	if staffId != nil && !pkg.ValidateUUID(*staffId) {

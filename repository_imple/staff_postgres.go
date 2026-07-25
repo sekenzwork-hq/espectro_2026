@@ -63,3 +63,15 @@ func (s StaffPostgresRepo) DeleteStaff(staffId string) error {
 
 	return nil
 }
+func (s StaffPostgresRepo) RetrieveStaffs(limit int, offset int) ([]entity.StaffEntity, error) {
+
+	var staffs []entity.StaffEntity
+
+	err := s.db.
+		Table("staffs").
+		Where("deleted_at IS NULL").
+		Offset(offset).
+		Limit(limit).
+		Scan(&staffs).Error
+	return staffs, err
+}
