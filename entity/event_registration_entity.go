@@ -21,6 +21,6 @@ type EventRegistrationFromJsonEntity struct {
 }
 
 type ChangeRegistrationStatusEntity struct {
-	Status enums.EventRegStatus `json:"status"`
+	Status enums.EventRegStatus `json:"registration_status"`
 	Id     string               `json:"registration_id"`
 }

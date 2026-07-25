@@ -264,7 +264,9 @@ func (e EventUsecases) ChangeRegistrationStatus(statusDetails entity.ChangeRegis
 	}
 
 	newRegistration, err := e.eventRegistrationRepo.ChangeRegistrationStatus(statusDetails.Id, statusDetails.Status)
-	if err != nil {
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		return empty, &customerrors.NotFoundError{OrgError: "Registration does not exist"}
+	} else if err != nil {
 		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 	return newRegistration, nil

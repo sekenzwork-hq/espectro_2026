@@ -87,5 +87,5 @@ func (s StaffHandlers) RetrieveStaffs(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "staffs": staffs})
+	ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Request was successful", "staffs": staffs})
 }
