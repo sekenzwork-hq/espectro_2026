@@ -95,3 +95,21 @@ func (e EventHandlers) RetrieveEvents(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "events": events})
 	}
 }
+
+func (e EventHandlers) Register(ctx *gin.Context) {
+	var entity entity.EventRegistrationFromJsonEntity
+
+	canGo := pkg.ParseJson(ctx, &entity)
+	if !canGo {
+		return
+	}
+
+	details, err := e.usecases.Register(entity)
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "User has been registered", "event_registration": details})
+}

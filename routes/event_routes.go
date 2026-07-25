@@ -20,7 +20,9 @@ func RegisterEventRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
 	transactionManager := database.NewTransactionManager(db)
 	eventsGalleryRepo := repositoryimple.NewEventGalleryPostgresRepo(db)
-	eventUsecases := usecases.NewEventUsecases(eventRepo, spectrumRepo, venueRepo, transactionManager, eventsGalleryRepo)
+	eventsRegistrationRepo := repositoryimple.NewEventRegistrationPostgresRepo(db)
+	userRegistrationRepo := repositoryimple.NewUserPostgresRepo(db)
+	eventUsecases := usecases.NewEventUsecases(eventRepo, spectrumRepo, venueRepo, transactionManager, eventsGalleryRepo, eventsRegistrationRepo, userRegistrationRepo)
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
 
 	eventHandlers := handlers.NewEventHandlers(eventUsecases)
@@ -33,4 +35,5 @@ func RegisterEventRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	eventApi.PATCH("/update", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.UpdateEvent)
 	eventApi.DELETE("/delete", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.DeleteEvent)
 	eventApi.GET("", eventHandlers.RetrieveEvents)
+	//eventApi.POST("/register",ha)
 }

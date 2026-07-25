@@ -20,8 +20,6 @@ func NewAdminMiddleWare(usecases usecases.AdminUsecases, adminType enums.AdminMi
 	return AdminMiddleWare{usecases: usecases, adminType: adminType}
 }
 
-var count = 0
-
 func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 
 	if !a.adminType.IsValid() {

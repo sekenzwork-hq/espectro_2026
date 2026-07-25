@@ -14,11 +14,13 @@ import (
 )
 
 type EventUsecases struct {
-	eventRepo         repository.EventRepo
-	spectrumRepo      repository.SpectrumRepo
-	venueRepo         repository.VenueRepo
-	transaction       database.TransactionManager
-	eventsGalleryRepo repository.EventGalleryRepo
+	eventRepo             repository.EventRepo
+	spectrumRepo          repository.SpectrumRepo
+	venueRepo             repository.VenueRepo
+	transaction           database.TransactionManager
+	eventsGalleryRepo     repository.EventGalleryRepo
+	eventRegistrationRepo repository.EventRegistrationRepo
+	userRepo              repository.UserRepository
 }
 
 func NewEventUsecases(
@@ -27,12 +29,16 @@ func NewEventUsecases(
 	venueRepo repository.VenueRepo,
 	transaction database.TransactionManager,
 	eventsGalleryRepo repository.EventGalleryRepo,
+	eventRegistrationRepo repository.EventRegistrationRepo,
+	userRepo repository.UserRepository,
 ) EventUsecases {
 	return EventUsecases{eventRepo: eventRepo,
-		spectrumRepo:      spectrumRepo,
-		venueRepo:         venueRepo,
-		transaction:       transaction,
-		eventsGalleryRepo: eventsGalleryRepo,
+		spectrumRepo:          spectrumRepo,
+		venueRepo:             venueRepo,
+		transaction:           transaction,
+		eventsGalleryRepo:     eventsGalleryRepo,
+		eventRegistrationRepo: eventRegistrationRepo,
+		userRepo:              userRepo,
 	}
 }
 
@@ -201,6 +207,51 @@ func (e EventUsecases) RetrieveEvents(spectrumId *string, limit int, page int) (
 
 	return events, nil
 }
+
+func (e EventUsecases) Register(registrationDetails entity.EventRegistrationFromJsonEntity) (entity.EventRegistrationEntity, error) {
+
+	empty := entity.EventRegistrationEntity{}
+	if !pkg.ValidateUUID(registrationDetails.UserId) {
+		return empty, &customerrors.ValidationError{OrgError: "Invalid user id"}
+	} else if !pkg.ValidateUUID(registrationDetails.EventId) {
+		return empty, &customerrors.ValidationError{OrgError: "Invalid event id"}
+	}
+
+	userExists, userErr := e.userRepo.UserExists(registrationDetails.UserId)
+	if userErr != nil {
+		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	} else if !userExists {
+		return empty, &customerrors.AuthenticationError{OrgError: "User does not exist"}
+	}
+
+	eventExists, eventErr := e.eventRepo.EventExists(registrationDetails.EventId)
+	if eventErr != nil {
+		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	} else if !eventExists {
+		return empty, &customerrors.NotFoundError{OrgError: "Event does not exist"}
+	}
+
+	alreadyRegistered, eventRegErr := e.eventRegistrationRepo.RegisterExists(registrationDetails.EventId, registrationDetails.UserId)
+	if eventRegErr != nil {
+		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	} else if !alreadyRegistered {
+		return empty, &customerrors.ValidationError{OrgError: "User has been already registered"}
+	}
+
+	details, insertionErr := e.eventRegistrationRepo.Register(entity.EventRegistrationEntity{
+		UserId:  registrationDetails.UserId,
+		EventId: registrationDetails.EventId,
+		Status:  enums.VerificationPending,
+	})
+
+	if insertionErr != nil {
+		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return details, nil
+
+}
+
 func (e EventUsecases) validateEventDetailsAndCheckExistence(name *string,
 	description *string,
 	spectrumId *string,

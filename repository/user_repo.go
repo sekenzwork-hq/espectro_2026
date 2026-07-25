@@ -8,4 +8,5 @@ import (
 
 type UserRepository interface {
 	RegisterUser(user entity.UserEntity) (uuid.UUID, error)
+	UserExists(userId string) (bool, error)
 }
