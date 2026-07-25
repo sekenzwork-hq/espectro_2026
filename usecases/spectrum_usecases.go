@@ -233,10 +233,25 @@ func (s SpectrumUsecases) validateSpectrumData(
 		return &customerrors.ValidationError{OrgError: "Maximum number of images is 10"}
 	}
 
-	if logoFile != nil && pkg.ValidateImageSize(*logoFile) {
-		return &customerrors.SizeError{OrgError: "Logo image size should be less than or equal to 2 MB"}
-	} else if videoFile != nil && pkg.ValidateVideoSize(*videoFile) {
-		return &customerrors.SizeError{OrgError: "Video size should be less than or equal to 50 MB"}
+	if logoFile != nil {
+		valid, err := pkg.ValidateImage(logoFile)
+		if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		} else if !valid {
+			return &customerrors.ValidationError{OrgError: "Invalid image format"}
+		} else if !pkg.ValidateImageSize(*logoFile) {
+			return &customerrors.SizeError{OrgError: "Logo image size should be less than or equal to 2 MB"}
+		}
+	} else if videoFile != nil {
+		valid, err := pkg.ValidateVideo(videoFile)
+		if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		} else if !valid {
+			return &customerrors.ValidationError{OrgError: "Invalid video format"}
+		} else if !pkg.ValidateVideoSize(*videoFile) {
+			return &customerrors.SizeError{OrgError: "Video size should be less than or equal to 50 MB"}
+		}
+
 	}
 
 	for i := range imageFiles {

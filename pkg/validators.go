@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"mime/multipart"
+	"net/http"
 	"regexp"
 	"slices"
 	"strings"
@@ -307,6 +308,24 @@ func ValidateImage(file *multipart.FileHeader) (bool, error) {
 		return false, nil
 	}
 
+}
+
+func ValidateVideo(file *multipart.FileHeader) (bool, error) {
+	openedFile, err := file.Open()
+
+	if err != nil {
+		return false, err
+	}
+
+	defer openedFile.Close()
+
+	buff := make([]byte, 512)
+	n, err := openedFile.Read(buff)
+	if err != nil {
+		return false, err
+	}
+	contentType := http.DetectContentType(buff[:n])
+	return strings.HasPrefix(contentType, "video/"), nil
 }
 
 func ValidateImageSize(image multipart.FileHeader) bool {
