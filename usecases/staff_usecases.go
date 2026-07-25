@@ -61,6 +61,22 @@ func (e StaffUsecases) UpdateStaff(staff entity.StaffUpdateEntity) (entity.Staff
 	return newStaff, nil
 }
 
+func (e StaffUsecases) DeleteStaff(staffId string) error {
+
+	if !pkg.ValidateUUID(staffId) {
+		return &customerrors.ValidationError{OrgError: "Invalid staff id"}
+	}
+
+	err := e.staffRepo.DeleteStaff(staffId)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundError{OrgError: "Staff does not exist"}
+	} else if err != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return nil
+}
 func (e StaffUsecases) validateStaffData(staffId *string, fullname *string, role *enums.StaffRole, phoneNumber *string, email *string) error {
 
 	if staffId != nil && !pkg.ValidateUUID(*staffId) {

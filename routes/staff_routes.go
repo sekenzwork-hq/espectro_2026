@@ -24,4 +24,5 @@ func RegisterStaffRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	staffApi := r.Group("/staff")
 	staffApi.POST("/create", adminMiddleware.AdminMiddleWare, handlers.CreateStaff)
 	staffApi.PATCH("/update", adminMiddleware.AdminMiddleWare, handlers.UpdateStaff)
+	staffApi.DELETE("/delete", adminMiddleware.AdminMiddleWare, handlers.DeleteStaff)
 }

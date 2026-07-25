@@ -39,13 +39,11 @@ func (s StaffHandlers) UpdateStaff(ctx *gin.Context) {
 
 	var entity entity.StaffUpdateEntity
 	canGo := pkg.ParseJson(ctx, &entity)
-
 	if !canGo {
 		return
 	}
 
 	newStaff, err := s.usecases.UpdateStaff(entity)
-
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -53,4 +51,24 @@ func (s StaffHandlers) UpdateStaff(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Staff has been updated", "staff": newStaff})
+}
+
+func (s StaffHandlers) DeleteStaff(ctx *gin.Context) {
+
+	staffId, exists := ctx.GetQuery("staff_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide staff id"})
+		return
+	}
+
+	err := s.usecases.DeleteStaff(staffId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Staff has been deleted"})
 }
