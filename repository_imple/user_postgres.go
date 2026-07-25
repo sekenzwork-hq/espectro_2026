@@ -28,10 +28,9 @@ func (u UserPostgresRepo) RegisterUser(user entity.UserEntity) (uuid.UUID, error
 func (u UserPostgresRepo) UserExists(userId string) (bool, error) {
 
 	var exists bool
-
 	err := u.db.Raw(
 		`
-		SELECT EXISTS (SELECT 1 FROM users WHERE id=? AND deleted_at IS NULL)
+		SELECT EXISTS (SELECT 1 FROM users WHERE id=?)
 		`,
 		userId,
 	).Scan(&exists).Error

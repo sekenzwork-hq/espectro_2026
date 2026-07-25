@@ -35,5 +35,6 @@ func RegisterEventRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	eventApi.PATCH("/update", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.UpdateEvent)
 	eventApi.DELETE("/delete", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.DeleteEvent)
 	eventApi.GET("", eventHandlers.RetrieveEvents)
-	//eventApi.POST("/register",ha)
+	eventApi.POST("/register", eventHandlers.Register)
+	eventApi.PATCH("/change-status", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.ChangeRegistrationStatus)
 }

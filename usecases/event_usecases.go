@@ -234,7 +234,7 @@ func (e EventUsecases) Register(registrationDetails entity.EventRegistrationFrom
 	alreadyRegistered, eventRegErr := e.eventRegistrationRepo.RegisterExists(registrationDetails.EventId, registrationDetails.UserId)
 	if eventRegErr != nil {
 		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
-	} else if !alreadyRegistered {
+	} else if alreadyRegistered {
 		return empty, &customerrors.ValidationError{OrgError: "User has been already registered"}
 	}
 
@@ -249,6 +249,25 @@ func (e EventUsecases) Register(registrationDetails entity.EventRegistrationFrom
 	}
 
 	return details, nil
+
+}
+
+func (e EventUsecases) ChangeRegistrationStatus(statusDetails entity.ChangeRegistrationStatusEntity) (entity.EventRegistrationEntity, error) {
+
+	empty := entity.EventRegistrationEntity{}
+	if !pkg.ValidateUUID(statusDetails.Id) {
+		return empty, &customerrors.ValidationError{OrgError: "Invalid registration id"}
+	}
+
+	if !statusDetails.Status.IsValid() {
+		return empty, &customerrors.ValidationError{OrgError: "Invalid status"}
+	}
+
+	newRegistration, err := e.eventRegistrationRepo.ChangeRegistrationStatus(statusDetails.Id, statusDetails.Status)
+	if err != nil {
+		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+	return newRegistration, nil
 
 }
 

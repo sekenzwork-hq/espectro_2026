@@ -110,6 +110,23 @@ func (e EventHandlers) Register(ctx *gin.Context) {
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 		return
 	}
-
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "User has been registered", "event_registration": details})
+}
+
+func (e EventHandlers) ChangeRegistrationStatus(ctx *gin.Context) {
+	var entity entity.ChangeRegistrationStatusEntity
+
+	canGo := pkg.ParseJson(ctx, &entity)
+	if !canGo {
+		return
+	}
+
+	newRegistration, err := e.usecases.ChangeRegistrationStatus(entity)
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Status has been updated", "event_registration": newRegistration})
 }

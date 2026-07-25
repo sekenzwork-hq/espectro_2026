@@ -4,7 +4,7 @@ type EventRegStatus string
 
 const (
 	VerificationPending EventRegStatus = "verification_pending"
-	Approved            EventRegStatus = "Approved"
+	Approved            EventRegStatus = "approved"
 	Rejected            EventRegStatus = "rejected"
 )
 
