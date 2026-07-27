@@ -24,12 +24,21 @@ type OrganizationCreateEntity struct {
 	Id           string
 	Email        string
 	Logo         *multipart.FileHeader
-	Status       enums.OrganizationStatus
-	ApprovedBy   *string
 	Fullname     string
 	PhoneNumber  string
 	WebsiteUrl   *string
 	Industry     string
 	HeadQuarters string
-	CreatedAt    time.Time
+}
+
+type OrganizationUpdateEntity struct {
+	Id           string
+	Email        *string
+	LogoUrl      *string
+	Status       *enums.OrganizationStatus
+	Fullname     *string
+	PhoneNumber  *string
+	WebsiteUrl   *string
+	Industry     *string
+	HeadQuarters *string
 }

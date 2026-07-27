@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"errors"
 	customerrors "espectro/custom_errors"
 	"espectro/entity"
 	"espectro/enums"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type OrganizationUsecases struct {
@@ -24,12 +26,13 @@ func NewOrganizationUsecases(organizationRepo repository.OrganizationRepo, media
 func (o OrganizationUsecases) CreateOrganization(organization entity.OrganizationCreateEntity) (entity.OrganizationEntity, error) {
 
 	empty := entity.OrganizationEntity{}
+
+	status := enums.PendingOrganization
 	err := o.validateOrganizationData(
 		nil,
-		&organization.Fullname,
 		&organization.Email,
 		organization.Logo,
-		&organization.Status,
+		&status,
 		nil,
 		&organization.Fullname,
 		&organization.PhoneNumber,
@@ -73,9 +76,78 @@ func (o OrganizationUsecases) CreateOrganization(organization entity.Organizatio
 	return newOrg, nil
 }
 
+func (o OrganizationUsecases) UpdateOrganization(id string,
+	email *string,
+	logo *multipart.FileHeader,
+	fullname *string,
+	phoneNumber *string,
+	websiteUrl *string,
+	industry *string,
+	headquarters *string,
+) (entity.OrganizationEntity, error) {
+
+	empty := entity.OrganizationEntity{}
+	status := enums.PendingOrganization
+	validationErr := o.validateOrganizationData(&id, email, logo, &status, nil, fullname, phoneNumber, websiteUrl, industry, headquarters)
+
+	if validationErr != nil {
+		return empty, validationErr
+	}
+
+	var prevPublicId *string
+	var newPublicId *string
+	var logoUrl *string
+
+	folderId := "organization/" + id
+	if logo != nil {
+		oldPubIds, err := o.mediaRepo.RetrieveAssetPublicIds(folderId)
+		if err != nil {
+			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		if len(oldPubIds) != 0 {
+			prevPublicId = &oldPubIds[0]
+		}
+
+		url, newPubId, err := o.mediaRepo.UploadFile(logo, folderId, true)
+		if err != nil {
+			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		newPublicId = &newPubId
+		logoUrl = &url
+
+	}
+
+	newOrganization, err := o.organizationRepo.UpdateOrganization(entity.OrganizationUpdateEntity{
+		Id:           id,
+		Email:        email,
+		LogoUrl:      logoUrl,
+		Status:       &status,
+		Fullname:     fullname,
+		PhoneNumber:  phoneNumber,
+		WebsiteUrl:   websiteUrl,
+		Industry:     industry,
+		HeadQuarters: headquarters,
+	})
+
+	go func() {
+		if err != nil && newPublicId != nil {
+			o.mediaRepo.DeleteAssetsWithPublicIds([]string{*newPublicId})
+		} else if prevPublicId != nil {
+			o.mediaRepo.DeleteAssetsWithPublicIds([]string{*prevPublicId})
+		}
+	}()
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return empty, &customerrors.NotFoundError{OrgError: "Organization does not exist"}
+	} else if err != nil {
+		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return newOrganization, nil
+}
+
 func (o OrganizationUsecases) validateOrganizationData(
 	id *string,
-	name *string,
 	email *string,
 	logo *multipart.FileHeader,
 	status *enums.OrganizationStatus,
@@ -90,16 +162,15 @@ func (o OrganizationUsecases) validateOrganizationData(
 	if id != nil && !pkg.ValidateUUID(*id) {
 		return &customerrors.ValidationError{OrgError: "Invalid organization id"}
 	}
+	if email != nil && !pkg.ValidateEmail(*email) {
+		return &customerrors.ValidationError{OrgError: "Invalid email"}
+	}
 
-	if name != nil {
-		err := pkg.ValidateName(*name)
+	if fullname != nil {
+		err := pkg.ValidateFullname(*fullname)
 		if err != nil {
 			return &customerrors.ValidationError{OrgError: err.Error()}
 		}
-	}
-
-	if email != nil && !pkg.ValidateEmail(*email) {
-		return &customerrors.ValidationError{OrgError: "Invalid email"}
 	}
 
 	if logo != nil {
@@ -124,13 +195,6 @@ func (o OrganizationUsecases) validateOrganizationData(
 
 	if approvedBy != nil && !pkg.ValidateUUID(*approvedBy) {
 		return &customerrors.ValidationError{OrgError: "Invalid approved id"}
-	}
-
-	if fullname != nil {
-		err := pkg.ValidateFullname(*fullname)
-		if err != nil {
-			return &customerrors.ValidationError{OrgError: err.Error()}
-		}
 	}
 
 	if phoneNumber != nil && !pkg.ValidatePhoneNumber(*phoneNumber) {

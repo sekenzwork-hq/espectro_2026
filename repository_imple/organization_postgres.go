@@ -22,3 +22,43 @@ func (o OrganizationPostgresRepo) CreateOrganization(organization entity.Organiz
 
 	return organization, err
 }
+
+func (o OrganizationPostgresRepo) UpdateOrganization(newOrganization entity.OrganizationUpdateEntity) (entity.OrganizationEntity, error) {
+	var org entity.OrganizationEntity
+
+	out := o.db.
+		Raw(
+			`
+			UPDATE organization SET
+			fullname=COALESCE(?,fullname),
+			email=COALESCE(?,email),
+			logo_url=COALESCE(?,logo_url),
+			status=COALESCE(?,status),
+			phone=COALESCE(?,phone),
+			website_url=COALESCE(?,website_url),
+			industry=COALESCE(?,indusctry)
+			headquarters=COALESCE(?,headquarters)
+            
+			WHERE id=? AND deleted_at IS NULL
+			RETURNING id,fullname,email,logo_url,status,phone,website_url,industry,headquarters
+
+			`,
+			newOrganization.Fullname,
+			newOrganization.Email,
+			newOrganization.LogoUrl,
+			newOrganization.Status,
+			newOrganization.PhoneNumber,
+			newOrganization.WebsiteUrl,
+			newOrganization.Industry,
+			newOrganization.HeadQuarters,
+			newOrganization.Id,
+		).Scan(&org)
+
+	if out.Error != nil {
+		return entity.OrganizationEntity{}, out.Error
+	} else if out.RowsAffected == 0 {
+		return entity.OrganizationEntity{}, gorm.ErrRecordNotFound
+	}
+
+	return org, nil
+}
