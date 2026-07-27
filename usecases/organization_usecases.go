@@ -163,6 +163,19 @@ func (o OrganizationUsecases) DeleteOrganization(id string) error {
 	return nil
 }
 
+func (o OrganizationUsecases) RetrieveOrganizations(limit int, page int) ([]entity.OrganizationEntity, error) {
+
+	offset := pkg.GetOffset(limit, page)
+
+	organizations, err := o.organizationRepo.RetrieveOrganizations(limit, offset)
+
+	if err != nil {
+		return organizations, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return organizations, nil
+}
+
 func (o OrganizationUsecases) validateOrganizationData(
 	id *string,
 	email *string,
