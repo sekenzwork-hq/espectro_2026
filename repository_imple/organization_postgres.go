@@ -2,6 +2,7 @@ package repositoryimple
 
 import (
 	"espectro/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -29,14 +30,14 @@ func (o OrganizationPostgresRepo) UpdateOrganization(newOrganization entity.Orga
 	out := o.db.
 		Raw(
 			`
-			UPDATE organization SET
+			UPDATE organizations SET
 			fullname=COALESCE(?,fullname),
 			email=COALESCE(?,email),
 			logo_url=COALESCE(?,logo_url),
 			status=COALESCE(?,status),
 			phone=COALESCE(?,phone),
 			website_url=COALESCE(?,website_url),
-			industry=COALESCE(?,indusctry)
+			industry=COALESCE(?,industry),
 			headquarters=COALESCE(?,headquarters)
             
 			WHERE id=? AND deleted_at IS NULL
@@ -61,4 +62,20 @@ func (o OrganizationPostgresRepo) UpdateOrganization(newOrganization entity.Orga
 	}
 
 	return org, nil
+}
+
+func (o OrganizationPostgresRepo) DeleteOrganization(id string) error {
+
+	out := o.db.
+		Table("organizations").
+		Where("id=? AND deleted_at IS NULL", id).
+		Update("deleted_at", time.Now().UTC())
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

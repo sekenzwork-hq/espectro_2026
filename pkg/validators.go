@@ -4,7 +4,6 @@ import (
 	"errors"
 	customerrors "espectro/custom_errors"
 	"fmt"
-	"image"
 	"mime/multipart"
 	"net/http"
 	"regexp"
@@ -279,7 +278,7 @@ func ValidateUrl(url string, placeholder string) error {
 		return fmt.Errorf("Invalid %v", p)
 	} else if len(url) > 4100 {
 		return errors.New("Url length is too long")
-	} else if !strings.Contains(url, "http://") || !strings.Contains(url, "https://") {
+	} else if !strings.Contains(url, "http://") && !strings.Contains(url, "https://") {
 		return fmt.Errorf("Invalid %v", p)
 	}
 
@@ -296,18 +295,19 @@ func ValidateImage(file *multipart.FileHeader) (bool, error) {
 	}
 	defer openedFile.Close()
 
-	_, format, err := image.DecodeConfig(openedFile)
+	buff := make([]byte, 512)
+	n, err := openedFile.Read(buff)
 	if err != nil {
 		return false, err
 	}
+	contentType := http.DetectContentType(buff[:n])
 
-	switch format {
-	case "jpeg", "jpg", "png", "svg", "gif", "webp":
+	switch contentType {
+	case "image/jpg", "image/jpeg", "image/png":
 		return true, nil
 	default:
 		return false, nil
 	}
-
 }
 
 func ValidateVideo(file *multipart.FileHeader) (bool, error) {

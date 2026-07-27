@@ -121,3 +121,23 @@ func (o OrganizationHandlers) UpdateOrganization(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Organization has been updated", "organization": newOrg})
 }
+
+func (o OrganizationHandlers) DeleteOrganization(ctx *gin.Context) {
+
+	id, exists := ctx.GetQuery("organization_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide organization id"})
+		return
+	}
+
+	err := o.usecases.DeleteOrganization(id)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Organization has been deleted"})
+}

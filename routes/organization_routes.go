@@ -20,4 +20,6 @@ func RegisterOrganizationRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary
 	orgApi := r.Group("/organization")
 
 	orgApi.POST("/create", orgHandlers.CreateOrganization)
+	orgApi.PATCH("/update", orgHandlers.UpdateOrganization)
+	orgApi.DELETE("/delete", orgHandlers.DeleteOrganization)
 }

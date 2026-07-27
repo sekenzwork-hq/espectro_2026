@@ -7,6 +7,7 @@ import (
 	"espectro/enums"
 	"espectro/pkg"
 	"espectro/repository"
+	"fmt"
 	"mime/multipart"
 	"strings"
 
@@ -20,7 +21,7 @@ type OrganizationUsecases struct {
 }
 
 func NewOrganizationUsecases(organizationRepo repository.OrganizationRepo, mediaRepo repository.MediaServiceRepo) OrganizationUsecases {
-	return OrganizationUsecases{organizationRepo: organizationRepo}
+	return OrganizationUsecases{organizationRepo: organizationRepo, mediaRepo: mediaRepo}
 }
 
 func (o OrganizationUsecases) CreateOrganization(organization entity.OrganizationCreateEntity) (entity.OrganizationEntity, error) {
@@ -40,7 +41,7 @@ func (o OrganizationUsecases) CreateOrganization(organization entity.Organizatio
 		&organization.Industry,
 		&organization.HeadQuarters,
 	)
-
+	fmt.Println("Vali err ", err)
 	if err != nil {
 		return empty, err
 	}
@@ -89,7 +90,6 @@ func (o OrganizationUsecases) UpdateOrganization(id string,
 	empty := entity.OrganizationEntity{}
 	status := enums.PendingOrganization
 	validationErr := o.validateOrganizationData(&id, email, logo, &status, nil, fullname, phoneNumber, websiteUrl, industry, headquarters)
-
 	if validationErr != nil {
 		return empty, validationErr
 	}
@@ -146,6 +146,23 @@ func (o OrganizationUsecases) UpdateOrganization(id string,
 	return newOrganization, nil
 }
 
+func (o OrganizationUsecases) DeleteOrganization(id string) error {
+
+	if !pkg.ValidateUUID(id) {
+		return &customerrors.ValidationError{OrgError: "Invalid organization_id"}
+	}
+
+	err := o.organizationRepo.DeleteOrganization(id)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &customerrors.NotFoundError{OrgError: "Organization does not exist"}
+	} else if err != nil {
+		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	}
+
+	return nil
+}
+
 func (o OrganizationUsecases) validateOrganizationData(
 	id *string,
 	email *string,
@@ -158,7 +175,6 @@ func (o OrganizationUsecases) validateOrganizationData(
 	industry *string,
 	headquarters *string,
 ) error {
-
 	if id != nil && !pkg.ValidateUUID(*id) {
 		return &customerrors.ValidationError{OrgError: "Invalid organization id"}
 	}
@@ -199,11 +215,6 @@ func (o OrganizationUsecases) validateOrganizationData(
 
 	if phoneNumber != nil && !pkg.ValidatePhoneNumber(*phoneNumber) {
 		return &customerrors.ValidationError{OrgError: "Invalid phone number"}
-	}
-
-	if websiteUrl != nil {
-		err := pkg.ValidateUrl(*websiteUrl, "website url")
-		return &customerrors.ValidationError{OrgError: err.Error()}
 	}
 
 	if industry != nil {
