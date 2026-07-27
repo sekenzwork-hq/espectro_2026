@@ -243,7 +243,7 @@ func (e EventUsecases) Register(registrationDetails entity.EventRegistrationFrom
 		details, insertionErr := e.eventRegistrationRepo.Register(entity.EventRegistrationEntity{
 			UserId:  registrationDetails.UserId,
 			EventId: registrationDetails.EventId,
-			Status:  enums.VerificationPending,
+			Status:  enums.VerificationPendingEventRegistration,
 		})
 
 		eventRegDetails = details

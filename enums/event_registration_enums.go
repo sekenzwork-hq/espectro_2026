@@ -3,15 +3,15 @@ package enums
 type EventRegStatus string
 
 const (
-	VerificationPending EventRegStatus = "verification_pending"
-	Approved            EventRegStatus = "approved"
-	Rejected            EventRegStatus = "rejected"
+	VerificationPendingEventRegistration EventRegStatus = "verification_pending"
+	ApprovedEventRegistration            EventRegStatus = "approved"
+	RejectedEventRegistration            EventRegStatus = "rejected"
 )
 
 func (e EventRegStatus) IsValid() bool {
 
 	switch e {
-	case VerificationPending, Approved, Rejected:
+	case VerificationPendingEventRegistration, ApprovedEventRegistration, RejectedEventRegistration:
 		return true
 	default:
 		return false
