@@ -3,6 +3,7 @@ package repositoryimple
 import (
 	"espectro/entity"
 	"espectro/enums"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -51,4 +52,31 @@ func (e EventRegistrationPostgresRepo) ChangeRegistrationStatus(registrationId s
 	}
 
 	return eventRegistration, nil
+}
+
+func (e EventRegistrationPostgresRepo) RetrieveEventIdUsingRegistrationId(id string) (string, error) {
+
+	var eventId string
+	err := e.db.
+		Table("event_registrations").
+		Select("event_id").
+		Where("id=? AND deleted_at IS NULL", id).Scan(&eventId).Error
+
+	return eventId, err
+}
+
+func (e EventRegistrationPostgresRepo) WithdrawRegistration(id string) error {
+
+	out := e.db.
+		Table("event_registrations").
+		Where("id=? AND deleted_at IS NULL", id).
+		Update("deleted_at", time.Now().UTC())
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

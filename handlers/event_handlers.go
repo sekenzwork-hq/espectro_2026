@@ -130,3 +130,22 @@ func (e EventHandlers) ChangeRegistrationStatus(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Status has been updated", "event_registration": newRegistration})
 }
+
+func (e EventHandlers) WithdrawRegistration(ctx *gin.Context) {
+
+	registrationId, exists := ctx.GetQuery("registration_id")
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide registration id"})
+		return
+	}
+
+	err := e.usecases.WithdrawRegistration(registrationId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Registration has been withdrawn"})
+}

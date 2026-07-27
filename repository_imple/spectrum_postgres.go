@@ -129,7 +129,11 @@ func (s SpectrumPostgresRepo) DecrementTotalEventsCountBy1(spectrumId string) er
 	out := s.db.
 		Table("spectrums").
 		Where("id=? AND deleted_at IS NULL", spectrumId).
-		UpdateColumn("total_events", gorm.Expr("total_events-1"))
+		UpdateColumn("total_events", gorm.Expr(`
+			CASE 
+		      WHEN total_events != 0 THEN total_events-1
+			END
+		`))
 
 	if out.Error != nil {
 		return out.Error

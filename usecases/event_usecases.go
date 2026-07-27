@@ -238,17 +238,33 @@ func (e EventUsecases) Register(registrationDetails entity.EventRegistrationFrom
 		return empty, &customerrors.ValidationError{OrgError: "User has been already registered"}
 	}
 
-	details, insertionErr := e.eventRegistrationRepo.Register(entity.EventRegistrationEntity{
-		UserId:  registrationDetails.UserId,
-		EventId: registrationDetails.EventId,
-		Status:  enums.VerificationPending,
+	eventRegDetails := entity.EventRegistrationEntity{}
+	err := e.transaction.Run(func() error {
+		details, insertionErr := e.eventRegistrationRepo.Register(entity.EventRegistrationEntity{
+			UserId:  registrationDetails.UserId,
+			EventId: registrationDetails.EventId,
+			Status:  enums.VerificationPending,
+		})
+
+		eventRegDetails = details
+		if insertionErr != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+
+		err := e.eventRepo.IncrementTotalRegistrationBy1(eventRegDetails.EventId)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Event does not exits"}
+		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+		return nil
 	})
 
-	if insertionErr != nil {
-		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	if err != nil {
+		return empty, err
 	}
 
-	return details, nil
+	return eventRegDetails, nil
 
 }
 
@@ -273,6 +289,43 @@ func (e EventUsecases) ChangeRegistrationStatus(statusDetails entity.ChangeRegis
 
 }
 
+func (e EventUsecases) WithdrawRegistration(id string) error {
+
+	if !pkg.ValidateUUID(id) {
+		return &customerrors.ValidationError{OrgError: "Invalid registration id"}
+	}
+
+	err := e.transaction.Run(func() error {
+		eventId, err := e.eventRegistrationRepo.RetrieveEventIdUsingRegistrationId(id)
+
+		if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		} else if eventId == "" {
+			return &customerrors.NotFoundError{OrgError: "Registration does not exist"}
+		}
+
+		err = e.eventRepo.DecrementTotalRegistrationBy1(eventId)
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Registration does not exist"}
+		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+
+		err = e.eventRegistrationRepo.WithdrawRegistration(id)
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Registration does not exist"}
+		} else if err != nil {
+			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		}
+
+		return nil
+
+	})
+
+	return err
+}
 func (e EventUsecases) validateEventDetailsAndCheckExistence(name *string,
 	description *string,
 	spectrumId *string,

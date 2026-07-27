@@ -42,7 +42,7 @@ func (e EventPostgresRepo) UpdateEvent(eventId string, newEvent entity.EventUpda
 			venue_id=COALESCE(?,venue_id) WHERE id=? AND deleted_at IS NULL
 
 			RETURNING 
-		    id,name,description,spectrum_id,status,participant_limit,start_date,end_date,event_mode,event_type,is_featured,contact_email,venue_id,created_at
+		    id,name,description,spectrum_id,status,participant_limit,start_date,end_date,event_mode,event_type,is_featured,contact_email,total_registrations,venue_id,created_at
 			`, newEvent.Name,
 			newEvent.Description,
 			newEvent.SpectrumId,
@@ -88,7 +88,7 @@ func (e EventPostgresRepo) RetrieveEvents(limit int, offset int) ([]entity.Event
 	var events []entity.EventEntity
 	err := e.db.
 		Table("events").
-		Select("id,name,description,status,event_mode,event_type,participant_limit,start_date,end_date,spectrum_id,venue_id,contact_email,created_at").
+		Select("id,name,description,status,event_mode,event_type,participant_limit,start_date,end_date,spectrum_id,total_registrations,venue_id,contact_email,created_at").
 		Where("deleted_at IS NULL").
 		Limit(limit).
 		Offset(offset).
@@ -164,4 +164,38 @@ func (e EventPostgresRepo) EventExists(eventId string) (bool, error) {
 	).Scan(&exists).Error
 
 	return exists, err
+}
+
+func (e EventPostgresRepo) IncrementTotalRegistrationBy1(id string) error {
+
+	out := e.db.
+		Table("events").
+		Where("id=? AND deleted_at IS NULL", id).
+		Update("total_registrations", gorm.Expr("total_registrations+1"))
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+}
+
+func (e EventPostgresRepo) DecrementTotalRegistrationBy1(id string) error {
+
+	out := e.db.Table("events").Where("id=? AND deleted_at IS NULL", id).Update("total_registrations", gorm.Expr(`
+	CASE 
+		WHEN total_registrations != 0 THEN total_registrations-1
+		ELSE total_registrations
+	END
+	`))
+
+	if out.Error != nil {
+		return out.Error
+	} else if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }
