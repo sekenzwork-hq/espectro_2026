@@ -23,7 +23,6 @@ func (i InvestorHandlers) CreateInvestor(ctx *gin.Context) {
 	phoneNumberForm, phoneNumExists := ctx.GetPostForm("phone_number")
 	emailForm, emailExists := ctx.GetPostForm("email")
 	logo, _ := ctx.FormFile("logo")
-
 	if !nameExists {
 		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": "Provide name"})
 		return

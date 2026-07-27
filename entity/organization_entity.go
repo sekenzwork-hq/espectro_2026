@@ -7,38 +7,41 @@ import (
 )
 
 type OrganizationEntity struct {
-	Id           string                   `json:"id" gorm:"column:id;type uuid"`
-	Email        string                   `json:"email" gorm:"column:email"`
-	LogoUrl      *string                  `json:"logo_url" gorm:"column:logo_url"`
-	Status       enums.OrganizationStatus `json:"status" gorm:"column:status"`
-	ApprovedBy   *string                  `json:"approved_by" gorm:"approved_by"`
-	Fullname     string                   `json:"fullname" gorm:"column:fullname"`
-	PhoneNumber  string                   `json:"phone_number" gorm:"column:phone"`
-	WebsiteUrl   *string                  `json:"website_url" gorm:"column:website_url"`
-	Industry     string                   `json:"industry" gorm:"column:industry"`
-	HeadQuarters string                   `json:"headquarters" gorm:"column:headquarters"`
-	CreatedAt    time.Time                `json:"created_at" gorm:"column:created_at;type timestampz; default:now()"`
+	Id               string                   `json:"id" gorm:"column:id;type uuid"`
+	Email            string                   `json:"email" gorm:"column:email"`
+	LogoUrl          *string                  `json:"logo_url" gorm:"column:logo_url"`
+	Status           enums.OrganizationStatus `json:"status" gorm:"column:status"`
+	ApprovedBy       *string                  `json:"approved_by" gorm:"approved_by"`
+	Fullname         string                   `json:"fullname" gorm:"column:fullname"`
+	OrganizationName string                   `json:"organization_name" gorm:"column:organization_name"`
+	PhoneNumber      string                   `json:"phone_number" gorm:"column:phone"`
+	WebsiteUrl       *string                  `json:"website_url" gorm:"column:website_url"`
+	Industry         string                   `json:"industry" gorm:"column:industry"`
+	HeadQuarters     string                   `json:"headquarters" gorm:"column:headquarters"`
+	CreatedAt        time.Time                `json:"created_at" gorm:"column:created_at;type timestampz; default:now()"`
 }
 
 type OrganizationCreateEntity struct {
-	Id           string
-	Email        string
-	Logo         *multipart.FileHeader
-	Fullname     string
-	PhoneNumber  string
-	WebsiteUrl   *string
-	Industry     string
-	HeadQuarters string
+	Id               string
+	Email            string
+	Logo             *multipart.FileHeader
+	Fullname         string
+	PhoneNumber      string
+	OrganizationName string
+	WebsiteUrl       *string
+	Industry         string
+	HeadQuarters     string
 }
 
 type OrganizationUpdateEntity struct {
-	Id           string
-	Email        *string
-	LogoUrl      *string
-	Status       *enums.OrganizationStatus
-	Fullname     *string
-	PhoneNumber  *string
-	WebsiteUrl   *string
-	Industry     *string
-	HeadQuarters *string
+	Id               string
+	Email            *string
+	LogoUrl          *string
+	Status           *enums.OrganizationStatus
+	Fullname         *string
+	OrganizationName *string
+	PhoneNumber      *string
+	WebsiteUrl       *string
+	Industry         *string
+	HeadQuarters     *string
 }

@@ -40,6 +40,7 @@ func (o OrganizationUsecases) CreateOrganization(organization entity.Organizatio
 		organization.WebsiteUrl,
 		&organization.Industry,
 		&organization.HeadQuarters,
+		&empty.OrganizationName,
 	)
 	fmt.Println("Vali err ", err)
 	if err != nil {
@@ -85,11 +86,12 @@ func (o OrganizationUsecases) UpdateOrganization(id string,
 	websiteUrl *string,
 	industry *string,
 	headquarters *string,
+	organizationName *string,
 ) (entity.OrganizationEntity, error) {
 
 	empty := entity.OrganizationEntity{}
 	status := enums.PendingOrganization
-	validationErr := o.validateOrganizationData(&id, email, logo, &status, nil, fullname, phoneNumber, websiteUrl, industry, headquarters)
+	validationErr := o.validateOrganizationData(&id, email, logo, &status, nil, fullname, phoneNumber, websiteUrl, industry, headquarters, organizationName)
 	if validationErr != nil {
 		return empty, validationErr
 	}
@@ -118,15 +120,16 @@ func (o OrganizationUsecases) UpdateOrganization(id string,
 	}
 
 	newOrganization, err := o.organizationRepo.UpdateOrganization(entity.OrganizationUpdateEntity{
-		Id:           id,
-		Email:        email,
-		LogoUrl:      logoUrl,
-		Status:       &status,
-		Fullname:     fullname,
-		PhoneNumber:  phoneNumber,
-		WebsiteUrl:   websiteUrl,
-		Industry:     industry,
-		HeadQuarters: headquarters,
+		Id:               id,
+		Email:            email,
+		LogoUrl:          logoUrl,
+		Status:           &status,
+		Fullname:         fullname,
+		PhoneNumber:      phoneNumber,
+		WebsiteUrl:       websiteUrl,
+		Industry:         industry,
+		HeadQuarters:     headquarters,
+		OrganizationName: organizationName,
 	})
 
 	go func() {
@@ -187,6 +190,7 @@ func (o OrganizationUsecases) validateOrganizationData(
 	websiteUrl *string,
 	industry *string,
 	headquarters *string,
+	organizationName *string,
 ) error {
 	if id != nil && !pkg.ValidateUUID(*id) {
 		return &customerrors.ValidationError{OrgError: "Invalid organization id"}
@@ -248,6 +252,14 @@ func (o OrganizationUsecases) validateOrganizationData(
 		str := strings.TrimSpace(*headquarters)
 		if len(str) < 10 {
 			return &customerrors.ValidationError{OrgError: "Headquarters length should be atleast 10"}
+		}
+	}
+
+	if organizationName != nil {
+		if len(*organizationName) < 2 {
+			return &customerrors.ValidationError{OrgError: "Organization name length should be atleast 2"}
+		} else if len(*organizationName) > 150 {
+			return &customerrors.ValidationError{OrgError: "Organization name length should be less than or equal to 150"}
 		}
 	}
 

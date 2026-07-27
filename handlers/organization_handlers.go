@@ -26,6 +26,7 @@ func (o OrganizationHandlers) CreateOrganization(ctx *gin.Context) {
 	websiteUrlForm, websiteUrlExists := ctx.GetPostForm("website_url")
 	industry := ctx.PostForm("industry")
 	headquarters := ctx.PostForm("headquarters")
+	organizationName := ctx.PostForm("organization_name")
 
 	var websiteUrl *string
 	var logo *multipart.FileHeader
@@ -38,13 +39,14 @@ func (o OrganizationHandlers) CreateOrganization(ctx *gin.Context) {
 	}
 
 	newOrg, err := o.usecases.CreateOrganization(entity.OrganizationCreateEntity{
-		Fullname:     fullname,
-		Email:        email,
-		Logo:         logo,
-		PhoneNumber:  phoneNumber,
-		WebsiteUrl:   websiteUrl,
-		Industry:     industry,
-		HeadQuarters: headquarters,
+		Fullname:         fullname,
+		Email:            email,
+		Logo:             logo,
+		PhoneNumber:      phoneNumber,
+		WebsiteUrl:       websiteUrl,
+		Industry:         industry,
+		HeadQuarters:     headquarters,
+		OrganizationName: organizationName,
 	})
 
 	if err != nil {
@@ -70,6 +72,7 @@ func (o OrganizationHandlers) UpdateOrganization(ctx *gin.Context) {
 	websiteUrlForm, websiteUrlExists := ctx.GetPostForm("website_url")
 	industryForm, industryExists := ctx.GetPostForm("industry")
 	headquartersForm, headquartersExists := ctx.GetPostForm("headquarters")
+	organizationNameForm, organizationNameExists := ctx.GetPostForm("organization_name")
 
 	var email *string
 	var fullname *string
@@ -78,6 +81,7 @@ func (o OrganizationHandlers) UpdateOrganization(ctx *gin.Context) {
 	var logo *multipart.FileHeader
 	var headquarters *string
 	var indusctry *string
+	var organizationName *string
 
 	if emailExists {
 		email = &emailForm
@@ -101,6 +105,9 @@ func (o OrganizationHandlers) UpdateOrganization(ctx *gin.Context) {
 	if headquartersExists {
 		headquarters = &headquartersForm
 	}
+	if organizationNameExists {
+		organizationName = &organizationNameForm
+	}
 
 	newOrg, err := o.usecases.UpdateOrganization(
 		id,
@@ -111,6 +118,7 @@ func (o OrganizationHandlers) UpdateOrganization(ctx *gin.Context) {
 		websiteUrl,
 		indusctry,
 		headquarters,
+		organizationName,
 	)
 
 	if err != nil {
