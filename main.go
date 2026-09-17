@@ -62,6 +62,7 @@ func main() {
 	routes.RegisterGalleryRoutes(api, gormDB, cld)
 	routes.RegisterStaffRoutes(api, gormDB)
 	routes.RegisterOrganizationRoutes(api, gormDB, cld)
+	routes.RegisterExhibtionRoutes(api, gormDB, cld)
 
 	listenErr := gin.Run(":8080")
 	if listenErr != nil {

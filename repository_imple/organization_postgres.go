@@ -92,3 +92,14 @@ func (o OrganizationPostgresRepo) RetrieveOrganizations(limit int, offset int) (
 
 	return organizations, err
 }
+
+func (e OrganizationPostgresRepo) OrganizationExists(id string) (bool, error) {
+
+	var exists bool
+
+	err := e.db.Table("organizations").
+		Raw(`SELECT EXISTS (SELECT 1 FROM organizations WHERE id = ? AND deleted_at IS NULL)`, id).
+		Scan(&exists).Error
+
+	return exists, err
+}

@@ -7,7 +7,6 @@ import (
 	"espectro/enums"
 	"espectro/pkg"
 	"espectro/repository"
-	"fmt"
 	"mime/multipart"
 	"strings"
 
@@ -40,9 +39,8 @@ func (o OrganizationUsecases) CreateOrganization(organization entity.Organizatio
 		organization.WebsiteUrl,
 		&organization.Industry,
 		&organization.HeadQuarters,
-		&empty.OrganizationName,
+		&organization.OrganizationName,
 	)
-	fmt.Println("Vali err ", err)
 	if err != nil {
 		return empty, err
 	}
@@ -59,16 +57,17 @@ func (o OrganizationUsecases) CreateOrganization(organization entity.Organizatio
 	}
 
 	newOrg, err := o.organizationRepo.CreateOrganization(entity.OrganizationEntity{
-		Id:           organizationId,
-		Fullname:     organization.Fullname,
-		Email:        organization.Email,
-		LogoUrl:      logoUrl,
-		Status:       enums.PendingOrganization,
-		ApprovedBy:   nil,
-		PhoneNumber:  organization.PhoneNumber,
-		WebsiteUrl:   organization.WebsiteUrl,
-		Industry:     organization.Industry,
-		HeadQuarters: organization.HeadQuarters,
+		Id:               organizationId,
+		Fullname:         organization.Fullname,
+		Email:            organization.Email,
+		LogoUrl:          logoUrl,
+		Status:           enums.PendingOrganization,
+		ApprovedBy:       nil,
+		PhoneNumber:      organization.PhoneNumber,
+		WebsiteUrl:       organization.WebsiteUrl,
+		Industry:         organization.Industry,
+		HeadQuarters:     organization.HeadQuarters,
+		OrganizationName: organization.OrganizationName,
 	})
 
 	if err != nil {
