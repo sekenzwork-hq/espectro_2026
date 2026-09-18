@@ -133,6 +133,7 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 	folderId := "sponsor/" + sponsorId
 	var logoPublicId string
 	var prevLogoPublicId *string
+
 	if profileOrOrgImage != nil {
 		valid, err := pkg.ValidateImage(profileOrOrgImage)
 		if err != nil {
@@ -140,7 +141,7 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 		} else if !valid {
 			return empty, &customerrors.ValidationError{OrgError: "Invalid image format"}
 		}
-		prevIds, err := s.mediaRepo.RetrieveAssetPublicIds(folderId)
+		prevIds, err := s.mediaRepo.RetrieveAssetPublicIds(folderId, 1)
 		if err != nil {
 			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		} else if len(prevIds) != 0 {

@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"errors"
 	customerrors "espectro/custom_errors"
 	"espectro/entity"
 	"espectro/enums"
@@ -12,6 +13,8 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 type ExhibitionUsecases struct {
@@ -19,6 +22,8 @@ type ExhibitionUsecases struct {
 	eventRepo        repository.EventRepo
 	organizationRepo repository.OrganizationRepo
 	mediaRepo        repository.MediaServiceRepo
+	adminRepo        repository.AdminRepo
+	staffRepo        repository.StaffRepo
 }
 
 func NewExhibitionUsecases(
@@ -26,20 +31,25 @@ func NewExhibitionUsecases(
 	mediaRepo repository.MediaServiceRepo,
 	eventRepo repository.EventRepo,
 	orgainazationRepo repository.OrganizationRepo,
+	adminRepo repository.AdminRepo,
+	staffRepo repository.StaffRepo,
+
 ) ExhibitionUsecases {
 	return ExhibitionUsecases{
 		exhibitionRepo:   exhibitionRepo,
 		mediaRepo:        mediaRepo,
 		eventRepo:        eventRepo,
 		organizationRepo: orgainazationRepo,
+		adminRepo:        adminRepo,
+		staffRepo:        staffRepo,
 	}
 }
 
-func (e ExhibitionUsecases) CreateExhibition(exhibition entity.ExhibitionCreateEntity) (entity.ExhibitionEntity, error) {
+func (e ExhibitionUsecases) CreateExhibition(exhibition entity.ExhibitionRawEntity) (entity.ExhibitionDBRetrieveEntity, error) {
 
-	empty := entity.ExhibitionEntity{}
-	status := enums.PendingExhibition
-	validationError := e.validateExhibitionData(nil, &exhibition.EventId, nil, &exhibition.Category, &exhibition.OrganizationId, nil, nil, nil, nil, &exhibition.ItemTitle, exhibition.ItemImages, &exhibition.ItemDescription, &status)
+	empty := entity.ExhibitionDBRetrieveEntity{}
+
+	validationError := e.validateExhibitionData(nil, &exhibition.EventId, nil, &exhibition.Category, &exhibition.OrganizationId, nil, nil, nil, nil, &exhibition.ItemTitle, exhibition.ItemImages, &exhibition.ItemDescription, nil)
 
 	if validationError != nil {
 		return empty, validationError
@@ -75,15 +85,18 @@ func (e ExhibitionUsecases) CreateExhibition(exhibition entity.ExhibitionCreateE
 		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating", OrgError: uploadingErr.Error()}
 	}
 
-	createdExhibition, creationError := e.exhibitionRepo.CreateExhibition(entity.ExhibitionDBCreateEntity{
-		Id:              exhibitionId,
-		EventId:         exhibition.EventId,
-		Category:        exhibition.Category,
-		OrganizationId:  exhibition.OrganizationId,
-		ItemTitle:       exhibition.ItemTitle,
-		ItemImageUrls:   urls,
-		ItemDescription: exhibition.ItemDescription,
-		Status:          enums.PendingExhibition,
+	status := enums.PendingExhibition
+	pqUrls := pq.StringArray(urls)
+
+	createdExhibition, creationError := e.exhibitionRepo.CreateExhibition(entity.ExhibitionDBInputEntity{
+		Id:              &exhibitionId,
+		EventId:         &exhibition.EventId,
+		Category:        &exhibition.Category,
+		OrganizationId:  &exhibition.OrganizationId,
+		ItemTitle:       &exhibition.ItemTitle,
+		ItemImageUrls:   &pqUrls,
+		ItemDescription: &exhibition.ItemDescription,
+		Status:          &status,
 	})
 
 	if creationError != nil {
@@ -100,6 +113,207 @@ func (e ExhibitionUsecases) CreateExhibition(exhibition entity.ExhibitionCreateE
 
 }
 
+func (e ExhibitionUsecases) UpdateExhibitionFromUserSide(exhibitionId string, newExhibition entity.ExhibitionRawUpdateEntity) (entity.ExhibitionDBRetrieveEntity, error) {
+
+	empty := entity.ExhibitionDBRetrieveEntity{}
+	validationError := e.validateExhibitionData(
+		&exhibitionId,
+		newExhibition.EventId,
+		nil,
+		newExhibition.Category,
+		newExhibition.OrganizationId,
+		nil,
+		nil,
+		nil,
+		nil,
+		newExhibition.ItemTitle,
+		newExhibition.ItemImages,
+		newExhibition.ItemDescription,
+		nil)
+
+	if validationError != nil {
+		return empty, validationError
+	}
+
+	if newExhibition.EventId != nil {
+		eventExists, eventCheckingError := e.eventRepo.EventExists(*newExhibition.EventId)
+
+		if eventCheckingError != nil {
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating", OrgError: eventCheckingError.Error()}
+		} else if !eventExists {
+			return empty, &customerrors.NotFoundError{DisplayError: "Event does not exist"}
+		}
+	}
+
+	if newExhibition.OrganizationId != nil {
+		orgExists, orgCheckingError := e.organizationRepo.OrganizationExists(*newExhibition.OrganizationId)
+
+		if orgCheckingError != nil {
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating", OrgError: orgCheckingError.Error()}
+		} else if !orgExists {
+			return empty, &customerrors.NotFoundError{OrgError: "Organization does not exist"}
+		}
+	}
+
+	folderId := "exhibition/" + exhibitionId
+	var previousPublicIds []string
+	var newPublicIds []string
+	var newImageUrls *pq.StringArray
+
+	if len(newExhibition.ItemImages) != 0 {
+
+		pubIds, retrievalError := e.mediaRepo.RetrieveAssetPublicIds(folderId, 10)
+
+		if retrievalError != nil {
+			return empty, &customerrors.ServerError{OrgError: retrievalError.Error(), DisplayError: "Something went wrong while operating"}
+		}
+
+		previousPublicIds = pubIds
+
+		urls, newPubIds, uploadingErr := e.mediaRepo.UploadFiles(newExhibition.ItemImages, folderId, false)
+		newPublicIds = newPubIds
+
+		imageUrls := pq.StringArray(urls)
+		newImageUrls = &imageUrls
+
+		if uploadingErr != nil {
+			return empty, &customerrors.ServerError{OrgError: uploadingErr.Error(), DisplayError: "Something went wrong while operating"}
+		}
+	}
+
+	updatedExhibition, updationError := e.exhibitionRepo.UpdateExhibitionFromUserSide(exhibitionId, entity.ExhibitionDBInputEntity{
+		EventId:         newExhibition.EventId,
+		Category:        newExhibition.Category,
+		OrganizationId:  newExhibition.OrganizationId,
+		ItemTitle:       newExhibition.ItemTitle,
+		ItemImageUrls:   (*pq.StringArray)(newImageUrls),
+		ItemDescription: newExhibition.ItemDescription,
+	})
+
+	if updationError != nil {
+		go func() {
+			deletionErr := e.mediaRepo.DeleteAssetsWithPublicIds(newPublicIds)
+			if deletionErr != nil {
+				fmt.Println("Exhibition images deletion error : ", deletionErr)
+			}
+		}()
+
+		if errors.Is(updationError, gorm.ErrRecordNotFound) {
+			return empty, &customerrors.NotFoundError{OrgError: updationError.Error(), DisplayError: "Exhibition does not exist"}
+		}
+
+		return empty, &customerrors.ServerError{OrgError: updationError.Error(), DisplayError: "Something went wrong while operating"}
+	} else {
+		go func() {
+			deletionErr := e.mediaRepo.DeleteAssetsWithPublicIds(previousPublicIds)
+			if deletionErr != nil {
+				fmt.Println("Exhibition images deletion error : ", deletionErr)
+			}
+		}()
+
+		return updatedExhibition, nil
+	}
+
+}
+
+func (e ExhibitionUsecases) UpdateExhibitionFromAdminSide(exhibitionId string, newExhibition entity.ExhibitionRawUpdateEntity) (entity.ExhibitionDBRetrieveEntity, error) {
+
+	empty := entity.ExhibitionDBRetrieveEntity{}
+
+	validationError := e.validateExhibitionData(
+		&exhibitionId,
+		nil,
+		newExhibition.TokenNumber,
+		nil,
+		nil,
+		newExhibition.BoothNumber,
+		newExhibition.AvailableSqft,
+		newExhibition.AssignedStaffId,
+		newExhibition.ApprovedBy,
+		nil,
+		nil,
+		nil,
+		newExhibition.Status,
+	)
+
+	if validationError != nil {
+		return empty, validationError
+	}
+
+	if newExhibition.ApprovedBy != nil {
+
+		exists, err := e.adminRepo.CheckAdminExists(*newExhibition.ApprovedBy)
+
+		if err != nil {
+			return empty, &customerrors.ServerError{OrgError: err.Error(), DisplayError: "Something went wrong while operating"}
+		}
+
+		if !exists {
+			return empty, &customerrors.NotFoundError{OrgError: "Exists returned false", DisplayError: "Approved admin does not exist"}
+		}
+	}
+
+	if newExhibition.AssignedStaffId != nil {
+
+		exists, err := e.staffRepo.CheckStaffExists(*newExhibition.AssignedStaffId)
+
+		if err != nil {
+			return empty, &customerrors.ServerError{OrgError: err.Error(), DisplayError: "Something went wrong while operating"}
+		}
+
+		if !exists {
+			return empty, &customerrors.NotFoundError{OrgError: "Exists returned false", DisplayError: "Assigned staff does not exist"}
+		}
+	}
+
+	updatedExhibition, updationError := e.exhibitionRepo.UpdateExhibitionFromAdminSide(exhibitionId, entity.ExhibitionDBInputEntity{
+		TokenNumber:     newExhibition.TokenNumber,
+		BoothNumber:     newExhibition.BoothNumber,
+		AvailableSqft:   newExhibition.AvailableSqft,
+		AssignedStaffId: newExhibition.AssignedStaffId,
+		ApprovedBy:      newExhibition.ApprovedBy,
+		Status:          newExhibition.Status,
+	})
+
+	if updationError != nil {
+
+		if errors.Is(updationError, gorm.ErrRecordNotFound) {
+			return empty, &customerrors.NotFoundError{DisplayError: "Exhibition does not exist", OrgError: updationError.Error()}
+		} else {
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong", OrgError: updationError.Error()}
+		}
+	}
+
+	return updatedExhibition, nil
+
+}
+
+func (e ExhibitionUsecases) DeleteExhibition(exhibitionId string) error {
+
+	if !pkg.ValidateUUID(exhibitionId) {
+		return &customerrors.ValidationError{OrgError: "Invalid exhibition id"}
+	}
+
+	deletionError := e.exhibitionRepo.DeleteExhibition(exhibitionId)
+
+	if deletionError != nil {
+
+		fmt.Println("Deletion error : ", deletionError)
+		if errors.Is(deletionError, gorm.ErrRecordNotFound) {
+			return &customerrors.NotFoundError{OrgError: "Exhibition does not exist", DisplayError: "Exhibition does not exist"}
+		} else {
+			return &customerrors.ServerError{OrgError: deletionError.Error(), DisplayError: "Something went wrong while operating"}
+		}
+
+	}
+
+	go func() {
+		e.mediaRepo.DeleteFile("exhibition/", exhibitionId)
+	}()
+
+	return nil
+}
+
 func (e ExhibitionUsecases) validateExhibitionData(
 	id *string,
 	eventId *string,
@@ -107,7 +321,7 @@ func (e ExhibitionUsecases) validateExhibitionData(
 	category *string,
 	organizationId *string,
 	boothNumber *int,
-	availableSqft *float64,
+	availableSqft *float32,
 	assignedStaffId *string,
 	approvedBy *string,
 	itemTitle *string,
@@ -150,8 +364,13 @@ func (e ExhibitionUsecases) validateExhibitionData(
 		return &customerrors.ValidationError{OrgError: "Invalid organization id"}
 	}
 
-	if boothNumber != nil && *boothNumber < 0 {
-		return &customerrors.ValidationError{OrgError: "Booth number should be positive"}
+	if boothNumber != nil {
+
+		if *boothNumber < 0 {
+			return &customerrors.ValidationError{OrgError: "Booth number should be positive"}
+		} else if *boothNumber > 25 {
+			return &customerrors.ValidationError{OrgError: "Booth number should be less than or equal 25"}
+		}
 	}
 
 	if availableSqft != nil && *availableSqft <= 0 {
@@ -166,8 +385,12 @@ func (e ExhibitionUsecases) validateExhibitionData(
 		return &customerrors.ValidationError{OrgError: "Invalid approved admin id"}
 	}
 
-	if tokenNumber != nil && *tokenNumber < 0 {
-		return &customerrors.ValidationError{OrgError: "Token number should be positive"}
+	if tokenNumber != nil {
+		if *tokenNumber < 0 {
+			return &customerrors.ValidationError{OrgError: "Token number should be positive"}
+		} else if *tokenNumber > 25 {
+			return &customerrors.ValidationError{OrgError: "Token number should be less than or equal to 25"}
+		}
 	}
 
 	if itemTitle != nil && len(*itemTitle) > 100 {

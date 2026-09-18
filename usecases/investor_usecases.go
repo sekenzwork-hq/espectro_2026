@@ -72,7 +72,7 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 	var oldPublicId string
 	folderId := "investor/" + investorId
 	if logo != nil {
-		oldId, err := i.mediaRepo.RetrieveAssetPublicIds(folderId)
+		oldId, err := i.mediaRepo.RetrieveAssetPublicIds(folderId, 1)
 		if err != nil {
 			return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}

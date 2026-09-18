@@ -110,7 +110,7 @@ func (o OrganizationUsecases) UpdateOrganization(id string,
 
 	folderId := "organization/" + id
 	if logo != nil {
-		oldPubIds, err := o.mediaRepo.RetrieveAssetPublicIds(folderId)
+		oldPubIds, err := o.mediaRepo.RetrieveAssetPublicIds(folderId, 1)
 		if err != nil {
 			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		}

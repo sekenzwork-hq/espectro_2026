@@ -80,7 +80,7 @@ func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *mul
 		} else if !valid {
 			return emptyPartner, &customerrors.ValidationError{OrgError: "Invalid image format"}
 		}
-		oldPublicIds, err := p.mediaRepo.RetrieveAssetPublicIds(folderId)
+		oldPublicIds, err := p.mediaRepo.RetrieveAssetPublicIds(folderId, 1)
 		if err != nil {
 			return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		} else if len(oldPublicIds) != 0 {

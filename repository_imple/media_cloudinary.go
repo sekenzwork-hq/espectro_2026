@@ -92,11 +92,11 @@ func (m MediaCloudinaryRepo) DeleteMutipleFiles(globalFolderId string, endpointF
 
 }
 
-func (m MediaCloudinaryRepo) RetrieveAssetPublicIds(folderId string) ([]string, error) {
+func (m MediaCloudinaryRepo) RetrieveAssetPublicIds(folderId string, limit int) ([]string, error) {
 
 	assets, err := m.cld.Admin.AssetsByAssetFolder(context.TODO(), admin.AssetsByAssetFolderParams{
 		AssetFolder: folderId,
-		MaxResults:  10,
+		MaxResults:  limit,
 	})
 
 	if err != nil {
@@ -106,7 +106,7 @@ func (m MediaCloudinaryRepo) RetrieveAssetPublicIds(folderId string) ([]string, 
 	ids := []string{}
 	for i := range assets.Assets {
 		asset := assets.Assets[i]
-		ids = append(ids, folderId+"/"+asset.PublicID)
+		ids = append(ids, asset.PublicID)
 	}
 
 	return ids, nil

@@ -252,7 +252,7 @@ func (g GalleryUsecases) validateGalleryData(galleryId *string, name *string, im
 
 func (g GalleryUsecases) uploadGalleryImages(folderId string, images []*multipart.FileHeader) (urls []string, prevPublicIds []string, newPublicIds []string, err error) {
 
-	prevPublicIds, retrivalErr := g.mediaRepo.RetrieveAssetPublicIds(folderId)
+	prevPublicIds, retrivalErr := g.mediaRepo.RetrieveAssetPublicIds(folderId, 10)
 	if retrivalErr != nil {
 		return []string{}, []string{}, []string{}, retrivalErr
 	}

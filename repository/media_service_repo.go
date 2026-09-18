@@ -7,6 +7,6 @@ type MediaServiceRepo interface {
 	UploadFile(file *multipart.FileHeader, folderId string, override bool) (url string, publicId string, err error)
 	DeleteFile(globalFolderId string, endpointFolder string) error
 	DeleteMutipleFiles(globalFolderId string, endpointFolders []string) error
-	RetrieveAssetPublicIds(folderId string) ([]string, error)
+	RetrieveAssetPublicIds(folderId string, limit int) ([]string, error)
 	DeleteAssetsWithPublicIds(publicIds []string) error
 }

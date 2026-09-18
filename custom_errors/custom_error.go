@@ -56,10 +56,14 @@ func (a AuthenticationError) Error() string {
 }
 
 type NotFoundError struct {
-	OrgError string
+	OrgError     string
+	DisplayError string
 }
 
 func (n *NotFoundError) Error() string {
+	return n.DisplayError
+}
+func (n *NotFoundError) OriginalError() string {
 	return n.OrgError
 }
 

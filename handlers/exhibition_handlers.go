@@ -46,7 +46,7 @@ func (e ExhibitionHandlers) CreateExhibition(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide category"))
 	} else {
 
-		createdExhibition, creationError := e.exhibitonUsecases.CreateExhibition(entity.ExhibitionCreateEntity{
+		createdExhibition, creationError := e.exhibitonUsecases.CreateExhibition(entity.ExhibitionRawEntity{
 			EventId:         eventId,
 			Category:        category,
 			OrganizationId:  orgId,
@@ -62,4 +62,115 @@ func (e ExhibitionHandlers) CreateExhibition(ctx *gin.Context) {
 			ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "Exhibtion has been created", "exhibtion": createdExhibition})
 		}
 	}
+}
+
+func (e ExhibitionHandlers) UpdateExhibitionFromUserSide(ctx *gin.Context) {
+
+	form, formErr := ctx.MultipartForm()
+
+	if formErr != nil {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Invalid form data"))
+		return
+	}
+
+	exhibitionId, exhibitionIdExists := ctx.GetPostForm("exhibition_id")
+
+	if !exhibitionIdExists {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide exhibition id"))
+		return
+	}
+
+	titleForm, titleExists := ctx.GetPostForm("title")
+	descForm, descExists := ctx.GetPostForm("description")
+	eventIdForm, eventIdExists := ctx.GetPostForm("event_id")
+	orgIdForm, orgIdExists := ctx.GetPostForm("organization_id")
+	categoryForm, categoryExists := ctx.GetPostForm("category")
+
+	images := form.File["images"]
+
+	var title *string
+	var desc *string
+	var eventId *string
+	var orgId *string
+	var category *string
+
+	if titleExists {
+		title = &titleForm
+	}
+	if descExists {
+		desc = &descForm
+	}
+	if eventIdExists {
+		eventId = &eventIdForm
+	}
+
+	if orgIdExists {
+		orgId = &orgIdForm
+	}
+	if categoryExists {
+		category = &categoryForm
+	}
+
+	updatedExhibition, updationError := e.exhibitonUsecases.UpdateExhibitionFromUserSide(exhibitionId, entity.ExhibitionRawUpdateEntity{
+		EventId:         eventId,
+		Category:        category,
+		OrganizationId:  orgId,
+		ItemTitle:       title,
+		ItemImages:      images,
+		ItemDescription: desc,
+	})
+
+	if updationError != nil {
+		code := pkg.GetStatusCodeForError(updationError)
+		ctx.JSON(code, gin.H{"status": code, "message": updationError.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Exhibition has been updated successfully", "exhibition": updatedExhibition})
+	}
+}
+
+func (e ExhibitionHandlers) UpdateExhibitionFromAdminSide(ctx *gin.Context) {
+
+	var exhibitionDataToUpdate entity.ExhibitionUpdateAdminEntity
+
+	parsed := pkg.ParseJson(ctx, &exhibitionDataToUpdate)
+
+	if !parsed {
+		return
+	}
+
+	updatedExhibition, updationError := e.exhibitonUsecases.UpdateExhibitionFromAdminSide(exhibitionDataToUpdate.Id, entity.ExhibitionRawUpdateEntity{
+		TokenNumber:     exhibitionDataToUpdate.TokenNumber,
+		BoothNumber:     exhibitionDataToUpdate.BoothNumber,
+		AvailableSqft:   exhibitionDataToUpdate.AvailableSqft,
+		AssignedStaffId: exhibitionDataToUpdate.AssignedStaffId,
+		ApprovedBy:      exhibitionDataToUpdate.ApprovedBy,
+		Status:          exhibitionDataToUpdate.Status,
+	})
+
+	if updationError != nil {
+		code := pkg.GetStatusCodeForError(updationError)
+		ctx.JSON(code, gin.H{"status": code, "message": updationError.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Exhibition has been updated successfully", "exhibition": updatedExhibition})
+	}
+}
+
+func (e ExhibitionHandlers) DeleteExhibition(ctx *gin.Context) {
+
+	exhibitionId, exists := ctx.GetQuery("exhibition_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide exhibition id"))
+		return
+	}
+
+	deletionErr := e.exhibitonUsecases.DeleteExhibition(exhibitionId)
+
+	if deletionErr != nil {
+		code := pkg.GetStatusCodeForError(deletionErr)
+		ctx.JSON(code, gin.H{"status": code, "message": deletionErr.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Exhibition has been deleted"})
 }

@@ -75,3 +75,12 @@ func (s StaffPostgresRepo) RetrieveStaffs(limit int, offset int) ([]entity.Staff
 		Scan(&staffs).Error
 	return staffs, err
 }
+
+func (s StaffPostgresRepo) CheckStaffExists(staffId string) (bool, error) {
+
+	var exists bool
+
+	err := s.db.Raw(`SELECT EXISTS (SELECT 1 FROM staffs WHERE id=? AND deleted_at IS NULL)`, staffId).Scan(&exists).Error
+
+	return exists, err
+}

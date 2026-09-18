@@ -297,7 +297,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	}
 
 	if logoFile != nil {
-		oldPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(logoFolder)
+		oldPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(logoFolder, 1)
 		if err != nil {
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		} else if len(oldPublicIds) != 0 {
@@ -312,7 +312,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	}
 
 	if videoFile != nil {
-		oldPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(videoFolder)
+		oldPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(videoFolder, 1)
 		if err != nil {
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 		} else if len(oldPublicIds) != 0 {
@@ -333,7 +333,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	var prevImagePublicIds []string
 	var newImagePublicIds []string
 	if len(imageFiles) != 0 {
-		prevPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(imagesFolder)
+		prevPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(imagesFolder, 10)
 		if err != nil {
 			funcToDeleteUploadedMedia()
 			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
