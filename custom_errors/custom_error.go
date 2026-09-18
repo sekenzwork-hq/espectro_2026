@@ -35,10 +35,15 @@ func (c *CredentialsError) Error() string {
 }
 
 type ServerError struct {
-	OrgError string
+	OrgError     string
+	DisplayError string
 }
 
 func (v *ServerError) Error() string {
+	return v.DisplayError
+}
+
+func (v *ServerError) OriginalError() string {
 	return v.OrgError
 }
 

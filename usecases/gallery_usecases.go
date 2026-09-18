@@ -57,7 +57,7 @@ func (g GalleryUsecases) CreateGallery(name string, images []*multipart.FileHead
 	if len(images) != 0 {
 		urls, _, _, err := g.uploadGalleryImages(folderId, images)
 		if err != nil {
-			return emptyGallery, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyGallery, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		imageUrls = urls
 	}
@@ -72,7 +72,7 @@ func (g GalleryUsecases) CreateGallery(name string, images []*multipart.FileHead
 		if len(imageUrls) != 0 {
 			go g.mediaRepo.DeleteFile("gallery/", galleryId)
 		}
-		return emptyGallery, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptyGallery, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return gallery, nil
@@ -95,7 +95,7 @@ func (g GalleryUsecases) UpdateGallery(galleryId string, name *string, images []
 	if len(images) != 0 {
 		urls, prevIds, newIds, err := g.uploadGalleryImages(folderId, images)
 		if err != nil {
-			return emptyGallery, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyGallery, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		imageUrls = pq.StringArray(urls)
 		prevPublicIds = prevIds
@@ -115,7 +115,7 @@ func (g GalleryUsecases) UpdateGallery(galleryId string, name *string, images []
 		if errors.Is(updationErr, gorm.ErrRecordNotFound) {
 			return emptyGallery, &customerrors.NotFoundError{OrgError: "Gallery does not exist"}
 		}
-		return emptyGallery, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptyGallery, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	go g.mediaRepo.DeleteAssetsWithPublicIds(prevPublicIds)

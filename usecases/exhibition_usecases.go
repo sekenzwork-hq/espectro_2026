@@ -10,6 +10,8 @@ import (
 	"mime/multipart"
 	"regexp"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type ExhibitionUsecases struct {
@@ -46,7 +48,7 @@ func (e ExhibitionUsecases) CreateExhibition(exhibition entity.ExhibitionCreateE
 	eventExists, eventCheckingError := e.eventRepo.EventExists(exhibition.EventId)
 
 	if eventCheckingError != nil {
-		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if !eventExists {
 		return empty, &customerrors.NotFoundError{OrgError: "Event does not exist"}
 	}
@@ -54,24 +56,44 @@ func (e ExhibitionUsecases) CreateExhibition(exhibition entity.ExhibitionCreateE
 	orgExists, orgCheckingError := e.organizationRepo.OrganizationExists(exhibition.OrganizationId)
 
 	if orgCheckingError != nil {
-		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if !orgExists {
 		return empty, &customerrors.NotFoundError{OrgError: "Organization does not exist"}
 	}
 
+	exhibitionId := uuid.NewString()
+
+	folderId := "exhibition/" + exhibitionId
+
+	urls, publicIds, uploadingErr := e.mediaRepo.UploadFiles(
+		exhibition.ItemImages,
+		folderId,
+		false,
+	)
+
+	if uploadingErr != nil {
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating", OrgError: uploadingErr.Error()}
+	}
+
 	createdExhibition, creationError := e.exhibitionRepo.CreateExhibition(entity.ExhibitionDBCreateEntity{
+		Id:              exhibitionId,
 		EventId:         exhibition.EventId,
 		Category:        exhibition.Category,
 		OrganizationId:  exhibition.OrganizationId,
 		ItemTitle:       exhibition.ItemTitle,
-		ItemImageUrls:   nil,
+		ItemImageUrls:   urls,
 		ItemDescription: exhibition.ItemDescription,
 		Status:          enums.PendingExhibition,
 	})
 
 	if creationError != nil {
+		go func() {
+			deletionErr := e.mediaRepo.DeleteAssetsWithPublicIds(publicIds)
+			if deletionErr != nil {
+			}
+		}()
 		fmt.Println("Exhibiton insertion error : ", creationError)
-		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return createdExhibition, nil

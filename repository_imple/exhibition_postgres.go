@@ -20,6 +20,7 @@ func (e ExhibitionPostgresRepo) CreateExhibition(exhibition entity.ExhibitionDBC
 	err := e.db.Table("exhibitions").Raw(
 		`INSERT INTO exhibitions
 		 (
+			id,
 			event_id,
 			category,
 			organization_id,
@@ -30,15 +31,7 @@ func (e ExhibitionPostgresRepo) CreateExhibition(exhibition entity.ExhibitionDBC
 		 ) 
 		VALUES
 
-		 (
-			?,
-			?,
-			?,
-			?,
-			?,
-			?,
-			?
-		 )
+		 (?,?,?,?,?,?,?,?)
 
 		RETURNING 
 			id,
@@ -56,6 +49,7 @@ func (e ExhibitionPostgresRepo) CreateExhibition(exhibition entity.ExhibitionDBC
 			status,
 			created_at;
 		`,
+		exhibition.Id,
 		exhibition.EventId,
 		exhibition.Category,
 		exhibition.OrganizationId,

@@ -47,13 +47,17 @@ func (o OrganizationUsecases) CreateOrganization(organization entity.Organizatio
 
 	var logoUrl *string
 	organizationId := uuid.NewString()
+	folderId := "organization/" + organizationId
+	var publicId *string
 	if organization.Logo != nil {
-		url, _, err := o.mediaRepo.UploadFile(organization.Logo, "organization/"+organizationId, true)
+
+		url, pubId, err := o.mediaRepo.UploadFile(organization.Logo, folderId, true)
 		if err != nil {
 			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operatinsg"}
 		}
 
 		logoUrl = &url
+		publicId = &pubId
 	}
 
 	newOrg, err := o.organizationRepo.CreateOrganization(entity.OrganizationEntity{
@@ -71,6 +75,11 @@ func (o OrganizationUsecases) CreateOrganization(organization entity.Organizatio
 	})
 
 	if err != nil {
+		if publicId != nil {
+			go func() {
+				o.mediaRepo.DeleteAssetsWithPublicIds([]string{*publicId})
+			}()
+		}
 		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
 	}
 

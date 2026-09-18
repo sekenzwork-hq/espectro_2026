@@ -53,7 +53,7 @@ func (m MediaCloudinaryRepo) UploadFile(file *multipart.FileHeader, folderId str
 		Overwrite: &override,
 		PublicID:  publicId,
 	})
-	return res.SecureURL, publicId, err
+	return res.SecureURL, folderId + "/" + publicId, err
 }
 
 func (m MediaCloudinaryRepo) DeleteFile(globalFolderId string, endpointFolder string) error {
@@ -106,7 +106,7 @@ func (m MediaCloudinaryRepo) RetrieveAssetPublicIds(folderId string) ([]string, 
 	ids := []string{}
 	for i := range assets.Assets {
 		asset := assets.Assets[i]
-		ids = append(ids, asset.PublicID)
+		ids = append(ids, folderId+"/"+asset.PublicID)
 	}
 
 	return ids, nil
