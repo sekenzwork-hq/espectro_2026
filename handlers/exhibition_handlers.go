@@ -4,7 +4,9 @@ import (
 	"espectro/entity"
 	"espectro/pkg"
 	"espectro/usecases"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,10 +33,13 @@ func (e ExhibitionHandlers) CreateExhibition(ctx *gin.Context) {
 	eventId, eventIdExists := ctx.GetPostForm("event_id")
 	orgId, orgIdExists := ctx.GetPostForm("organization_id")
 	category, categoryExists := ctx.GetPostForm("category")
+	userId, userIdExists := ctx.GetPostForm("user_id")
 
 	images := form.File["images"]
 
-	if !titleExists {
+	if !userIdExists {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide user id"))
+	} else if !titleExists {
 		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide title"))
 	} else if !descExists {
 		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide description"))
@@ -48,6 +53,7 @@ func (e ExhibitionHandlers) CreateExhibition(ctx *gin.Context) {
 
 		createdExhibition, creationError := e.exhibitonUsecases.CreateExhibition(entity.ExhibitionRawEntity{
 			EventId:         eventId,
+			UserId:          &userId,
 			Category:        category,
 			OrganizationId:  orgId,
 			ItemTitle:       title,
@@ -85,6 +91,12 @@ func (e ExhibitionHandlers) UpdateExhibitionFromUserSide(ctx *gin.Context) {
 	eventIdForm, eventIdExists := ctx.GetPostForm("event_id")
 	orgIdForm, orgIdExists := ctx.GetPostForm("organization_id")
 	categoryForm, categoryExists := ctx.GetPostForm("category")
+	userId, userIdExists := ctx.Get("user_id")
+
+	if !userIdExists {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide user id"))
+		return
+	}
 
 	images := form.File["images"]
 
@@ -111,8 +123,11 @@ func (e ExhibitionHandlers) UpdateExhibitionFromUserSide(ctx *gin.Context) {
 		category = &categoryForm
 	}
 
+	userIdStr := fmt.Sprint(userId)
+
 	updatedExhibition, updationError := e.exhibitonUsecases.UpdateExhibitionFromUserSide(exhibitionId, entity.ExhibitionRawUpdateEntity{
 		EventId:         eventId,
+		UserId:          &userIdStr,
 		Category:        category,
 		OrganizationId:  orgId,
 		ItemTitle:       title,
@@ -173,4 +188,24 @@ func (e ExhibitionHandlers) DeleteExhibition(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Exhibition has been deleted"})
+}
+
+func (e ExhibitionHandlers) RetrieveExhibitionFromUserSide(ctx *gin.Context) {
+
+	userId := ctx.GetString("user_id")
+	page, _ := strconv.Atoi(ctx.Query("page"))
+
+	if page <= 0 {
+		page = 1
+	}
+
+	exhibitions, err := e.exhibitonUsecases.RetrieveExhibitionFromUserSide(userId, page)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "exhibitions": exhibitions})
+	}
+
 }

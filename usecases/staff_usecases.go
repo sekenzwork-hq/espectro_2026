@@ -35,7 +35,7 @@ func (e StaffUsecases) CreateStaff(staff entity.StaffFromJsonEntity) (entity.Sta
 	})
 
 	if err != nil {
-		return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptyEntity, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return newStaff, nil
@@ -53,9 +53,9 @@ func (e StaffUsecases) UpdateStaff(staff entity.StaffUpdateEntity) (entity.Staff
 	newStaff, updationErr := e.staffRepo.UpdateStaff(staff)
 
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
-		return empty, &customerrors.NotFoundError{OrgError: "Staff does not exist"}
+		return empty, &customerrors.NotFoundError{DisplayError: "Staff does not exist"}
 	} else if updationErr != nil {
-		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return newStaff, nil
@@ -64,14 +64,14 @@ func (e StaffUsecases) UpdateStaff(staff entity.StaffUpdateEntity) (entity.Staff
 func (e StaffUsecases) DeleteStaff(staffId string) error {
 
 	if !pkg.ValidateUUID(staffId) {
-		return &customerrors.ValidationError{OrgError: "Invalid staff id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid staff id"}
 	}
 
 	err := e.staffRepo.DeleteStaff(staffId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Staff does not exist"}
+		return &customerrors.NotFoundError{DisplayError: "Staff does not exist"}
 	} else if err != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 	return nil
 }
@@ -81,7 +81,7 @@ func (e StaffUsecases) RetrieveStaffs(limit int, page int) ([]entity.StaffEntity
 	offset := pkg.GetOffset(limit, page)
 	staffs, err := e.staffRepo.RetrieveStaffs(limit, offset)
 	if err != nil {
-		return []entity.StaffEntity{}, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return []entity.StaffEntity{}, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 	return staffs, nil
 }
@@ -89,22 +89,22 @@ func (e StaffUsecases) RetrieveStaffs(limit int, page int) ([]entity.StaffEntity
 func (e StaffUsecases) validateStaffData(staffId *string, fullname *string, role *enums.StaffRole, phoneNumber *string, email *string) error {
 
 	if staffId != nil && !pkg.ValidateUUID(*staffId) {
-		return &customerrors.ValidationError{OrgError: "Invalid staff id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid staff id"}
 	}
 	if fullname != nil {
 		nameErr := pkg.ValidateFullname(*fullname)
 
 		if nameErr != nil {
-			return &customerrors.ValidationError{OrgError: nameErr.Error()}
+			return &customerrors.ValidationError{DisplayError: nameErr.Error()}
 		}
 	}
 
 	if role != nil && !role.IsValid() {
-		return &customerrors.ValidationError{OrgError: "Invalid role"}
+		return &customerrors.ValidationError{DisplayError: "Invalid role"}
 	} else if email != nil && !pkg.ValidateEmail(*email) {
-		return &customerrors.ValidationError{OrgError: "Invalid email"}
+		return &customerrors.ValidationError{DisplayError: "Invalid email"}
 	} else if phoneNumber != nil && !pkg.ValidatePhoneNumber(*phoneNumber) {
-		return &customerrors.ValidationError{OrgError: "Invalid phone number"}
+		return &customerrors.ValidationError{DisplayError: "Invalid phone number"}
 	}
 
 	return nil

@@ -25,56 +25,56 @@ func (u *UserUsecases) RegisterUser(user entity.UserEntity) (uuid.UUID, error) {
 	fullnameErr := pkg.ValidateFullname(user.Fullname)
 
 	if fullnameErr != nil {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: fullnameErr.Error()}
+		return uuid.UUID{}, &customerrors.ValidationError{DisplayError: fullnameErr.Error()}
 	}
 
 	isEmailCorrect := pkg.ValidateEmail(user.Email)
 
 	if !isEmailCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid email"}
+		return uuid.UUID{}, &customerrors.ValidationError{DisplayError: "Invalid email"}
 	}
 
 	isCountryCodeCorrect := pkg.ValidateCountryCode(user.CountryCode)
 
 	if !isCountryCodeCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid country code"}
+		return uuid.UUID{}, &customerrors.ValidationError{DisplayError: "Invalid country code"}
 	}
 
 	isCountryCorrect := pkg.ValidateCountryOrState(user.Country)
 
 	if !isCountryCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid country name"}
+		return uuid.UUID{}, &customerrors.ValidationError{DisplayError: "Invalid country name"}
 	}
 
 	isStateCorrect := pkg.ValidateCountryOrState(user.State)
 
 	if !isStateCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid state name"}
+		return uuid.UUID{}, &customerrors.ValidationError{DisplayError: "Invalid state name"}
 	}
 
 	isCityCorrect := pkg.ValidateCity(user.City)
 
 	if !isCityCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid city"}
+		return uuid.UUID{}, &customerrors.ValidationError{DisplayError: "Invalid city"}
 	}
 
 	isPhoneNumberCorrect := pkg.ValidatePhoneNumber(user.PhoneNumber)
 
 	if !isPhoneNumberCorrect {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid phone number"}
+		return uuid.UUID{}, &customerrors.ValidationError{DisplayError: "Invalid phone number"}
 	}
 
 	isCorrectUserType := pkg.ValidateUserType(user.Usertype)
 
 	if !isCorrectUserType {
-		return uuid.UUID{}, &customerrors.ValidationError{OrgError: "Invalid user type"}
+		return uuid.UUID{}, &customerrors.ValidationError{DisplayError: "Invalid user type"}
 	}
 
 	id, dbErr := u.repo.RegisterUser(user)
 
 	if dbErr != nil {
 		logger.Error("DB error while inserting user data : ", dbErr)
-		return uuid.UUID{}, &customerrors.ServerError{OrgError: "Something went wrong while saving user data"}
+		return uuid.UUID{}, &customerrors.ServerError{DisplayError: "Something went wrong while saving user data"}
 	}
 
 	return id, nil

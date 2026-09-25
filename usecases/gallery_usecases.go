@@ -113,7 +113,7 @@ func (g GalleryUsecases) UpdateGallery(galleryId string, name *string, images []
 			go g.mediaRepo.DeleteAssetsWithPublicIds(newPublicIds)
 		}
 		if errors.Is(updationErr, gorm.ErrRecordNotFound) {
-			return emptyGallery, &customerrors.NotFoundError{OrgError: "Gallery does not exist"}
+			return emptyGallery, &customerrors.NotFoundError{DisplayError: "Gallery does not exist"}
 		}
 		return emptyGallery, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
@@ -127,20 +127,20 @@ func (g GalleryUsecases) UpdateGallery(galleryId string, name *string, images []
 func (g GalleryUsecases) DeleteGallery(galleryId string) error {
 
 	if !pkg.ValidateUUID(galleryId) {
-		return &customerrors.ValidationError{OrgError: "Invalid gallery id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid gallery id"}
 	}
 
 	err := g.transaction.Run(func() error {
 		err := g.galleryRepo.DeleteGallery(galleryId)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &customerrors.NotFoundError{OrgError: "Gallery does not exist"}
+			return &customerrors.NotFoundError{DisplayError: "Gallery does not exist"}
 		} else if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 
 		err = g.eventGalleryRepo.DeleteEventOrGallery(galleryId)
 		if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		return nil
 	})
@@ -154,7 +154,7 @@ func (g GalleryUsecases) RetrieveGalleries(limit int, page int) ([]entity.Galler
 
 	galleries, err := g.galleryRepo.RetrieveGalleries(limit, offset)
 	if err != nil {
-		return galleries, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return galleries, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 	return galleries, nil
 
@@ -163,39 +163,39 @@ func (g GalleryUsecases) RetrieveGalleries(limit int, page int) ([]entity.Galler
 func (e GalleryUsecases) AddGalleryToEvent(eventAndGallery entity.EventGalleryEntity) error {
 
 	if !pkg.ValidateUUID(eventAndGallery.EventId) {
-		return &customerrors.ValidationError{OrgError: "Invalid event id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid event id"}
 	} else if !pkg.ValidateUUID(eventAndGallery.GalleryId) {
-		return &customerrors.ValidationError{OrgError: "Invalid gallery id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid gallery id"}
 	}
 
 	eventExists, eventErr := e.eventRepo.EventExists(eventAndGallery.EventId)
 
 	if eventErr != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if !eventExists {
-		return &customerrors.NotFoundError{OrgError: "Event does not exist"}
+		return &customerrors.NotFoundError{DisplayError: "Event does not exist"}
 	}
 
 	galleryExists, galleryErr := e.galleryRepo.GalleryExists(eventAndGallery.GalleryId)
 
 	if galleryErr != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if !galleryExists {
-		return &customerrors.NotFoundError{OrgError: "Gallery does not exist"}
+		return &customerrors.NotFoundError{DisplayError: "Gallery does not exist"}
 	}
 
 	galleryAndEventExists, galleryAndEventErr := e.eventGalleryRepo.IsGalleryAddedToEvent(eventAndGallery)
 
 	if galleryAndEventErr != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if galleryAndEventExists {
-		return &customerrors.ValidationError{OrgError: "The gallery is already added to this event"}
+		return &customerrors.ValidationError{DisplayError: "The gallery is already added to this event"}
 	}
 
 	insertionErr := e.eventGalleryRepo.AddGalleryToEvent(eventAndGallery)
 
 	if insertionErr != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return nil
@@ -204,17 +204,17 @@ func (e GalleryUsecases) AddGalleryToEvent(eventAndGallery entity.EventGalleryEn
 func (e GalleryUsecases) DeleteGalleryFromAnEvent(eventAndGallery entity.EventGalleryEntity) error {
 
 	if !pkg.ValidateUUID(eventAndGallery.EventId) {
-		return &customerrors.ValidationError{OrgError: "Invalid event id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid event id"}
 	} else if !pkg.ValidateUUID(eventAndGallery.GalleryId) {
-		return &customerrors.ValidationError{OrgError: "Invalid gallery id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid gallery id"}
 	}
 
 	err := e.eventGalleryRepo.DeleteGalleryFromAnEvent(eventAndGallery)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "The gallery isn't added to the event"}
+		return &customerrors.NotFoundError{DisplayError: "The gallery isn't added to the event"}
 	} else if err != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 	return nil
 }
@@ -222,29 +222,29 @@ func (e GalleryUsecases) DeleteGalleryFromAnEvent(eventAndGallery entity.EventGa
 func (g GalleryUsecases) validateGalleryData(galleryId *string, name *string, images []*multipart.FileHeader) error {
 
 	if galleryId != nil && !pkg.ValidateUUID(*galleryId) {
-		return &customerrors.ValidationError{OrgError: "Invalid gallery id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid gallery id"}
 	}
 
 	if name != nil {
 		if err := pkg.ValidateName(*name); err != nil {
-			return &customerrors.ValidationError{OrgError: err.Error()}
+			return &customerrors.ValidationError{DisplayError: err.Error()}
 		}
 	}
 
 	if len(images) > 10 {
-		return &customerrors.ValidationError{OrgError: "Maximum number of images is 10"}
+		return &customerrors.ValidationError{DisplayError: "Maximum number of images is 10"}
 	}
 
 	for i := range images {
 		image := images[i]
 		if image != nil && !pkg.ValidateImageSize(*image) {
-			return &customerrors.ValidationError{OrgError: "Size of each image should be less than or equal to 2 MB"}
+			return &customerrors.ValidationError{DisplayError: "Size of each image should be less than or equal to 2 MB"}
 		}
 		valid, err := pkg.ValidateImage(image)
 		if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		} else if !valid {
-			return &customerrors.ValidationError{OrgError: "Invalid image format"}
+			return &customerrors.ValidationError{DisplayError: "Invalid image format"}
 		}
 	}
 	return nil

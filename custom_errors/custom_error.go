@@ -11,31 +11,30 @@ var NotFoundOrLeaderErr *NotFoundOrLeaderError
 var SizeErr *SizeError
 
 type PermissionError struct {
-	OrgError string
+	DisplayError string
 }
 
 func (p PermissionError) Error() string {
-	return p.OrgError
+	return p.DisplayError
 }
 
 type ValidationError struct {
-	OrgError string
+	DisplayError string
 }
 
 func (v *ValidationError) Error() string {
-	return v.OrgError
+	return v.DisplayError
 }
 
 type CredentialsError struct {
-	OrgError string
+	DisplayError string
 }
 
 func (c *CredentialsError) Error() string {
-	return c.OrgError
+	return c.DisplayError
 }
 
 type ServerError struct {
-	OrgError     string
 	DisplayError string
 }
 
@@ -44,19 +43,18 @@ func (v *ServerError) Error() string {
 }
 
 func (v *ServerError) OriginalError() string {
-	return v.OrgError
+	return v.DisplayError
 }
 
 type AuthenticationError struct {
-	OrgError string
+	DisplayError string
 }
 
 func (a AuthenticationError) Error() string {
-	return a.OrgError
+	return a.DisplayError
 }
 
 type NotFoundError struct {
-	OrgError     string
 	DisplayError string
 }
 
@@ -64,29 +62,29 @@ func (n *NotFoundError) Error() string {
 	return n.DisplayError
 }
 func (n *NotFoundError) OriginalError() string {
-	return n.OrgError
+	return n.DisplayError
 }
 
 type InvalidAdminUpdateModeError struct {
-	OrgError string
+	DisplayError string
 }
 
 func (i InvalidAdminUpdateModeError) Error() string {
-	return i.OrgError
+	return i.DisplayError
 }
 
 type NotFoundOrLeaderError struct {
-	OrgError string
+	DisplayError string
 }
 
 func (i NotFoundOrLeaderError) Error() string {
-	return i.OrgError
+	return i.DisplayError
 }
 
 type SizeError struct {
-	OrgError string
+	DisplayError string
 }
 
 func (i SizeError) Error() string {
-	return i.OrgError
+	return i.DisplayError
 }

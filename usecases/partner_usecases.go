@@ -25,7 +25,7 @@ func (p PartnerUsecases) CreatePartner(name string, logo *multipart.FileHeader) 
 
 	emptyEntity := entity.PartnerEntity{}
 	if err := pkg.ValidateName(name); err != nil {
-		return emptyEntity, &customerrors.ValidationError{OrgError: err.Error()}
+		return emptyEntity, &customerrors.ValidationError{DisplayError: err.Error()}
 	}
 
 	partnerId := uuid.New().String()
@@ -34,13 +34,13 @@ func (p PartnerUsecases) CreatePartner(name string, logo *multipart.FileHeader) 
 	if logo != nil {
 		valid, err := pkg.ValidateImage(logo)
 		if err != nil {
-			return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong"}
+			return emptyEntity, &customerrors.ServerError{DisplayError: "Something went wrong"}
 		} else if !valid {
-			return emptyEntity, &customerrors.ValidationError{OrgError: "Invalid image format"}
+			return emptyEntity, &customerrors.ValidationError{DisplayError: "Invalid image format"}
 		}
 		url, _, err := p.mediaRepo.UploadFile(logo, "partner/"+partnerId, true)
 		if err != nil {
-			return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyEntity, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		logoUrl = &url
 	}
@@ -56,7 +56,7 @@ func (p PartnerUsecases) CreatePartner(name string, logo *multipart.FileHeader) 
 			p.mediaRepo.DeleteFile("partner/", partnerId)
 
 		}
-		return emptyEntity, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptyEntity, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return newPartner, nil
@@ -66,7 +66,7 @@ func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *mul
 
 	emptyPartner := entity.PartnerEntity{}
 	if !pkg.ValidateUUID(partnerId) {
-		return emptyPartner, &customerrors.ValidationError{OrgError: "Invalid partner id"}
+		return emptyPartner, &customerrors.ValidationError{DisplayError: "Invalid partner id"}
 	}
 
 	var logoUrl *string
@@ -76,19 +76,19 @@ func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *mul
 	if logo != nil {
 		valid, err := pkg.ValidateImage(logo)
 		if err != nil {
-			return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong"}
+			return emptyPartner, &customerrors.ServerError{DisplayError: "Something went wrong"}
 		} else if !valid {
-			return emptyPartner, &customerrors.ValidationError{OrgError: "Invalid image format"}
+			return emptyPartner, &customerrors.ValidationError{DisplayError: "Invalid image format"}
 		}
 		oldPublicIds, err := p.mediaRepo.RetrieveAssetPublicIds(folderId, 1)
 		if err != nil {
-			return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyPartner, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		} else if len(oldPublicIds) != 0 {
 			oldPublicId = oldPublicIds[0]
 		}
 		url, pubId, err := p.mediaRepo.UploadFile(logo, folderId, true)
 		if err != nil {
-			return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyPartner, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		publicId = pubId
 		logoUrl = &url
@@ -104,9 +104,9 @@ func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *mul
 
 	}()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return emptyPartner, &customerrors.NotFoundError{OrgError: "Partner does not exist"}
+		return emptyPartner, &customerrors.NotFoundError{DisplayError: "Partner does not exist"}
 	} else if err != nil {
-		return emptyPartner, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptyPartner, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return newPartner, nil
@@ -116,15 +116,15 @@ func (p PartnerUsecases) UpdatePartner(partnerId string, name *string, logo *mul
 func (p PartnerUsecases) DeletePartner(partnerId string) error {
 
 	if !pkg.ValidateUUID(partnerId) {
-		return &customerrors.ValidationError{OrgError: "Invalid partner id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid partner id"}
 	}
 
 	err := p.repo.DeletePartner(partnerId)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Partner does not exist"}
+		return &customerrors.NotFoundError{DisplayError: "Partner does not exist"}
 	} else if err != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return nil
@@ -136,7 +136,7 @@ func (p PartnerUsecases) RetrievePartner(limit int, page int) ([]entity.PartnerE
 	partners, err := p.repo.RetrievePartner(limit, offset)
 
 	if err != nil {
-		return partners, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return partners, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return partners, nil

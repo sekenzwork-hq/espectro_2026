@@ -160,9 +160,9 @@ func ValidateUserType(userType string) bool {
 func ValidatePassword(password string) error {
 
 	if len(password) < 6 {
-		return &customerrors.ValidationError{OrgError: "Password length should be atleast 6"}
+		return &customerrors.ValidationError{DisplayError: "Password length should be atleast 6"}
 	} else if len(password) > 200 {
-		return &customerrors.ValidationError{OrgError: "Password length should be less than or equal to 200"}
+		return &customerrors.ValidationError{DisplayError: "Password length should be less than or equal to 200"}
 	}
 
 	password = strings.TrimSpace(password)
@@ -174,19 +174,19 @@ func ValidatePassword(password string) error {
 	containsUpperOrLower := upperOrLowerRegex.MatchString(password)
 
 	if !containsUpperOrLower {
-		return &customerrors.ValidationError{OrgError: "Password should contain atleast one upper or lower case"}
+		return &customerrors.ValidationError{DisplayError: "Password should contain atleast one upper or lower case"}
 	}
 
 	containsNumber := numberRegex.MatchString(password)
 
 	if !containsNumber {
-		return &customerrors.ValidationError{OrgError: "Password should contain alteast one digit"}
+		return &customerrors.ValidationError{DisplayError: "Password should contain alteast one digit"}
 	}
 
 	containsSpecialChar := specialCharRegex.MatchString(password)
 
 	if !containsSpecialChar {
-		return &customerrors.ValidationError{OrgError: "Password should contain alteast one special character"}
+		return &customerrors.ValidationError{DisplayError: "Password should contain alteast one special character"}
 	}
 
 	return nil
@@ -195,9 +195,9 @@ func ValidatePassword(password string) error {
 func ValidateSpectrumOrEventName(name string) error {
 
 	if len(name) < 3 {
-		return &customerrors.ValidationError{OrgError: "Name length should be atleast 3"}
+		return &customerrors.ValidationError{DisplayError: "Name length should be atleast 3"}
 	} else if len(name) > 100 {
-		return &customerrors.ValidationError{OrgError: "Name length should be less than or equal to 100"}
+		return &customerrors.ValidationError{DisplayError: "Name length should be less than or equal to 100"}
 	}
 
 	name = strings.TrimSpace(name)
@@ -209,9 +209,9 @@ func ValidateSpectrumOrEventName(name string) error {
 func ValidateSpectrumShortDescription(shortDes string) error {
 
 	if len(shortDes) < 50 {
-		return &customerrors.ValidationError{OrgError: "Short description length should be atleast 50"}
+		return &customerrors.ValidationError{DisplayError: "Short description length should be atleast 50"}
 	} else if len(shortDes) > 300 {
-		return &customerrors.ValidationError{OrgError: "Short description length should be less than or equal to 300"}
+		return &customerrors.ValidationError{DisplayError: "Short description length should be less than or equal to 300"}
 	}
 
 	shortDes = strings.TrimSpace(shortDes)
@@ -223,9 +223,9 @@ func ValidateSpectrumShortDescription(shortDes string) error {
 func ValidateSpectrumOrEventDescription(des string) error {
 
 	if len(des) < 50 {
-		return &customerrors.ValidationError{OrgError: "Description length should be atleast 50"}
+		return &customerrors.ValidationError{DisplayError: "Description length should be atleast 50"}
 	} else if len(des) > 1000 {
-		return &customerrors.ValidationError{OrgError: "Description length should be less than or equal to 1000"}
+		return &customerrors.ValidationError{DisplayError: "Description length should be less than or equal to 1000"}
 	}
 
 	des = strings.TrimSpace(des)

@@ -20,8 +20,9 @@ func RegisterExhibtionRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Cl
 	organizationRepo := repositoryimple.NewOrganizationPostgresRepo(db)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
 	staffRepo := repositoryimple.NewStaffPostgresRepo(db)
+	userRepo := repositoryimple.NewUserPostgresRepo(db)
 
-	exhibitionUsecases := usecases.NewExhibitionUsecases(exhibtionRepo, mediaRepo, eventRepo, organizationRepo, adminRepo, staffRepo)
+	exhibitionUsecases := usecases.NewExhibitionUsecases(exhibtionRepo, mediaRepo, eventRepo, organizationRepo, adminRepo, staffRepo, userRepo)
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
 
 	exhibtionHandlers := handlers.NewExhibitionHandlers(exhibitionUsecases)
@@ -35,5 +36,6 @@ func RegisterExhibtionRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Cl
 	exhibitionApi.PATCH("/admin", memberLeaderAdminMiddleware.AdminMiddleWare, exhibtionHandlers.UpdateExhibitionFromAdminSide)
 	exhibitionApi.DELETE("/admin", memberLeaderAdminMiddleware.AdminMiddleWare, exhibtionHandlers.DeleteExhibition)
 	exhibitionApi.DELETE("/user", exhibtionHandlers.DeleteExhibition)
+	exhibitionApi.GET("/user", exhibtionHandlers.RetrieveExhibitionFromUserSide)
 
 }

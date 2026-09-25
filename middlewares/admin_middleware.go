@@ -54,7 +54,7 @@ func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 		if roleErr != nil {
 			err = roleErr
 		} else if role != enums.Leader {
-			err = &customerrors.PermissionError{OrgError: "Current admin doesn't have permission"}
+			err = &customerrors.PermissionError{DisplayError: "Current admin doesn't have permission"}
 		}
 	case enums.LeaderAndMemberMiddleware:
 
@@ -62,7 +62,7 @@ func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 		if roleErr != nil {
 			err = roleErr
 		} else if role != enums.Leader && role != enums.Member {
-			err = &customerrors.PermissionError{OrgError: "Current admin doesn't have permission"}
+			err = &customerrors.PermissionError{DisplayError: "Current admin doesn't have permission"}
 		}
 	}
 

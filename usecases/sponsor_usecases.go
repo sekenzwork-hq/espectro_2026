@@ -49,25 +49,25 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 
 	valid, err := pkg.ValidateImage(profileOrOrg)
 	if err != nil {
-		return emptySponsor, &customerrors.ServerError{OrgError: "Something went wrong"}
+		return emptySponsor, &customerrors.ServerError{DisplayError: "Something went wrong"}
 	} else if !valid {
-		return emptySponsor, &customerrors.ValidationError{OrgError: "Invalid image format"}
+		return emptySponsor, &customerrors.ValidationError{DisplayError: "Invalid image format"}
 	}
 
 	for i := range eventIds {
 		eventId := eventIds[i]
 		if !pkg.ValidateUUID(eventId) {
-			return emptySponsor, &customerrors.ValidationError{OrgError: "One of the event ids is invalid"}
+			return emptySponsor, &customerrors.ValidationError{DisplayError: "One of the event ids is invalid"}
 		}
 	}
 
 	if len(eventIds) != 0 {
 		exist, existErr := s.eventRepo.CheckMultipleEventsExist(eventIds)
 		if existErr != nil {
-			return emptySponsor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptySponsor, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		if !exist {
-			return emptySponsor, &customerrors.NotFoundError{OrgError: "Some of the event ids do not exist"}
+			return emptySponsor, &customerrors.NotFoundError{DisplayError: "Some of the event ids do not exist"}
 		}
 	}
 
@@ -77,7 +77,7 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 	if profileOrOrg != nil {
 		url, _, err := s.mediaRepo.UploadFile(profileOrOrg, "sponsor/"+sponsorId, true)
 		if err != nil {
-			return emptySponsor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptySponsor, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		profileOrOrgUrl = &url
 	}
@@ -98,13 +98,13 @@ func (s SponsorUsecases) CreateSponsor(name string, amount *float32, profileOrOr
 		})
 
 		if insertionErr != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 
 		if len(eventIds) != 0 {
 			addingErr := s.eventSponsorRepo.AddSponsor(newSponsor.Id, eventIds)
 			if addingErr != nil {
-				return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+				return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 			}
 		}
 		sponsor = newSponsor
@@ -137,19 +137,19 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 	if profileOrOrgImage != nil {
 		valid, err := pkg.ValidateImage(profileOrOrgImage)
 		if err != nil {
-			return empty, &customerrors.ServerError{OrgError: "Something went wrong"}
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong"}
 		} else if !valid {
-			return empty, &customerrors.ValidationError{OrgError: "Invalid image format"}
+			return empty, &customerrors.ValidationError{DisplayError: "Invalid image format"}
 		}
 		prevIds, err := s.mediaRepo.RetrieveAssetPublicIds(folderId, 1)
 		if err != nil {
-			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		} else if len(prevIds) != 0 {
 			prevLogoPublicId = &prevIds[0]
 		}
 		url, pubId, err := s.mediaRepo.UploadFile(profileOrOrgImage, folderId, true)
 		if err != nil {
-			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		logoOrImageUrl = &url
 		logoPublicId = pubId
@@ -172,9 +172,9 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 	}()
 	if updationErr != nil {
 		if errors.Is(updationErr, gorm.ErrRecordNotFound) {
-			return empty, &customerrors.NotFoundError{OrgError: "Sponsor does not exist"}
+			return empty, &customerrors.NotFoundError{DisplayError: "Sponsor does not exist"}
 		} else {
-			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 	}
 	return newSponsor, nil
@@ -184,14 +184,14 @@ func (s SponsorUsecases) UpdateSponsor(sponsorId string, name *string, amount *f
 func (s SponsorUsecases) DeleteSponsor(sponsorId string) error {
 
 	if !pkg.ValidateUUID(sponsorId) {
-		return &customerrors.ValidationError{OrgError: "Invalid sponsor id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid sponsor id"}
 	}
 
 	err := s.sponsorRepo.DeleteSponsor(sponsorId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Sponsor does not exist"}
+		return &customerrors.NotFoundError{DisplayError: "Sponsor does not exist"}
 	} else if err != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return nil
@@ -200,7 +200,7 @@ func (s SponsorUsecases) DeleteSponsor(sponsorId string) error {
 func (s SponsorUsecases) RetrieveSponsors(eventId *string, limit int, page int) ([]entity.SponsorEntity, error) {
 
 	if eventId != nil && !pkg.ValidateUUID(*eventId) {
-		return []entity.SponsorEntity{}, &customerrors.ValidationError{OrgError: "Invalid event id"}
+		return []entity.SponsorEntity{}, &customerrors.ValidationError{DisplayError: "Invalid event id"}
 	}
 	offset := pkg.GetOffset(limit, page)
 	var err error
@@ -213,7 +213,7 @@ func (s SponsorUsecases) RetrieveSponsors(eventId *string, limit int, page int) 
 	}
 
 	if err != nil {
-		return sponsors, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return sponsors, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 	return sponsors, nil
 }
@@ -221,26 +221,26 @@ func (s SponsorUsecases) RetrieveSponsors(eventId *string, limit int, page int) 
 func (s SponsorUsecases) validateSponsorDetails(sponsorId *string, name string, amount *float32, sponsoredType enums.SponsoredType, profileOrOrgImage *multipart.FileHeader) error {
 
 	if sponsorId != nil && !pkg.ValidateUUID(*sponsorId) {
-		return &customerrors.ValidationError{OrgError: "Invalid sponsor id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid sponsor id"}
 	}
 	if err := pkg.ValidateName(name); err != nil {
-		return &customerrors.ValidationError{OrgError: err.Error()}
+		return &customerrors.ValidationError{DisplayError: err.Error()}
 	}
 
 	if amount != nil && *amount < 0 {
-		return &customerrors.ValidationError{OrgError: "Amount should be 0 or greater"}
+		return &customerrors.ValidationError{DisplayError: "Amount should be 0 or greater"}
 	}
 
 	if !sponsoredType.IsValid() {
-		return &customerrors.ValidationError{OrgError: "Invalid sponsor type"}
+		return &customerrors.ValidationError{DisplayError: "Invalid sponsor type"}
 	}
 
 	if profileOrOrgImage != nil && !pkg.ValidateImageSize(*profileOrOrgImage) {
-		return &customerrors.SizeError{OrgError: "Profile or organization logo size should be less than or equal to 2 MB"}
+		return &customerrors.SizeError{DisplayError: "Profile or organization logo size should be less than or equal to 2 MB"}
 	}
 
 	if amount != nil && sponsoredType == enums.Amount {
-		return &customerrors.ValidationError{OrgError: "Provide amount if sponsored type is amount"}
+		return &customerrors.ValidationError{DisplayError: "Provide amount if sponsored type is amount"}
 	}
 
 	return nil

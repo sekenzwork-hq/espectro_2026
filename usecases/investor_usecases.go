@@ -35,7 +35,7 @@ func (i InvestorUsecases) CreateInvestor(name string, websiteUrl *string, phoneN
 	if logo != nil {
 		url, _, uploadErr := i.mediaRepo.UploadFile(logo, "investor/"+investorId, true)
 		if uploadErr != nil {
-			return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyInvestor, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		logoUrl = &url
 	}
@@ -52,7 +52,7 @@ func (i InvestorUsecases) CreateInvestor(name string, websiteUrl *string, phoneN
 	newInvestor, insertionErr := i.investorRepo.CreateInvestor(investorToInsert)
 	if insertionErr != nil {
 		i.mediaRepo.DeleteFile("investor/", investorId)
-		return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptyInvestor, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return newInvestor, nil
@@ -74,14 +74,14 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 	if logo != nil {
 		oldId, err := i.mediaRepo.RetrieveAssetPublicIds(folderId, 1)
 		if err != nil {
-			return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyInvestor, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		if len(oldId) != 0 {
 			oldPublicId = oldId[0]
 		}
 		url, id, err := i.mediaRepo.UploadFile(logo, folderId, false)
 		if err != nil {
-			return emptyInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyInvestor, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		logoUrl = &url
 		newPublicId = id
@@ -106,9 +106,9 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 	}()
 
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
-		return newInvestor, &customerrors.NotFoundError{OrgError: "Investor does not exist"}
+		return newInvestor, &customerrors.NotFoundError{DisplayError: "Investor does not exist"}
 	} else if updationErr != nil {
-		return newInvestor, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return newInvestor, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return newInvestor, nil
@@ -118,15 +118,15 @@ func (i InvestorUsecases) UpdateInvestor(investorId string, name *string, phoneN
 func (i InvestorUsecases) DeleteInvestor(investorId string) error {
 
 	if !pkg.ValidateUUID(investorId) {
-		return &customerrors.ValidationError{OrgError: "Invalid investor id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid investor id"}
 	}
 
 	err := i.investorRepo.DeleteInvestor(investorId)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Investor does not exist"}
+		return &customerrors.NotFoundError{DisplayError: "Investor does not exist"}
 	} else if err != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return nil
@@ -138,7 +138,7 @@ func (i InvestorUsecases) RetrieveInvestors(limit int, page int) ([]entity.Inves
 	offset := pkg.GetOffset(limit, page)
 	investors, err := i.investorRepo.RetrieveInvestors(limit, offset)
 	if err != nil {
-		return investors, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return investors, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return investors, nil
@@ -147,18 +147,18 @@ func (i InvestorUsecases) RetrieveInvestors(limit int, page int) ([]entity.Inves
 func (i InvestorUsecases) validateInvestorDetails(id *string, name *string, phoneNumber *string, email *string, websiteUrl *string, logo *multipart.FileHeader) error {
 
 	if id != nil && !pkg.ValidateUUID(*id) {
-		return &customerrors.ValidationError{OrgError: "Invalid investor id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid investor id"}
 	}
 	if name != nil {
 		if err := pkg.ValidateName(*name); err != nil {
-			return &customerrors.ValidationError{OrgError: err.Error()}
+			return &customerrors.ValidationError{DisplayError: err.Error()}
 		}
 	}
 	if phoneNumber != nil && !pkg.ValidatePhoneNumber(*phoneNumber) {
-		return &customerrors.ValidationError{OrgError: "Invalid phone number"}
+		return &customerrors.ValidationError{DisplayError: "Invalid phone number"}
 	}
 	if email != nil && !pkg.ValidateEmail(*email) {
-		return &customerrors.ValidationError{OrgError: "Invalid email"}
+		return &customerrors.ValidationError{DisplayError: "Invalid email"}
 	}
 	if websiteUrl != nil {
 		if err := pkg.ValidateUrl(*websiteUrl, "website url"); err != nil {
@@ -168,9 +168,9 @@ func (i InvestorUsecases) validateInvestorDetails(id *string, name *string, phon
 	if logo != nil {
 		correct, err := pkg.ValidateImage(logo)
 		if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		} else if !correct {
-			return &customerrors.ValidationError{OrgError: "Invalid image format"}
+			return &customerrors.ValidationError{DisplayError: "Invalid image format"}
 		}
 	}
 	return nil

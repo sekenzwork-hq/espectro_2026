@@ -9,8 +9,8 @@ import (
 
 func TestHttpCodeForErrors(t *testing.T) {
 
-	serverErr := &customerrors.ServerError{OrgError: "Some error"}
-	validationErr := &customerrors.ValidationError{OrgError: "Some error"}
+	serverErr := &customerrors.ServerError{DisplayError: "Some error"}
+	validationErr := &customerrors.ValidationError{DisplayError: "Some error"}
 
 	serverErrCode := pkg.GetStatusCodeForError(serverErr)
 	validationErrCode := pkg.GetStatusCodeForError(validationErr)

@@ -25,9 +25,26 @@ type ExhibitionDBRetrieveEntity struct {
 	CreatedAt       time.Time              `json:"created_at" gorm:"column:created_at"`
 }
 
+type ExhibitionDBRetrieveEntityFromUserSide struct {
+	Id              string                 `json:"id" gorm:"column:id;type uuid;primaryKey"`
+	EventId         string                 `json:"event_id" gorm:"column:event_id"`
+	TokenNumber     *int                   `json:"token_number" gorm:"column:token_number"`
+	Category        string                 `json:"category" gorm:"column:category"`
+	OrganizationId  string                 `json:"organization_id" gorm:"column:organization_id"`
+	BoothNumber     *int                   `json:"booth_number" gorm:"column:booth_number"`
+	AvailableSqft   *float32               `json:"available_sqft" gorm:"column:available_sqft"`
+	AssignedStaffId *string                `json:"assigned_staff_id" gorm:"column:assigned_staff"`
+	ItemTitle       string                 `json:"item_title" gorm:"column:item_title"`
+	ItemImageUrls   pq.StringArray         `json:"item_image_urls" gorm:"column:item_image_urls; type:text[]"`
+	ItemDescription string                 `json:"item_description" gorm:"column:item_description"`
+	Status          enums.ExhibitionStatus `json:"status" gorm:"column:status"`
+	CreatedAt       time.Time              `json:"created_at" gorm:"column:created_at"`
+}
+
 type ExhibitionDBInputEntity struct {
 	Id              *string                 `json:"id" gorm:"column:id"`
 	EventId         *string                 `json:"event_id" gorm:"column:event_id"`
+	UserId          *string                 `json:"user_id" gorm:"column:user_id"`
 	TokenNumber     *int                    `json:"token_number" gorm:"column:token_number"`
 	Category        *string                 `json:"category" gorm:"column:category"`
 	OrganizationId  *string                 `json:"organization_id" gorm:"column:organization_id"`
@@ -45,6 +62,7 @@ type ExhibitionRawEntity struct {
 	Id              *string
 	EventId         string
 	TokenNumber     *int
+	UserId          *string
 	Category        string
 	OrganizationId  string
 	BoothNumber     *int
@@ -58,6 +76,7 @@ type ExhibitionRawEntity struct {
 }
 
 type ExhibitionRawUpdateEntity struct {
+	UserId          *string
 	EventId         *string
 	TokenNumber     *int
 	Category        *string

@@ -23,16 +23,14 @@ func (e ExhibitionPostgresRepo) CreateExhibition(exhibition entity.ExhibitionDBI
 		 (
 			id,
 			event_id,
+			user_id,
 			category,
 			organization_id,
 			item_title,
 			item_image_urls,
 			item_description,
 			status
-		 ) 
-		VALUES
-
-		 (?,?,?,?,?,?,?,?)
+		 ) VALUES (?,?,?,?,?,?,?,?,?)
 
 		RETURNING 
 			id,
@@ -52,6 +50,7 @@ func (e ExhibitionPostgresRepo) CreateExhibition(exhibition entity.ExhibitionDBI
 		`,
 		exhibition.Id,
 		exhibition.EventId,
+		exhibition.UserId,
 		exhibition.Category,
 		exhibition.OrganizationId,
 		exhibition.ItemTitle,
@@ -170,4 +169,16 @@ func (e ExhibitionPostgresRepo) DeleteExhibition(exhibitionId string) error {
 	}
 
 	return nil
+}
+
+func (e ExhibitionPostgresRepo) RetrieveExhibitionFromUserSide(userId string, offset int, limit int) ([]entity.ExhibitionDBRetrieveEntityFromUserSide, error) {
+
+	var exhibitions []entity.ExhibitionDBRetrieveEntityFromUserSide
+
+	err := e.db.Table("exhibitions").Select("id,event_id,organization_id,token_number,category,booth_number,available_sqft,assigned_staff,item_title,item_description,item_image_urls,status,created_at").
+		Where("user_id=?", userId).
+		Offset(offset).
+		Limit(limit).Scan(&exhibitions).Error
+
+	return exhibitions, err
 }

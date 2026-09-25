@@ -22,7 +22,7 @@ func GenerateJWTForAdmin(id string) (string, error) {
 
 func ParseJWTFromAdmin(token string) (string, error) {
 
-	invalidTokenErr := &customerrors.ValidationError{OrgError: "Invalid token"}
+	invalidTokenErr := &customerrors.ValidationError{DisplayError: "Invalid token"}
 
 	parsedToken, parseErr := jwt.Parse(token, func(t *jwt.Token) (any, error) {
 		if t.Method != jwt.SigningMethodHS512 {

@@ -53,7 +53,7 @@ func (o OrganizationUsecases) CreateOrganization(organization entity.Organizatio
 
 		url, pubId, err := o.mediaRepo.UploadFile(organization.Logo, folderId, true)
 		if err != nil {
-			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operatinsg"}
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operatinsg"}
 		}
 
 		logoUrl = &url
@@ -80,7 +80,7 @@ func (o OrganizationUsecases) CreateOrganization(organization entity.Organizatio
 				o.mediaRepo.DeleteAssetsWithPublicIds([]string{*publicId})
 			}()
 		}
-		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return newOrg, nil
@@ -112,7 +112,7 @@ func (o OrganizationUsecases) UpdateOrganization(id string,
 	if logo != nil {
 		oldPubIds, err := o.mediaRepo.RetrieveAssetPublicIds(folderId, 1)
 		if err != nil {
-			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		if len(oldPubIds) != 0 {
 			prevPublicId = &oldPubIds[0]
@@ -120,7 +120,7 @@ func (o OrganizationUsecases) UpdateOrganization(id string,
 
 		url, newPubId, err := o.mediaRepo.UploadFile(logo, folderId, true)
 		if err != nil {
-			return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		newPublicId = &newPubId
 		logoUrl = &url
@@ -149,9 +149,9 @@ func (o OrganizationUsecases) UpdateOrganization(id string,
 	}()
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return empty, &customerrors.NotFoundError{OrgError: "Organization does not exist"}
+		return empty, &customerrors.NotFoundError{DisplayError: "Organization does not exist"}
 	} else if err != nil {
-		return empty, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return newOrganization, nil
@@ -160,15 +160,15 @@ func (o OrganizationUsecases) UpdateOrganization(id string,
 func (o OrganizationUsecases) DeleteOrganization(id string) error {
 
 	if !pkg.ValidateUUID(id) {
-		return &customerrors.ValidationError{OrgError: "Invalid organization_id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid organization_id"}
 	}
 
 	err := o.organizationRepo.DeleteOrganization(id)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &customerrors.NotFoundError{OrgError: "Organization does not exist"}
+		return &customerrors.NotFoundError{DisplayError: "Organization does not exist"}
 	} else if err != nil {
-		return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return nil
@@ -181,7 +181,7 @@ func (o OrganizationUsecases) RetrieveOrganizations(limit int, page int) ([]enti
 	organizations, err := o.organizationRepo.RetrieveOrganizations(limit, offset)
 
 	if err != nil {
-		return organizations, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return organizations, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return organizations, nil
@@ -201,16 +201,16 @@ func (o OrganizationUsecases) validateOrganizationData(
 	organizationName *string,
 ) error {
 	if id != nil && !pkg.ValidateUUID(*id) {
-		return &customerrors.ValidationError{OrgError: "Invalid organization id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid organization id"}
 	}
 	if email != nil && !pkg.ValidateEmail(*email) {
-		return &customerrors.ValidationError{OrgError: "Invalid email"}
+		return &customerrors.ValidationError{DisplayError: "Invalid email"}
 	}
 
 	if fullname != nil {
 		err := pkg.ValidateFullname(*fullname)
 		if err != nil {
-			return &customerrors.ValidationError{OrgError: err.Error()}
+			return &customerrors.ValidationError{DisplayError: err.Error()}
 		}
 	}
 
@@ -218,56 +218,56 @@ func (o OrganizationUsecases) validateOrganizationData(
 		correct, err := pkg.ValidateImage(logo)
 
 		if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operatinsg"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operatinsg"}
 		} else if !correct {
-			return &customerrors.ValidationError{OrgError: "Invalid image format"}
+			return &customerrors.ValidationError{DisplayError: "Invalid image format"}
 		}
 	}
 	if websiteUrl != nil {
 		err := pkg.ValidateUrl(*websiteUrl, "website url")
 		if err != nil {
-			return &customerrors.ValidationError{OrgError: err.Error()}
+			return &customerrors.ValidationError{DisplayError: err.Error()}
 		}
 	}
 
 	if status != nil && !status.IsValid() {
-		return &customerrors.ValidationError{OrgError: "Invalid organization status"}
+		return &customerrors.ValidationError{DisplayError: "Invalid organization status"}
 	}
 
 	if approvedBy != nil && !pkg.ValidateUUID(*approvedBy) {
-		return &customerrors.ValidationError{OrgError: "Invalid approved id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid approved id"}
 	}
 
 	if phoneNumber != nil && !pkg.ValidatePhoneNumber(*phoneNumber) {
-		return &customerrors.ValidationError{OrgError: "Invalid phone number"}
+		return &customerrors.ValidationError{DisplayError: "Invalid phone number"}
 	}
 
 	if industry != nil {
 		if len(*industry) > 100 {
-			return &customerrors.ValidationError{OrgError: "Industry length should be less than or equal to 100"}
+			return &customerrors.ValidationError{DisplayError: "Industry length should be less than or equal to 100"}
 		}
 
 		str := strings.TrimSpace(*industry)
 		if len(str) < 2 {
-			return &customerrors.ValidationError{OrgError: "Industry length should be atleast 3"}
+			return &customerrors.ValidationError{DisplayError: "Industry length should be atleast 3"}
 		}
 	}
 	if headquarters != nil {
 		if len(*headquarters) > 200 {
-			return &customerrors.ValidationError{OrgError: "Headquarters length should be less than or equal to 200"}
+			return &customerrors.ValidationError{DisplayError: "Headquarters length should be less than or equal to 200"}
 		}
 
 		str := strings.TrimSpace(*headquarters)
 		if len(str) < 10 {
-			return &customerrors.ValidationError{OrgError: "Headquarters length should be atleast 10"}
+			return &customerrors.ValidationError{DisplayError: "Headquarters length should be atleast 10"}
 		}
 	}
 
 	if organizationName != nil {
 		if len(*organizationName) < 2 {
-			return &customerrors.ValidationError{OrgError: "Organization name length should be atleast 2"}
+			return &customerrors.ValidationError{DisplayError: "Organization name length should be atleast 2"}
 		} else if len(*organizationName) > 150 {
-			return &customerrors.ValidationError{OrgError: "Organization name length should be less than or equal to 150"}
+			return &customerrors.ValidationError{DisplayError: "Organization name length should be less than or equal to 150"}
 		}
 	}
 

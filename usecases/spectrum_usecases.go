@@ -53,7 +53,7 @@ func (s SpectrumUsecases) CreateSpectrum(
 
 	media, mediaErr := s.uploadMediaForSpectrum(spectrumId, logoFile, videoFile, imageFiles)
 	if mediaErr != nil {
-		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptySpectrum, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	spectrumData := entity.SpectrumEntity{
@@ -75,7 +75,7 @@ func (s SpectrumUsecases) CreateSpectrum(
 	}
 
 	if creationErr != nil {
-		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptySpectrum, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return spectrum, nil
@@ -93,10 +93,10 @@ func (s SpectrumUsecases) UpdateSpectrum(
 ) (entity.SpectrumEntity, error) {
 
 	emptySpectrum := entity.SpectrumEntity{}
-	serverErr := &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+	serverErr := &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 
 	if correct := pkg.ValidateUUID(spectrumId); !correct {
-		return emptySpectrum, &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
+		return emptySpectrum, &customerrors.ValidationError{DisplayError: "Invalid spectrum id"}
 	}
 
 	validationErr := s.validateSpectrumData(name, shortDescription, description, status, imageFiles, videoFile, logoFile)
@@ -139,9 +139,9 @@ func (s SpectrumUsecases) UpdateSpectrum(
 
 	}()
 	if errors.Is(updationErr, gorm.ErrRecordNotFound) {
-		return emptySpectrum, &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
+		return emptySpectrum, &customerrors.NotFoundError{DisplayError: "Spectrum does not exist"}
 	} else if updationErr != nil {
-		return emptySpectrum, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptySpectrum, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	return newSpectrum, nil
@@ -153,21 +153,21 @@ func (s SpectrumUsecases) DeleteSpectrum(spectrumId string) error {
 	isIdCorrect := pkg.ValidateUUID(spectrumId)
 
 	if !isIdCorrect {
-		return &customerrors.ValidationError{OrgError: "Invalid spectrum id"}
+		return &customerrors.ValidationError{DisplayError: "Invalid spectrum id"}
 	}
 
 	err := s.transaction.Run(func() error {
 		err := s.spectrumRepo.DeleteSpectrum(spectrumId)
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &customerrors.NotFoundError{OrgError: "Spectrum does not exist"}
+			return &customerrors.NotFoundError{DisplayError: "Spectrum does not exist"}
 		} else if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 
 		err = s.eventRepo.DeleteEventBySpectrumId(spectrumId)
 		if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		return nil
 	})
@@ -180,13 +180,13 @@ func (s SpectrumUsecases) RetrieveSpectrums(limit int, page int) ([]entity.Spect
 	emptySpectrums := []entity.SpectrumEntity{}
 
 	if limit > 150 {
-		return emptySpectrums, &customerrors.SizeError{OrgError: "Limit should be less than or equal to 150"}
+		return emptySpectrums, &customerrors.SizeError{DisplayError: "Limit should be less than or equal to 150"}
 	}
 
 	offset := pkg.GetOffset(limit, page)
 	spectrums, spectrumsErr := s.spectrumRepo.RetrieveSpectrums(offset, limit)
 	if spectrumsErr != nil {
-		return emptySpectrums, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+		return emptySpectrums, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 	return spectrums, nil
 }
@@ -225,45 +225,45 @@ func (s SpectrumUsecases) validateSpectrumData(
 
 	if status != nil {
 		if !enums.SpectrumStatus(*status).IsValid() {
-			return &customerrors.ValidationError{OrgError: "Invalid status"}
+			return &customerrors.ValidationError{DisplayError: "Invalid status"}
 		}
 	}
 
 	if len(imageFiles) > 10 {
-		return &customerrors.ValidationError{OrgError: "Maximum number of images is 10"}
+		return &customerrors.ValidationError{DisplayError: "Maximum number of images is 10"}
 	}
 
 	if logoFile != nil {
 		valid, err := pkg.ValidateImage(logoFile)
 		if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		} else if !valid {
-			return &customerrors.ValidationError{OrgError: "Invalid image format"}
+			return &customerrors.ValidationError{DisplayError: "Invalid image format"}
 		} else if !pkg.ValidateImageSize(*logoFile) {
-			return &customerrors.SizeError{OrgError: "Logo image size should be less than or equal to 2 MB"}
+			return &customerrors.SizeError{DisplayError: "Logo image size should be less than or equal to 2 MB"}
 		}
 	} else if videoFile != nil {
 		valid, err := pkg.ValidateVideo(videoFile)
 		if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		} else if !valid {
-			return &customerrors.ValidationError{OrgError: "Invalid video format"}
+			return &customerrors.ValidationError{DisplayError: "Invalid video format"}
 		} else if !pkg.ValidateVideoSize(*videoFile) {
-			return &customerrors.SizeError{OrgError: "Video size should be less than or equal to 50 MB"}
+			return &customerrors.SizeError{DisplayError: "Video size should be less than or equal to 50 MB"}
 		}
 
 	}
 
 	for i := range imageFiles {
 		if imageFiles[i] != nil && !pkg.ValidateImageSize(*imageFiles[i]) {
-			return &customerrors.SizeError{OrgError: "Size of each image should be less than or equal to 2 MB"}
+			return &customerrors.SizeError{DisplayError: "Size of each image should be less than or equal to 2 MB"}
 		}
 
 		valid, err := pkg.ValidateImage(imageFiles[i])
 		if err != nil {
-			return &customerrors.ServerError{OrgError: "Something went wrong"}
+			return &customerrors.ServerError{DisplayError: "Something went wrong"}
 		} else if !valid {
-			return &customerrors.ValidationError{OrgError: "Invalid image format"}
+			return &customerrors.ValidationError{DisplayError: "Invalid image format"}
 		}
 	}
 
@@ -299,13 +299,13 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	if logoFile != nil {
 		oldPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(logoFolder, 1)
 		if err != nil {
-			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyModel, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		} else if len(oldPublicIds) != 0 {
 			logoPublicId = &oldPublicIds[0]
 		}
 		url, pubId, urlErr := s.mediaRepo.UploadFile(logoFile, logoFolder, true)
 		if urlErr != nil {
-			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyModel, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		logoUrl = &url
 		logoPublicId = &pubId
@@ -314,7 +314,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 	if videoFile != nil {
 		oldPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(videoFolder, 1)
 		if err != nil {
-			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyModel, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		} else if len(oldPublicIds) != 0 {
 			videoPublicId = &oldPublicIds[0]
 		}
@@ -324,7 +324,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 			if logoUrl != nil {
 				go s.mediaRepo.DeleteFile(baseFolder, logoFolder)
 			}
-			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyModel, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		videoUrl = &url
 		videoPublicId = &pubId
@@ -336,7 +336,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 		prevPublicIds, err := s.mediaRepo.RetrieveAssetPublicIds(imagesFolder, 10)
 		if err != nil {
 			funcToDeleteUploadedMedia()
-			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyModel, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 
 		urls, newPublicIds, urlsErr := s.mediaRepo.UploadFiles(imageFiles, imagesFolder, false)
@@ -344,7 +344,7 @@ func (s SpectrumUsecases) uploadMediaForSpectrum(
 			//Deleting the above upload video and logo (if those are provided) and deleting rest of the images
 			//we were uploading if it is failed.
 			funcToDeleteUploadedMedia()
-			return emptyModel, &customerrors.ServerError{OrgError: "Something went wrong while operating"}
+			return emptyModel, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 		}
 		imageUrls = urls
 		prevImagePublicIds = prevPublicIds
