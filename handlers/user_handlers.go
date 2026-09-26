@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"errors"
-	customerrors "espectro/custom_errors"
 	"espectro/entity"
 	"espectro/pkg"
 	"espectro/usecases"
@@ -31,19 +29,18 @@ func (h *UserHandlers) RegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	id, validationOrDBError := h.usecases.RegisterUser(userEntity)
+	user, err := h.usecases.RegisterUser(userEntity)
 
-	if validationOrDBError != nil {
-
-		var validationError *customerrors.ValidationError
-		isValidationError := errors.As(validationOrDBError, &validationError)
-
-		if isValidationError {
-			ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": validationOrDBError.Error()})
-		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": validationOrDBError.Error()})
-		}
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
 	} else {
-		ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "User has been registered", "id": id})
+		token, tokenErr := pkg.GenerateJWTForUser(user.Id)
+		if tokenErr != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"status": 500, "message": "Something went wrong while operating"})
+		} else {
+			ctx.JSON(http.StatusCreated, gin.H{"status": 201, "message": "User has been registered", "user": user, "access_token": token})
+		}
+
 	}
 }

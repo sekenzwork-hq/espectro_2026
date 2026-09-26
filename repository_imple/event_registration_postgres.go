@@ -16,12 +16,27 @@ func NewEventRegistrationPostgresRepo(db *gorm.DB) EventRegistrationPostgresRepo
 	return EventRegistrationPostgresRepo{db: db}
 }
 
-func (e EventRegistrationPostgresRepo) Register(registrationDetails entity.EventRegistrationEntity) (entity.EventRegistrationEntity, error) {
-	err := e.db.
-		Table("event_registrations").
-		Create(&registrationDetails).Error
+func (e EventRegistrationPostgresRepo) Register(userId string, eventId string, status enums.EventRegStatus) (entity.EventRegistrationEntity, error) {
+	var createdRegistration entity.EventRegistrationEntity
 
-	return registrationDetails, err
+	err := e.db.
+		Raw(`
+		
+		INSERT INTO event_registrations (user_id,event_id,status)
+
+		VALUES (?,?,?)
+
+		RETURNING 
+		id,
+		event_id,
+		status,
+		check_in,
+		check_out;
+
+		`, userId, eventId, status).
+		Scan(&createdRegistration).Error
+
+	return createdRegistration, err
 }
 
 func (e EventRegistrationPostgresRepo) RegisterExists(eventId string, userId string) (bool, error) {

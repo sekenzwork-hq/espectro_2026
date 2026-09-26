@@ -199,3 +199,39 @@ func (e EventPostgresRepo) DecrementTotalRegistrationBy1(id string) error {
 
 	return nil
 }
+
+func (e EventPostgresRepo) RetrieveRegisteredEventsFromUserSide(userId string, offset int, limit int) ([]entity.RegisteredEventEntity, error) {
+
+	var events []entity.RegisteredEventEntity
+
+	err := e.db.
+		Raw(
+			`
+		SELECT 
+		eve.name,
+		eve.description,
+		eve.spectrum_id,
+		eve.status,
+		eve.participant_limit,
+		eve.start_date,
+		eve.end_date,
+		eve.event_mode,
+		eve.event_type,
+		eve.is_featured,
+		eve.contact_email,
+		eve.venue_id,
+		eve.created_at,
+		evereg.status as registration_status,
+		evereg.check_out,
+		evereg.check_in
+
+		FROM events eve 
+		LEFT JOIN event_registrations evereg ON eve.id=evereg.event_id 
+		WHERE evereg.user_id = ? ;
+		`,
+			userId,
+		).
+		Scan(&events).Error
+
+	return events, err
+}

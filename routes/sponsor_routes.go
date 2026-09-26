@@ -28,8 +28,9 @@ func RegisterSponsorRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	handlers := handlers.NewSponsorHandlers(sponsorUsecases)
 
 	sponsorApi := r.Group("sponsor")
-	sponsorApi.POST("/create", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreateSponsor)
-	sponsorApi.PATCH("/update", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdateSponsor)
-	sponsorApi.DELETE("/delete", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeleteSponsor)
+
+	sponsorApi.POST("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreateSponsor)
+	sponsorApi.PATCH("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdateSponsor)
+	sponsorApi.DELETE("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeleteSponsor)
 	sponsorApi.GET("", handlers.RetrieveSponsors)
 }

@@ -15,9 +15,9 @@ func NewExhibitionPostgresRepo(db *gorm.DB) ExhibitionPostgresRepo {
 	return ExhibitionPostgresRepo{db: db}
 }
 
-func (e ExhibitionPostgresRepo) CreateExhibition(exhibition entity.ExhibitionDBInputEntity) (entity.ExhibitionDBRetrieveEntity, error) {
+func (e ExhibitionPostgresRepo) CreateExhibition(exhibition entity.ExhibitionDBInputEntity) (entity.ExhibitionDBRetrieveEntityFromUserSide, error) {
 
-	newExhibition := entity.ExhibitionDBRetrieveEntity{}
+	newExhibition := entity.ExhibitionDBRetrieveEntityFromUserSide{}
 	err := e.db.Raw(
 		`INSERT INTO exhibitions
 		 (
@@ -41,7 +41,6 @@ func (e ExhibitionPostgresRepo) CreateExhibition(exhibition entity.ExhibitionDBI
 			booth_number,
 			available_sqft,
 			assigned_staff,
-			approved_by,
 			item_title,
 			item_image_urls,
 			item_description,
@@ -62,9 +61,9 @@ func (e ExhibitionPostgresRepo) CreateExhibition(exhibition entity.ExhibitionDBI
 	return newExhibition, err
 }
 
-func (e ExhibitionPostgresRepo) UpdateExhibitionFromUserSide(exhibitionId string, newExhibition entity.ExhibitionDBInputEntity) (entity.ExhibitionDBRetrieveEntity, error) {
+func (e ExhibitionPostgresRepo) UpdateExhibitionFromUserSide(exhibitionId string, newExhibition entity.ExhibitionDBInputEntity) (entity.ExhibitionDBRetrieveEntityFromUserSide, error) {
 
-	updatedExhibition := entity.ExhibitionDBRetrieveEntity{}
+	updatedExhibition := entity.ExhibitionDBRetrieveEntityFromUserSide{}
 
 	out := e.db.Raw(
 		`UPDATE exhibitions SET 
@@ -87,7 +86,6 @@ func (e ExhibitionPostgresRepo) UpdateExhibitionFromUserSide(exhibitionId string
 			booth_number,
 			available_sqft,
 			assigned_staff,
-			approved_by,
 			item_title,
 			item_image_urls,
 			item_description,
@@ -105,15 +103,15 @@ func (e ExhibitionPostgresRepo) UpdateExhibitionFromUserSide(exhibitionId string
 	).Scan(&updatedExhibition)
 
 	if out.RowsAffected == 0 {
-		return entity.ExhibitionDBRetrieveEntity{}, gorm.ErrRecordNotFound
+		return entity.ExhibitionDBRetrieveEntityFromUserSide{}, gorm.ErrRecordNotFound
 	}
 
 	return updatedExhibition, out.Error
 }
 
-func (e ExhibitionPostgresRepo) UpdateExhibitionFromAdminSide(exhibitionId string, newExhibition entity.ExhibitionDBInputEntity) (entity.ExhibitionDBRetrieveEntity, error) {
+func (e ExhibitionPostgresRepo) UpdateExhibitionFromAdminSide(exhibitionId string, newExhibition entity.ExhibitionDBInputEntity) (entity.ExhibitionDBRetrieveEntityFromAdminSide, error) {
 
-	updatedExhibition := entity.ExhibitionDBRetrieveEntity{}
+	updatedExhibition := entity.ExhibitionDBRetrieveEntityFromAdminSide{}
 
 	out := e.db.Raw(
 		`UPDATE exhibitions SET 
@@ -134,6 +132,7 @@ func (e ExhibitionPostgresRepo) UpdateExhibitionFromAdminSide(exhibitionId strin
 			category,
 			organization_id,
 			booth_number,
+			user_id,
 			available_sqft,
 			assigned_staff,
 			approved_by,
@@ -154,7 +153,7 @@ func (e ExhibitionPostgresRepo) UpdateExhibitionFromAdminSide(exhibitionId strin
 	).Scan(&updatedExhibition)
 
 	if out.RowsAffected == 0 {
-		return entity.ExhibitionDBRetrieveEntity{}, gorm.ErrRecordNotFound
+		return entity.ExhibitionDBRetrieveEntityFromAdminSide{}, gorm.ErrRecordNotFound
 	}
 
 	return updatedExhibition, out.Error
@@ -179,6 +178,18 @@ func (e ExhibitionPostgresRepo) RetrieveExhibitionFromUserSide(userId string, of
 		Where("user_id=?", userId).
 		Offset(offset).
 		Limit(limit).Scan(&exhibitions).Error
+
+	return exhibitions, err
+}
+
+func (e ExhibitionPostgresRepo) RetrieveExhibitionFromAdminSide(offset int, limit int) ([]entity.ExhibitionDBRetrieveEntityFromAdminSide, error) {
+
+	var exhibitions []entity.ExhibitionDBRetrieveEntityFromAdminSide
+
+	err := e.db.Table("exhibitions").Select("id,user_id,event_id,organization_id,token_number,category,booth_number,available_sqft,assigned_staff,item_title,item_description,item_image_urls,status,created_at").
+		Offset(offset).
+		Limit(limit).
+		Scan(&exhibitions).Error
 
 	return exhibitions, err
 }

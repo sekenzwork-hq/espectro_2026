@@ -51,13 +51,13 @@ func (a AdminHandlers) CreateNewAdmin(ctx *gin.Context) {
 
 	currentAdminId := ctx.GetString("admin_id")
 
-	newAdminId, creationErr := a.usecases.CreateNewAdmin(newAdmin, currentAdminId)
+	createdAdmin, creationErr := a.usecases.CreateNewAdmin(newAdmin, currentAdminId)
 
 	if creationErr != nil {
 		code := pkg.GetStatusCodeForError(creationErr)
 		ctx.JSON(code, gin.H{"status": code, "message": creationErr.Error()})
 	} else {
-		ctx.JSON(http.StatusOK, gin.H{"status": 201, "message": "New admin has been created", "id": newAdminId})
+		ctx.JSON(http.StatusOK, gin.H{"status": 201, "message": "New admin has been created", "admin": createdAdmin})
 	}
 }
 

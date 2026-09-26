@@ -20,6 +20,17 @@ func GenerateJWTForAdmin(id string) (string, error) {
 
 }
 
+func GenerateJWTForUser(userId string) (string, error) {
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		"id": userId,
+	})
+
+	strToken, err := token.SignedString([]byte(os.Getenv("JWT_SECRETE")))
+
+	return strToken, err
+}
+
 func ParseJWTFromAdmin(token string) (string, error) {
 
 	invalidTokenErr := &customerrors.ValidationError{DisplayError: "Invalid token"}
@@ -48,14 +59,53 @@ func ParseJWTFromAdmin(token string) (string, error) {
 		return "", invalidTokenErr
 	}
 
-	_, isIdStr := id.(string)
+	idStr, isIdStr := id.(string)
 
 	if !isIdStr {
 		return "", invalidTokenErr
-	} else if len(id.(string)) != 36 {
+	} else if len(idStr) != 36 {
 		return "", invalidTokenErr
 	} else {
-		return id.(string), nil
+		return idStr, nil
+	}
+
+}
+
+func ParseJWTFromUser(token string) (string, error) {
+
+	invalidTokenErr := &customerrors.ValidationError{DisplayError: "Invalid token"}
+
+	parsedToken, parsingErr := jwt.Parse(token, func(t *jwt.Token) (any, error) {
+		if t.Method != jwt.SigningMethodHS512 {
+			return nil, invalidTokenErr
+		}
+		return []byte(os.Getenv("JWT_SECRETE")), nil
+	})
+
+	if parsingErr != nil {
+		return "", parsingErr
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+
+	if !ok {
+		return "", invalidTokenErr
+	}
+
+	id, idOk := claims["id"]
+
+	if !idOk {
+		return "", invalidTokenErr
+	}
+
+	idStr, isString := id.(string)
+
+	if !isString {
+		return "", invalidTokenErr
+	} else if len(idStr) != 36 {
+		return "", invalidTokenErr
+	} else {
+		return idStr, nil
 	}
 
 }

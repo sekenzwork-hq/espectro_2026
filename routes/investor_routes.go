@@ -24,8 +24,8 @@ func RegisterInvestorRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clo
 
 	investorApi := r.Group("investor")
 
-	investorApi.POST("/create", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreateInvestor)
-	investorApi.PATCH("/update", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdateInvestor)
-	investorApi.DELETE("/delete", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeleteInvestor)
+	investorApi.POST("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreateInvestor)
+	investorApi.PATCH("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdateInvestor)
+	investorApi.DELETE("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeleteInvestor)
 	investorApi.GET("", handlers.RetrieveInvestors)
 }

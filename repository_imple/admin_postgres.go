@@ -4,7 +4,6 @@ import (
 	"espectro/entity"
 	"espectro/enums"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -31,10 +30,35 @@ func (a AdminPostgresRepo) RetrieveAdminCredByEmail(email string) (entity.AdminD
 	return cred, err
 }
 
-func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminCreateEntity) (uuid.UUID, error) {
-	return admin.Id, a.db.
-		Table("admins").
-		Create(&admin).Error
+func (a AdminPostgresRepo) CreateNewAdmin(admin entity.AdminCreateEntity) (entity.AdminEntity, error) {
+	var createdAdmin entity.AdminEntity
+
+	err := a.db.
+		Raw(
+			`
+			INSERT INTO admins(
+			email,
+			fullname,
+			password,
+			admin_role)
+
+			VALUES(?,?,?,?)
+
+			RETURNING
+			id,
+			email,
+			fullname,
+			admin_role,
+			created_at;
+			
+			`,
+			admin.Email,
+			admin.Fullname,
+			admin.Password,
+			admin.Role,
+		).Scan(&createdAdmin).Error
+
+	return createdAdmin, err
 }
 
 func (a AdminPostgresRepo) RetrieveAdminRoleByID(adminId string) (enums.AdminRole, error) {

@@ -22,8 +22,8 @@ func RegisterStaffRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	adminMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
 
 	staffApi := r.Group("/staff")
-	staffApi.POST("/create", adminMiddleware.AdminMiddleWare, handlers.CreateStaff)
-	staffApi.PATCH("/update", adminMiddleware.AdminMiddleWare, handlers.UpdateStaff)
-	staffApi.DELETE("/delete", adminMiddleware.AdminMiddleWare, handlers.DeleteStaff)
+	staffApi.POST("", adminMiddleware.AdminMiddleWare, handlers.CreateStaff)
+	staffApi.PATCH("", adminMiddleware.AdminMiddleWare, handlers.UpdateStaff)
+	staffApi.DELETE("", adminMiddleware.AdminMiddleWare, handlers.DeleteStaff)
 	staffApi.GET("", adminMiddleware.AdminMiddleWare, handlers.RetrieveStaffs)
 }

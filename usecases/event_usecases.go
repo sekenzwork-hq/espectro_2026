@@ -208,30 +208,30 @@ func (e EventUsecases) RetrieveEvents(spectrumId *string, limit int, page int) (
 	return events, nil
 }
 
-func (e EventUsecases) Register(registrationDetails entity.EventRegistrationFromJsonEntity) (entity.EventRegistrationEntity, error) {
+func (e EventUsecases) Register(userId string, eventId string) (entity.EventRegistrationEntity, error) {
 
 	empty := entity.EventRegistrationEntity{}
-	if !pkg.ValidateUUID(registrationDetails.UserId) {
+	if !pkg.ValidateUUID(userId) {
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid user id"}
-	} else if !pkg.ValidateUUID(registrationDetails.EventId) {
+	} else if !pkg.ValidateUUID(eventId) {
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid event id"}
 	}
 
-	userExists, userErr := e.userRepo.UserExists(registrationDetails.UserId)
+	userExists, userErr := e.userRepo.CheckUserExists(userId)
 	if userErr != nil {
 		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if !userExists {
 		return empty, &customerrors.AuthenticationError{DisplayError: "User does not exist"}
 	}
 
-	eventExists, eventErr := e.eventRepo.EventExists(registrationDetails.EventId)
+	eventExists, eventErr := e.eventRepo.EventExists(eventId)
 	if eventErr != nil {
 		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if !eventExists {
 		return empty, &customerrors.NotFoundError{DisplayError: "Event does not exist"}
 	}
 
-	alreadyRegistered, eventRegErr := e.eventRegistrationRepo.RegisterExists(registrationDetails.EventId, registrationDetails.UserId)
+	alreadyRegistered, eventRegErr := e.eventRegistrationRepo.RegisterExists(eventId, userId)
 	if eventRegErr != nil {
 		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if alreadyRegistered {
@@ -239,12 +239,10 @@ func (e EventUsecases) Register(registrationDetails entity.EventRegistrationFrom
 	}
 
 	eventRegDetails := entity.EventRegistrationEntity{}
+
 	err := e.transaction.Run(func() error {
-		details, insertionErr := e.eventRegistrationRepo.Register(entity.EventRegistrationEntity{
-			UserId:  registrationDetails.UserId,
-			EventId: registrationDetails.EventId,
-			Status:  enums.VerificationPendingEventRegistration,
-		})
+
+		details, insertionErr := e.eventRegistrationRepo.Register(userId, eventId, enums.VerificationPendingEventRegistration)
 
 		eventRegDetails = details
 		if insertionErr != nil {
@@ -326,6 +324,26 @@ func (e EventUsecases) WithdrawRegistration(id string) error {
 
 	return err
 }
+
+func (e EventUsecases) RetrieveRegisteredEventsFromUserSide(userId string, page int) ([]entity.RegisteredEventEntity, error) {
+
+	var empty []entity.RegisteredEventEntity
+
+	if !pkg.ValidateUUID(userId) {
+		return empty, &customerrors.ValidationError{DisplayError: "Invalid user id"}
+	}
+
+	offset := pkg.GetOffset(50, page)
+
+	events, err := e.eventRepo.RetrieveRegisteredEventsFromUserSide(userId, offset, 50)
+
+	if err != nil {
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+	}
+
+	return events, nil
+}
+
 func (e EventUsecases) validateEventDetailsAndCheckExistence(name *string,
 	description *string,
 	spectrumId *string,

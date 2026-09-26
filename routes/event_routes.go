@@ -22,23 +22,28 @@ func RegisterEventRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	eventsGalleryRepo := repositoryimple.NewEventGalleryPostgresRepo(db)
 	eventsRegistrationRepo := repositoryimple.NewEventRegistrationPostgresRepo(db)
 	userRegistrationRepo := repositoryimple.NewUserPostgresRepo(db)
+	userRepo := repositoryimple.NewUserPostgresRepo(db)
+
 	eventUsecases := usecases.NewEventUsecases(eventRepo, spectrumRepo, venueRepo, transactionManager, eventsGalleryRepo, eventsRegistrationRepo, userRegistrationRepo)
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
+	userUsecases := usecases.NewUserUsecases(userRepo)
 
 	eventHandlers := handlers.NewEventHandlers(eventUsecases)
 
 	leaderAndMemberMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
+	userMiddleware := middlewares.NewUserMiddleware(userUsecases)
 
 	eventApi := r.Group("event")
 
-	eventApi.POST("/create", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.CreateEvent)
-	eventApi.PATCH("/update", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.UpdateEvent)
-	eventApi.DELETE("/delete", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.DeleteEvent)
+	eventApi.POST("", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.CreateEvent)
+	eventApi.PATCH("", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.UpdateEvent)
+	eventApi.DELETE("", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.DeleteEvent)
 	eventApi.GET("", eventHandlers.RetrieveEvents)
 
 	registrationApi := eventApi.Group("/registration")
 
-	registrationApi.POST("/register", eventHandlers.Register)
-	registrationApi.PATCH("/change-status", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.ChangeRegistrationStatus)
-	registrationApi.POST("/withdraw", eventHandlers.WithdrawRegistration)
+	registrationApi.POST("", userMiddleware.UserMiddleware, eventHandlers.Register)
+	registrationApi.PATCH("/status", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.ChangeRegistrationStatus)
+	registrationApi.POST("/withdraw", userMiddleware.UserMiddleware, eventHandlers.WithdrawRegistration)
+	registrationApi.GET("", userMiddleware.UserMiddleware, eventHandlers.RetrieveRegisteredEventsFromUserSide)
 }

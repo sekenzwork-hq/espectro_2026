@@ -110,7 +110,7 @@ func ValidateCountryOrState(str string) bool {
 
 func ValidateCity(city string) bool {
 
-	if len(city) < 5 {
+	if len(city) < 3 {
 		return false
 	} else if len(city) > 1000 {
 		return false

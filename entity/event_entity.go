@@ -53,3 +53,22 @@ type EventUpdateEntity struct {
 	ContactEmail     *string            `json:"contact_email" gorm:"column:contact_email"`
 	VenueId          *string            `json:"venue_id" gorm:"column:venue_id"`
 }
+
+type RegisteredEventEntity struct {
+	Name                string               `json:"name"`
+	Description         string               `json:"description"`
+	SpectrumId          string               `json:"spectrum_id"`
+	Status              enums.EventStatus    `json:"status"`
+	ParticipantLimit    *int                 `json:"participant_limit"`
+	StartDate           *string              `json:"start_date"`
+	EndDate             *string              `json:"end_date"`
+	EventMode           enums.EventMode      `json:"event_mode"`
+	EventType           enums.EventType      `json:"event_type"`
+	IsFeatured          bool                 `json:"is_featured"`
+	ContactEmail        string               `json:"contact_email"`
+	VenueId             string               `json:"venue_id"`
+	RegisterationStatus enums.EventRegStatus `json:"registration_status" gorm:"column:registration_status"`
+	CheckIn             *time.Time           `json:"check_in" gorm:"column:check_in"`
+	CheckOut            *time.Time           `json:"check_out" gorm:"column:check_out"`
+	CreatedAt           time.Time            `json:"created_at" gorm:"column:created_at;type timestampz;default:now()"`
+}

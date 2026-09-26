@@ -2,11 +2,9 @@ package repository
 
 import (
 	"espectro/entity"
-
-	"github.com/google/uuid"
 )
 
 type UserRepository interface {
-	RegisterUser(user entity.UserEntity) (uuid.UUID, error)
-	UserExists(userId string) (bool, error)
+	RegisterUser(user entity.UserEntity) (entity.UserEntity, error)
+	CheckUserExists(userId string) (bool, error)
 }

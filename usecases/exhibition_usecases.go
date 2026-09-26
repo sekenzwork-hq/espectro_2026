@@ -48,9 +48,9 @@ func NewExhibitionUsecases(
 	}
 }
 
-func (e ExhibitionUsecases) CreateExhibition(exhibition entity.ExhibitionRawEntity) (entity.ExhibitionDBRetrieveEntity, error) {
+func (e ExhibitionUsecases) CreateExhibition(exhibition entity.ExhibitionRawEntity) (entity.ExhibitionDBRetrieveEntityFromUserSide, error) {
 
-	empty := entity.ExhibitionDBRetrieveEntity{}
+	empty := entity.ExhibitionDBRetrieveEntityFromUserSide{}
 
 	validationError := e.validateExhibitionData(nil, &exhibition.EventId, exhibition.UserId, nil, &exhibition.Category, &exhibition.OrganizationId, nil, nil, nil, nil, &exhibition.ItemTitle, exhibition.ItemImages, &exhibition.ItemDescription, nil)
 
@@ -117,9 +117,9 @@ func (e ExhibitionUsecases) CreateExhibition(exhibition entity.ExhibitionRawEnti
 
 }
 
-func (e ExhibitionUsecases) UpdateExhibitionFromUserSide(exhibitionId string, newExhibition entity.ExhibitionRawUpdateEntity) (entity.ExhibitionDBRetrieveEntity, error) {
+func (e ExhibitionUsecases) UpdateExhibitionFromUserSide(exhibitionId string, newExhibition entity.ExhibitionRawUpdateEntity) (entity.ExhibitionDBRetrieveEntityFromUserSide, error) {
 
-	empty := entity.ExhibitionDBRetrieveEntity{}
+	empty := entity.ExhibitionDBRetrieveEntityFromUserSide{}
 	validationError := e.validateExhibitionData(
 		&exhibitionId,
 		newExhibition.EventId,
@@ -221,9 +221,9 @@ func (e ExhibitionUsecases) UpdateExhibitionFromUserSide(exhibitionId string, ne
 
 }
 
-func (e ExhibitionUsecases) UpdateExhibitionFromAdminSide(exhibitionId string, newExhibition entity.ExhibitionRawUpdateEntity) (entity.ExhibitionDBRetrieveEntity, error) {
+func (e ExhibitionUsecases) UpdateExhibitionFromAdminSide(exhibitionId string, newExhibition entity.ExhibitionRawUpdateEntity) (entity.ExhibitionDBRetrieveEntityFromAdminSide, error) {
 
-	empty := entity.ExhibitionDBRetrieveEntity{}
+	empty := entity.ExhibitionDBRetrieveEntityFromAdminSide{}
 
 	validationError := e.validateExhibitionData(
 		&exhibitionId,
@@ -339,6 +339,19 @@ func (e ExhibitionUsecases) RetrieveExhibitionFromUserSide(userId string, page i
 	}
 
 	return exhibitions, err
+}
+
+func (e ExhibitionUsecases) RetrieveExhibitionFromAdminSide(page int) ([]entity.ExhibitionDBRetrieveEntityFromAdminSide, error) {
+
+	offset := pkg.GetOffset(50, page)
+
+	exhibitions, err := e.exhibitionRepo.RetrieveExhibitionFromAdminSide(offset, page)
+
+	if err != nil {
+		return []entity.ExhibitionDBRetrieveEntityFromAdminSide{}, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+	}
+
+	return exhibitions, nil
 }
 
 func (e ExhibitionUsecases) validateExhibitionData(

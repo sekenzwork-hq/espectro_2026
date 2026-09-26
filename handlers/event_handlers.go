@@ -5,6 +5,7 @@ import (
 	"espectro/pkg"
 	"espectro/usecases"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -97,14 +98,11 @@ func (e EventHandlers) RetrieveEvents(ctx *gin.Context) {
 }
 
 func (e EventHandlers) Register(ctx *gin.Context) {
-	var entity entity.EventRegistrationFromJsonEntity
 
-	canGo := pkg.ParseJson(ctx, &entity)
-	if !canGo {
-		return
-	}
+	eventId := ctx.Query("event_id")
+	userId := ctx.GetString("user_id")
 
-	details, err := e.usecases.Register(entity)
+	details, err := e.usecases.Register(userId, eventId)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
@@ -148,4 +146,23 @@ func (e EventHandlers) WithdrawRegistration(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Registration has been withdrawn"})
+}
+
+func (e EventHandlers) RetrieveRegisteredEventsFromUserSide(ctx *gin.Context) {
+
+	userId := ctx.GetString("user_id")
+
+	page, _ := strconv.Atoi(ctx.Query("page"))
+
+	if page <= 0 {
+		page = 1
+	}
+	events, err := e.usecases.RetrieveRegisteredEventsFromUserSide(userId, page)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "events": events})
+	}
 }

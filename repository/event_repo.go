@@ -14,4 +14,5 @@ type EventRepo interface {
 	EventExists(eventId string) (bool, error)
 	IncrementTotalRegistrationBy1(id string) error
 	DecrementTotalRegistrationBy1(id string) error
+	RetrieveRegisteredEventsFromUserSide(userId string, offset int, limit int) ([]entity.RegisteredEventEntity, error)
 }

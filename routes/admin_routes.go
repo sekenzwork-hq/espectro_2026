@@ -25,8 +25,8 @@ func RegisterAdminRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	adminApi := r.Group("/admin")
 
 	adminApi.POST("/login", handlers.Login)
-	adminApi.POST("/create", leaderAdminProtectedMiddleware.AdminMiddleWare, handlers.CreateNewAdmin)
-	adminApi.DELETE("/delete", leaderAdminProtectedMiddleware.AdminMiddleWare, handlers.DeleteMemberOrVolunteer)
-	adminApi.PATCH("/update", allAdminProtectedMiddleware.AdminMiddleWare, handlers.UpdateCurrentAdmin)
-	adminApi.PATCH("/update/role", leaderAdminProtectedMiddleware.AdminMiddleWare, handlers.UpdateAdminRole)
+	adminApi.POST("", leaderAdminProtectedMiddleware.AdminMiddleWare, handlers.CreateNewAdmin)
+	adminApi.DELETE("", leaderAdminProtectedMiddleware.AdminMiddleWare, handlers.DeleteMemberOrVolunteer)
+	adminApi.PATCH("", allAdminProtectedMiddleware.AdminMiddleWare, handlers.UpdateCurrentAdmin)
+	adminApi.PATCH("/role", leaderAdminProtectedMiddleware.AdminMiddleWare, handlers.UpdateAdminRole)
 }

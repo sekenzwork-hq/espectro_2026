@@ -23,16 +23,19 @@ func RegisterGalleryRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	eventRepo := repositoryimple.NewEventPostgresRepo(db)
 	eventGalleryRepo := repositoryimple.NewEventGalleryPostgresRepo(db)
 	transaction := database.NewTransactionManager(db)
+
 	galleryUsecases := usecases.NewGalleryUsecases(galleryRepo, mediaRepo, venueRepo, eventGalleryRepo, eventRepo, transaction)
+
 	handlers := handlers.NewGalleryHandlers(galleryUsecases)
-	adminMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
+
+	leaderAndMemberAdmin := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
 
 	galleryApi := r.Group("/gallery")
 
-	galleryApi.POST("/create", adminMiddleware.AdminMiddleWare, handlers.CreateGallery)
-	galleryApi.PATCH("/update", adminMiddleware.AdminMiddleWare, handlers.UpdateGallery)
-	galleryApi.DELETE("/delete", adminMiddleware.AdminMiddleWare, handlers.DeleteGallery)
+	galleryApi.POST("", leaderAndMemberAdmin.AdminMiddleWare, handlers.CreateGallery)
+	galleryApi.PATCH("", leaderAndMemberAdmin.AdminMiddleWare, handlers.UpdateGallery)
+	galleryApi.DELETE("", leaderAndMemberAdmin.AdminMiddleWare, handlers.DeleteGallery)
 	galleryApi.GET("", handlers.RetrieveGalleries)
-	galleryApi.POST("/add-event", adminMiddleware.AdminMiddleWare, handlers.AddGalleryToEvent)
-	galleryApi.DELETE("/delete-from-event", adminMiddleware.AdminMiddleWare, handlers.DeleteGalleryFromEvent)
+	galleryApi.POST("/add-event", leaderAndMemberAdmin.AdminMiddleWare, handlers.AddGalleryToEvent)
+	galleryApi.DELETE("/from-event", leaderAndMemberAdmin.AdminMiddleWare, handlers.DeleteGalleryFromEvent)
 }

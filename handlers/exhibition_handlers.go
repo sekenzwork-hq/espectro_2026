@@ -209,3 +209,21 @@ func (e ExhibitionHandlers) RetrieveExhibitionFromUserSide(ctx *gin.Context) {
 	}
 
 }
+
+func (e ExhibitionHandlers) RetrieveExhibitionFromAdminSide(ctx *gin.Context) {
+
+	page, _ := strconv.Atoi(ctx.Query("page"))
+
+	if page <= 0 {
+		page = 1
+	}
+
+	exhibitions, err := e.exhibitonUsecases.RetrieveExhibitionFromAdminSide(page)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "exhibitions": exhibitions})
+	}
+}

@@ -3,7 +3,6 @@ package repositoryimple
 import (
 	"espectro/entity"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -17,15 +16,48 @@ func NewUserPostgresRepo(db *gorm.DB) UserPostgresRepo {
 	}
 }
 
-func (u UserPostgresRepo) RegisterUser(user entity.UserEntity) (uuid.UUID, error) {
-	obj := u.db.
-		Table("users").
-		Create(&user)
+func (u UserPostgresRepo) RegisterUser(user entity.UserEntity) (entity.UserEntity, error) {
 
-	return user.Id, obj.Error
+	var createdUser entity.UserEntity
+
+	err := u.db.Raw(
+		`
+		INSERT INTO users
+		(fullname,
+		email,
+		country,
+		state,
+		city,
+		phone,
+		user_type)
+
+		VALUES (?,?,?,?,?,?,?)
+
+		RETURNING
+
+		id,
+		fullname,
+		email,
+		country,
+		state,
+		city,
+		phone,
+		user_type,
+		created_at;
+		`,
+		user.Fullname,
+		user.Email,
+		user.Country,
+		user.State,
+		user.City,
+		user.PhoneNumber,
+		user.Usertype,
+	).Scan(&createdUser).Error
+
+	return createdUser, err
 }
 
-func (u UserPostgresRepo) UserExists(userId string) (bool, error) {
+func (u UserPostgresRepo) CheckUserExists(userId string) (bool, error) {
 
 	var exists bool
 	err := u.db.Raw(

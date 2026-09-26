@@ -58,7 +58,9 @@ func (a AdminUsecases) Login(email string, password string) (string, error) {
 
 }
 
-func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedAdminId string) (string, error) {
+func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedAdminId string) (entity.AdminEntity, error) {
+
+	empty := entity.AdminEntity{}
 
 	var adminRole enums.AdminRole
 
@@ -68,18 +70,18 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedA
 	passwordErr := pkg.ValidatePassword(admin.Password)
 
 	if fullnameErr != nil {
-		return "", &customerrors.ValidationError{DisplayError: fullnameErr.Error()}
+		return empty, &customerrors.ValidationError{DisplayError: fullnameErr.Error()}
 	} else if !isEmailCorrect {
-		return "", &customerrors.ValidationError{DisplayError: "Invalid email"}
+		return empty, &customerrors.ValidationError{DisplayError: "Invalid email"}
 	} else if passwordErr != nil {
-		return "", &customerrors.ValidationError{DisplayError: passwordErr.Error()}
+		return empty, &customerrors.ValidationError{DisplayError: passwordErr.Error()}
 	} else if !isAdminRoleCorrect {
-		return "", &customerrors.ValidationError{DisplayError: "Invalid admin role"}
+		return empty, &customerrors.ValidationError{DisplayError: "Invalid admin role"}
 	}
 
 	hashedPass, hashingErr := pkg.EncryptPassword(admin.Password)
 	if hashingErr != nil {
-		return "", &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
 	adminWithPasswordHashed := entity.AdminCreateEntity{
@@ -89,13 +91,13 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedA
 		Password: hashedPass,
 	}
 
-	newAdminId, insertErr := a.repo.CreateNewAdmin(adminWithPasswordHashed)
+	createdAdmin, insertErr := a.repo.CreateNewAdmin(adminWithPasswordHashed)
 
 	if insertErr != nil {
-		return "", &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
-	return newAdminId.String(), nil
+	return createdAdmin, nil
 
 }
 

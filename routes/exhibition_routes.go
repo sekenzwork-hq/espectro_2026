@@ -24,18 +24,22 @@ func RegisterExhibtionRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Cl
 
 	exhibitionUsecases := usecases.NewExhibitionUsecases(exhibtionRepo, mediaRepo, eventRepo, organizationRepo, adminRepo, staffRepo, userRepo)
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
+	userUsercases := usecases.NewUserUsecases(userRepo)
 
 	exhibtionHandlers := handlers.NewExhibitionHandlers(exhibitionUsecases)
 
 	memberLeaderAdminMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
+	allAdminMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.AllAdminMiddleware)
+	userMiddleware := middlewares.NewUserMiddleware(userUsercases)
 
 	exhibitionApi := r.Group("/exhibition")
 
-	exhibitionApi.POST("", exhibtionHandlers.CreateExhibition)
-	exhibitionApi.PATCH("/user", exhibtionHandlers.UpdateExhibitionFromUserSide)
+	exhibitionApi.POST("", userMiddleware.UserMiddleware, exhibtionHandlers.CreateExhibition)
+	exhibitionApi.PATCH("/user", userMiddleware.UserMiddleware, exhibtionHandlers.UpdateExhibitionFromUserSide)
 	exhibitionApi.PATCH("/admin", memberLeaderAdminMiddleware.AdminMiddleWare, exhibtionHandlers.UpdateExhibitionFromAdminSide)
 	exhibitionApi.DELETE("/admin", memberLeaderAdminMiddleware.AdminMiddleWare, exhibtionHandlers.DeleteExhibition)
-	exhibitionApi.DELETE("/user", exhibtionHandlers.DeleteExhibition)
-	exhibitionApi.GET("/user", exhibtionHandlers.RetrieveExhibitionFromUserSide)
+	exhibitionApi.DELETE("/user", userMiddleware.UserMiddleware, exhibtionHandlers.DeleteExhibition)
+	exhibitionApi.GET("/user", userMiddleware.UserMiddleware, exhibtionHandlers.RetrieveExhibitionFromUserSide)
+	exhibitionApi.GET("/admin", allAdminMiddleware.AdminMiddleWare, exhibtionHandlers.RetrieveExhibitionFromAdminSide)
 
 }

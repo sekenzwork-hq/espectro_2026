@@ -8,7 +8,7 @@ import (
 	"github.com/lib/pq"
 )
 
-type ExhibitionDBRetrieveEntity struct {
+type ExhibitionDBRetrieveEntityFromAdminSide struct {
 	Id              string                 `json:"id" gorm:"column:id;type uuid;primaryKey"`
 	EventId         string                 `json:"event_id" gorm:"column:event_id"`
 	TokenNumber     *int                   `json:"token_number" gorm:"column:token_number"`
@@ -17,6 +17,7 @@ type ExhibitionDBRetrieveEntity struct {
 	BoothNumber     *int                   `json:"booth_number" gorm:"column:booth_number"`
 	AvailableSqft   *float32               `json:"available_sqft" gorm:"column:available_sqft"`
 	AssignedStaffId *string                `json:"assigned_staff_id" gorm:"column:assigned_staff"`
+	UserId          string                 `json:"user_id" gorm:"column:user_id"`
 	ApprovedBy      *string                `json:"approved_by" gorm:"column:approved_by"`
 	ItemTitle       string                 `json:"item_title" gorm:"column:item_title"`
 	ItemImageUrls   pq.StringArray         `json:"item_image_urls" gorm:"column:item_image_urls; type:text[]"`
