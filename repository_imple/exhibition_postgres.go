@@ -75,7 +75,7 @@ func (e ExhibitionPostgresRepo) UpdateExhibitionFromUserSide(exhibitionId string
 		 item_description=COALESCE(?,item_description),
 		 item_image_urls=COALESCE(?,item_image_urls)
 
-		 WHERE id = ?
+		 WHERE id = ? AND deleted_at IS NULL
 
 		 RETURNING 
 			id,
@@ -123,7 +123,7 @@ func (e ExhibitionPostgresRepo) UpdateExhibitionFromAdminSide(exhibitionId strin
 		 approved_by=COALESCE(?,approved_by),
 		 assigned_staff=COALESCE(?,assigned_staff)
 
-		 WHERE id = ?
+		 WHERE id = ? AND deleted_at IS NULL
 
 		 RETURNING 
 			id,
@@ -161,7 +161,7 @@ func (e ExhibitionPostgresRepo) UpdateExhibitionFromAdminSide(exhibitionId strin
 
 func (e ExhibitionPostgresRepo) DeleteExhibition(exhibitionId string) error {
 
-	out := e.db.Table("exhibitions").Where("id=?", exhibitionId).Update("deleted_at", time.Now().UTC())
+	out := e.db.Table("exhibitions").Where("id=? AND deleted_at IS NULL", exhibitionId).Update("deleted_at", time.Now().UTC())
 
 	if out.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
@@ -187,6 +187,7 @@ func (e ExhibitionPostgresRepo) RetrieveExhibitionFromAdminSide(offset int, limi
 	var exhibitions []entity.ExhibitionDBRetrieveEntityFromAdminSide
 
 	err := e.db.Table("exhibitions").Select("id,user_id,event_id,organization_id,token_number,category,booth_number,available_sqft,assigned_staff,item_title,item_description,item_image_urls,status,created_at").
+		Where("deleted_at IS NULL").
 		Offset(offset).
 		Limit(limit).
 		Scan(&exhibitions).Error

@@ -209,12 +209,14 @@ func (e ExhibitionUsecases) UpdateExhibitionFromUserSide(exhibitionId string, ne
 
 		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else {
-		go func() {
-			deletionErr := e.mediaRepo.DeleteAssetsWithPublicIds(previousPublicIds)
-			if deletionErr != nil {
-				fmt.Println("Exhibition images deletion error : ", deletionErr)
-			}
-		}()
+		if len(previousPublicIds) != 0 {
+			go func() {
+				deletionErr := e.mediaRepo.DeleteAssetsWithPublicIds(previousPublicIds)
+				if deletionErr != nil {
+					fmt.Println("Exhibition images deletion error : ", deletionErr)
+				}
+			}()
+		}
 
 		return updatedExhibition, nil
 	}
