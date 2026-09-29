@@ -84,7 +84,7 @@ func (s SpectrumPostgresRepo) DeleteSpectrum(spectrumId string) error {
 	return nil
 }
 
-func (s SpectrumPostgresRepo) RetrieveSpectrums(offset int, limit int) ([]entity.SpectrumEntity, error) {
+func (s SpectrumPostgresRepo) RetrieveSpectrums(offset int) ([]entity.SpectrumEntity, error) {
 
 	var spectrums []entity.SpectrumEntity
 
@@ -93,7 +93,7 @@ func (s SpectrumPostgresRepo) RetrieveSpectrums(offset int, limit int) ([]entity
 		Select("id,name,short_description,description,status,total_events,logo_url,video_url,image_urls,created_at").
 		Where("deleted_at IS NULL").
 		Offset(offset).
-		Limit(limit).
+		Limit(50).
 		Scan(&spectrums)
 
 	return spectrums, out.Error

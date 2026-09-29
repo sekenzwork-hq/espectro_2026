@@ -77,13 +77,9 @@ func (v VenueHandlers) UpdateVenue(ctx *gin.Context) {
 
 func (v VenueHandlers) RetrieveVenue(ctx *gin.Context) {
 
-	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
-	if limitErr != nil {
-		code := pkg.GetStatusCodeForError(limitErr)
-		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
-	}
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
 
-	venue, err := v.usecases.RetrieveVenue(page, limit)
+	venue, err := v.usecases.RetrieveVenue(page)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})

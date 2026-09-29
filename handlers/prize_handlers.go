@@ -149,3 +149,41 @@ func (p PrizeHandlers) UpdatePrize(ctx *gin.Context) {
 	}
 
 }
+
+func (p PrizeHandlers) DeletePrize(ctx *gin.Context) {
+
+	prizeId, exists := ctx.GetQuery("prize_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide prize id"))
+		return
+	}
+
+	err := p.prizeUsecases.DeletePrize(prizeId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Prize has been deleted successfully"})
+	}
+}
+
+func (p PrizeHandlers) RetrievePrize(ctx *gin.Context) {
+
+	prizeId, exists := ctx.GetQuery("prize_id")
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide prize id"))
+		return
+	}
+
+	prize, err := p.prizeUsecases.RetrievePrize(prizeId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successful", "prize": prize})
+	}
+}

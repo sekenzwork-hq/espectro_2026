@@ -126,14 +126,9 @@ func (s SponsorHandlers) RetrieveSponsors(ctx *gin.Context) {
 		eventId = &eventIdQ
 	}
 
-	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
-	if limitErr != nil {
-		code := pkg.GetStatusCodeForError(limitErr)
-		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
-		return
-	}
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
 
-	sponsors, err := s.usecases.RetrieveSponsors(eventId, limit, page)
+	sponsors, err := s.usecases.RetrieveSponsors(eventId, page)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})

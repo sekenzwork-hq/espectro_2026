@@ -109,14 +109,9 @@ func (i InvestorHandlers) DeleteInvestor(ctx *gin.Context) {
 
 func (i InvestorHandlers) RetrieveInvestors(ctx *gin.Context) {
 
-	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
-	if limitErr != nil {
-		code := pkg.GetStatusCodeForError(limitErr)
-		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
-		return
-	}
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
 
-	investors, retrievalErr := i.usecases.RetrieveInvestors(limit, page)
+	investors, retrievalErr := i.usecases.RetrieveInvestors(page)
 	if retrievalErr != nil {
 		code := pkg.GetStatusCodeForError(retrievalErr)
 		ctx.JSON(code, gin.H{"status": code, "message": retrievalErr.Error()})

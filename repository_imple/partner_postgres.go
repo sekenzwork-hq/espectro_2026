@@ -59,7 +59,7 @@ func (p PartnerPostgresRepo) DeletePartner(partnerId string) error {
 	return nil
 }
 
-func (p PartnerPostgresRepo) RetrievePartner(limit int, offset int) ([]entity.PartnerEntity, error) {
+func (p PartnerPostgresRepo) RetrievePartner(offset int) ([]entity.PartnerEntity, error) {
 
 	var partners []entity.PartnerEntity
 
@@ -67,7 +67,7 @@ func (p PartnerPostgresRepo) RetrievePartner(limit int, offset int) ([]entity.Pa
 		Table("partners").
 		Select("id,name,logo_url,created_at").
 		Where("deleted_at IS NULL").
-		Limit(limit).
+		Limit(50).
 		Offset(offset).
 		Scan(&partners).Error
 

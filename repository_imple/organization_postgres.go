@@ -80,14 +80,14 @@ func (o OrganizationPostgresRepo) DeleteOrganization(id string) error {
 	return nil
 }
 
-func (o OrganizationPostgresRepo) RetrieveOrganizations(limit int, offset int) ([]entity.OrganizationEntity, error) {
+func (o OrganizationPostgresRepo) RetrieveOrganizations(offset int) ([]entity.OrganizationEntity, error) {
 
 	var organizations []entity.OrganizationEntity
 
 	err := o.db.
 		Table("organizations").
 		Where("deleted_at IS NULL").
-		Offset(offset).Limit(limit).
+		Offset(offset).Limit(50).
 		Scan(&organizations).Error
 
 	return organizations, err

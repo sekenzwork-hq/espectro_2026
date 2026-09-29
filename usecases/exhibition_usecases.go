@@ -334,7 +334,7 @@ func (e ExhibitionUsecases) RetrieveExhibitionFromUserSide(userId string, page i
 
 	offset := pkg.GetOffset(50, page)
 
-	exhibitions, err := e.exhibitionRepo.RetrieveExhibitionFromUserSide(userId, offset, page)
+	exhibitions, err := e.exhibitionRepo.RetrieveExhibitionFromUserSide(userId, offset)
 
 	if err != nil {
 		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
@@ -347,7 +347,7 @@ func (e ExhibitionUsecases) RetrieveExhibitionFromAdminSide(page int) ([]entity.
 
 	offset := pkg.GetOffset(50, page)
 
-	exhibitions, err := e.exhibitionRepo.RetrieveExhibitionFromAdminSide(offset, page)
+	exhibitions, err := e.exhibitionRepo.RetrieveExhibitionFromAdminSide(offset)
 
 	if err != nil {
 		return []entity.ExhibitionDBRetrieveEntityFromAdminSide{}, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}

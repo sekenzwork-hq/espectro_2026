@@ -69,7 +69,7 @@ func (i InvestorPostgresRepo) DeleteInvestor(investorId string) error {
 	return nil
 }
 
-func (i InvestorPostgresRepo) RetrieveInvestors(limit int, offset int) ([]entity.InvestorEntity, error) {
+func (i InvestorPostgresRepo) RetrieveInvestors(offset int) ([]entity.InvestorEntity, error) {
 
 	var investors []entity.InvestorEntity
 
@@ -77,7 +77,7 @@ func (i InvestorPostgresRepo) RetrieveInvestors(limit int, offset int) ([]entity
 		Table("investors").
 		Where("deleted_at IS NULL").
 		Offset(offset).
-		Limit(limit).
+		Limit(50).
 		Scan(&investors).Error
 
 	return investors, err

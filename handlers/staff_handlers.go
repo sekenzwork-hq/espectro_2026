@@ -74,13 +74,9 @@ func (s StaffHandlers) DeleteStaff(ctx *gin.Context) {
 
 func (s StaffHandlers) RetrieveStaffs(ctx *gin.Context) {
 
-	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
-	if limitErr != nil {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": limitErr.Error()})
-		return
-	}
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
 
-	staffs, err := s.usecases.RetrieveStaffs(limit, page)
+	staffs, err := s.usecases.RetrieveStaffs(page)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})

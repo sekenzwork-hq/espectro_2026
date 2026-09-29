@@ -87,13 +87,9 @@ func (p PartnerHandlers) DeletePartner(ctx *gin.Context) {
 
 func (p PartnerHandlers) RetrievePartner(ctx *gin.Context) {
 
-	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
-	if limitErr != nil {
-		code := pkg.GetStatusCodeForError(limitErr)
-		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
-	}
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
 
-	partners, err := p.usecases.RetrievePartner(limit, page)
+	partners, err := p.usecases.RetrievePartner(page)
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})

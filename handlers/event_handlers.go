@@ -80,14 +80,9 @@ func (e EventHandlers) RetrieveEvents(ctx *gin.Context) {
 		spectrumId = &spectrumIdQ
 	}
 
-	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
 
-	if limitErr != nil {
-		code := pkg.GetStatusCodeForError(limitErr)
-		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
-	}
-
-	events, err := e.usecases.RetrieveEvents(spectrumId, limit, page)
+	events, err := e.usecases.RetrieveEvents(spectrumId, page)
 
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)

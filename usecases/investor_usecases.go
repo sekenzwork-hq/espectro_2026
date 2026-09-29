@@ -133,10 +133,10 @@ func (i InvestorUsecases) DeleteInvestor(investorId string) error {
 
 }
 
-func (i InvestorUsecases) RetrieveInvestors(limit int, page int) ([]entity.InvestorEntity, error) {
+func (i InvestorUsecases) RetrieveInvestors(page int) ([]entity.InvestorEntity, error) {
 
-	offset := pkg.GetOffset(limit, page)
-	investors, err := i.investorRepo.RetrieveInvestors(limit, offset)
+	offset := pkg.GetOffset(50, page)
+	investors, err := i.investorRepo.RetrieveInvestors(offset)
 	if err != nil {
 		return investors, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}

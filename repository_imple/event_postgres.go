@@ -83,14 +83,14 @@ func (e EventPostgresRepo) DeleteEvent(eventId string) error {
 	return nil
 }
 
-func (e EventPostgresRepo) RetrieveEvents(limit int, offset int) ([]entity.EventEntity, error) {
+func (e EventPostgresRepo) RetrieveEvents(offset int) ([]entity.EventEntity, error) {
 
 	var events []entity.EventEntity
 	err := e.db.
 		Table("events").
 		Select("id,name,description,status,event_mode,event_type,participant_limit,start_date,end_date,spectrum_id,total_registrations,venue_id,contact_email,created_at").
 		Where("deleted_at IS NULL").
-		Limit(limit).
+		Limit(50).
 		Offset(offset).
 		Scan(&events).Error
 
@@ -140,7 +140,7 @@ func (e EventPostgresRepo) DeleteEventBySpectrumId(spectrumId string) error {
 	return nil
 }
 
-func (e EventPostgresRepo) RetrieveEventsBySpectrumId(spectrumId string, limit int, offset int) ([]entity.EventEntity, error) {
+func (e EventPostgresRepo) RetrieveEventsBySpectrumId(spectrumId string, offset int) ([]entity.EventEntity, error) {
 	var events []entity.EventEntity
 
 	err := e.db.
@@ -148,7 +148,7 @@ func (e EventPostgresRepo) RetrieveEventsBySpectrumId(spectrumId string, limit i
 		Select("id,name,description,spectrum_id,status,start_date,end_date,participant_limit,event_mode,event_type,is_featured,contact_email,venue_id,created_at").
 		Where("spectrum_id=? AND deleted_at IS NULL", spectrumId).
 		Offset(offset).
-		Limit(limit).
+		Limit(50).
 		Scan(&events).Error
 
 	return events, err
@@ -200,7 +200,7 @@ func (e EventPostgresRepo) DecrementTotalRegistrationBy1(id string) error {
 	return nil
 }
 
-func (e EventPostgresRepo) RetrieveRegisteredEventsFromUserSide(userId string, offset int, limit int) ([]entity.RegisteredEventEntity, error) {
+func (e EventPostgresRepo) RetrieveRegisteredEventsFromUserSide(userId string, offset int) ([]entity.RegisteredEventEntity, error) {
 
 	var events []entity.RegisteredEventEntity
 
@@ -227,9 +227,13 @@ func (e EventPostgresRepo) RetrieveRegisteredEventsFromUserSide(userId string, o
 
 		FROM events eve 
 		LEFT JOIN event_registrations evereg ON eve.id=evereg.event_id 
-		WHERE evereg.user_id = ? ;
+		WHERE evereg.user_id = ? 
+		LIMIT 50
+		OFFSET ?
+		;
 		`,
 			userId,
+			offset,
 		).
 		Scan(&events).Error
 

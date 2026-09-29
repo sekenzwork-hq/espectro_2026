@@ -2,6 +2,7 @@ package repositoryimple
 
 import (
 	"espectro/entity"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -88,4 +89,32 @@ func (p PrizePostgresRepo) UpdatePrize(prizeId string, newPrize entity.PrizeDBUp
 	}
 
 	return updatedPrize, out.Error
+}
+
+func (p PrizePostgresRepo) DeletePrize(prizeId string) error {
+
+	out := p.db.
+		Table("prize").
+		Where("id=? AND deleted_at IS NULL", prizeId).
+		UpdateColumn("deleted_at", time.Now().UTC())
+
+	if out.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return out.Error
+}
+
+func (p PrizePostgresRepo) RetrievePrize(prizeId string) (entity.PrizeDBRetrieveEntity, error) {
+
+	var prize entity.PrizeDBRetrieveEntity
+
+	err := p.db.
+		Table("prize").
+		Select("id,title,description,amount,logo_url,created_at,type").
+		Where("id=? AND deleted_at IS NULL", prizeId).
+		Scan(&prize).
+		Limit(1).Error
+
+	return prize, err
 }

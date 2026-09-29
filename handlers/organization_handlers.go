@@ -151,13 +151,10 @@ func (o OrganizationHandlers) DeleteOrganization(ctx *gin.Context) {
 }
 
 func (o OrganizationHandlers) RetrieveOrganizations(ctx *gin.Context) {
-	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
-	if limitErr != nil {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": limitErr.Error()})
-		return
-	}
 
-	organizations, err := o.usecases.RetrieveOrganizations(limit, page)
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
+
+	organizations, err := o.usecases.RetrieveOrganizations(page)
 
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)

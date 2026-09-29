@@ -31,7 +31,7 @@ func (e EventPostgresRepo) AddSponsor(sponsorId string, eventIds []string) error
 	return err
 }
 
-func (e EventPostgresRepo) RetrieveSponsorsBasedOnEvent(eventId string, limit int, offset int) ([]entity.SponsorEntity, error) {
+func (e EventPostgresRepo) RetrieveSponsorsBasedOnEvent(eventId string, offset int) ([]entity.SponsorEntity, error) {
 
 	var sponsors []entity.SponsorEntity
 
@@ -41,10 +41,8 @@ func (e EventPostgresRepo) RetrieveSponsorsBasedOnEvent(eventId string, limit in
 		INNER JOIN event_sponsors es ON s.id=es.sponsor_id WHERE event_id=?
 		GROUP BY s.id OFFSET ? LIMIT ?
 		`,
-		eventId, offset, limit,
+		eventId, offset, 50,
 	).
-		Offset(offset).
-		Limit(limit).
 		Scan(&sponsors).Error
 
 	return sponsors, err

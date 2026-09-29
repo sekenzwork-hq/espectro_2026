@@ -76,10 +76,10 @@ func (e StaffUsecases) DeleteStaff(staffId string) error {
 	return nil
 }
 
-func (e StaffUsecases) RetrieveStaffs(limit int, page int) ([]entity.StaffEntity, error) {
+func (e StaffUsecases) RetrieveStaffs(page int) ([]entity.StaffEntity, error) {
 
-	offset := pkg.GetOffset(limit, page)
-	staffs, err := e.staffRepo.RetrieveStaffs(limit, offset)
+	offset := pkg.GetOffset(50, page)
+	staffs, err := e.staffRepo.RetrieveStaffs(offset)
 	if err != nil {
 		return []entity.StaffEntity{}, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}

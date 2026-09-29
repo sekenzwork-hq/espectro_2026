@@ -18,7 +18,7 @@ type SpectrumRepo interface {
 		imageUrls []string,
 	) (entity.SpectrumEntity, error)
 	DeleteSpectrum(spectrumId string) error
-	RetrieveSpectrums(offset int, limit int) ([]entity.SpectrumEntity, error)
+	RetrieveSpectrums(offset int) ([]entity.SpectrumEntity, error)
 	CheckSpectrumExists(spectrumId string) (bool, error)
 	IncrementTotalEventsCountBy1(spectrumId string) error
 	DecrementTotalEventsCountBy1(spectrumId string) error

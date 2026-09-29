@@ -187,19 +187,19 @@ func (e EventUsecases) DeleteEvent(eventId string) error {
 	return nil
 }
 
-func (e EventUsecases) RetrieveEvents(spectrumId *string, limit int, page int) ([]entity.EventEntity, error) {
+func (e EventUsecases) RetrieveEvents(spectrumId *string, page int) ([]entity.EventEntity, error) {
 
 	if spectrumId != nil && !pkg.ValidateUUID(*spectrumId) {
 		return []entity.EventEntity{}, &customerrors.ValidationError{DisplayError: "Invalid spectrum id"}
 	}
-	offset := pkg.GetOffset(limit, page)
+	offset := pkg.GetOffset(50, page)
 	var events []entity.EventEntity
 	var err error
 
 	if spectrumId != nil {
-		events, err = e.eventRepo.RetrieveEventsBySpectrumId(*spectrumId, limit, offset)
+		events, err = e.eventRepo.RetrieveEventsBySpectrumId(*spectrumId, offset)
 	} else {
-		events, err = e.eventRepo.RetrieveEvents(limit, offset)
+		events, err = e.eventRepo.RetrieveEvents(offset)
 	}
 	if err != nil {
 		return events, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
@@ -335,7 +335,7 @@ func (e EventUsecases) RetrieveRegisteredEventsFromUserSide(userId string, page 
 
 	offset := pkg.GetOffset(50, page)
 
-	events, err := e.eventRepo.RetrieveRegisteredEventsFromUserSide(userId, offset, 50)
+	events, err := e.eventRepo.RetrieveRegisteredEventsFromUserSide(userId, offset)
 
 	if err != nil {
 		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}

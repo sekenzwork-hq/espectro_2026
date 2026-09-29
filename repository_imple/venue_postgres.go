@@ -60,7 +60,7 @@ func (v VenuePostgresRepo) UpdateVenue(venueId string, country *string, state *s
 	return entity, nil
 }
 
-func (v VenuePostgresRepo) RetrieveVenue(offset int, limit int) ([]entity.VenueEntity, error) {
+func (v VenuePostgresRepo) RetrieveVenue(offset int) ([]entity.VenueEntity, error) {
 
 	var venue []entity.VenueEntity
 	out := v.db.
@@ -68,7 +68,7 @@ func (v VenuePostgresRepo) RetrieveVenue(offset int, limit int) ([]entity.VenueE
 		Select("id,country,state,city,created_at").
 		Where("deleted_at IS NULL").
 		Offset(offset).
-		Limit(limit).
+		Limit(50).
 		Scan(&venue)
 
 	return venue, out.Error

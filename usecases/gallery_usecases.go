@@ -148,11 +148,11 @@ func (g GalleryUsecases) DeleteGallery(galleryId string) error {
 	return err
 }
 
-func (g GalleryUsecases) RetrieveGalleries(limit int, page int) ([]entity.GalleryEntity, error) {
+func (g GalleryUsecases) RetrieveGalleries(page int) ([]entity.GalleryEntity, error) {
 
-	offset := pkg.GetOffset(limit, page)
+	offset := pkg.GetOffset(50, page)
 
-	galleries, err := g.galleryRepo.RetrieveGalleries(limit, offset)
+	galleries, err := g.galleryRepo.RetrieveGalleries(offset)
 	if err != nil {
 		return galleries, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}

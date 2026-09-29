@@ -7,6 +7,6 @@ type ExhibitionRepo interface {
 	UpdateExhibitionFromUserSide(exhibitionId string, newExhibition entity.ExhibitionDBInputEntity) (entity.ExhibitionDBRetrieveEntityFromUserSide, error)
 	UpdateExhibitionFromAdminSide(exhibitionId string, newExhibition entity.ExhibitionDBInputEntity) (entity.ExhibitionDBRetrieveEntityFromAdminSide, error)
 	DeleteExhibition(exhibitionId string) error
-	RetrieveExhibitionFromUserSide(userId string, offset int, page int) ([]entity.ExhibitionDBRetrieveEntityFromUserSide, error)
-	RetrieveExhibitionFromAdminSide(offset int, page int) ([]entity.ExhibitionDBRetrieveEntityFromAdminSide, error)
+	RetrieveExhibitionFromUserSide(userId string, offset int) ([]entity.ExhibitionDBRetrieveEntityFromUserSide, error)
+	RetrieveExhibitionFromAdminSide(offset int) ([]entity.ExhibitionDBRetrieveEntityFromAdminSide, error)
 }

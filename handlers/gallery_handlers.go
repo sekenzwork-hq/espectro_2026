@@ -88,13 +88,9 @@ func (g GalleryHandlers) DeleteGallery(ctx *gin.Context) {
 
 func (g GalleryHandlers) RetrieveGalleries(ctx *gin.Context) {
 
-	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
-	if limitErr != nil {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{"status": 406, "message": limitErr.Error()})
-		return
-	}
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
 
-	galleries, err := g.usecases.RetrieveGalleries(limit, page)
+	galleries, err := g.usecases.RetrieveGalleries(page)
 
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)

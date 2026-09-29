@@ -6,13 +6,13 @@ type EventRepo interface {
 	CreateEvent(event entity.EventEntity) (entity.EventEntity, error)
 	UpdateEvent(eventId string, newEvent entity.EventUpdateEntity) (entity.EventEntity, error)
 	DeleteEvent(eventId string) error
-	RetrieveEvents(limit int, offset int) ([]entity.EventEntity, error)
+	RetrieveEvents(offset int) ([]entity.EventEntity, error)
 	CheckMultipleEventsExist(eventIds []string) (bool, error)
 	RetrieveSpectrumId(eventId string) (string, error)
 	DeleteEventBySpectrumId(spectrumId string) error
-	RetrieveEventsBySpectrumId(spectrumId string, limit int, offset int) ([]entity.EventEntity, error)
+	RetrieveEventsBySpectrumId(spectrumId string, offset int) ([]entity.EventEntity, error)
 	EventExists(eventId string) (bool, error)
 	IncrementTotalRegistrationBy1(id string) error
 	DecrementTotalRegistrationBy1(id string) error
-	RetrieveRegisteredEventsFromUserSide(userId string, offset int, limit int) ([]entity.RegisteredEventEntity, error)
+	RetrieveRegisteredEventsFromUserSide(userId string, offset int) ([]entity.RegisteredEventEntity, error)
 }

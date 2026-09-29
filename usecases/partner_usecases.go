@@ -130,10 +130,10 @@ func (p PartnerUsecases) DeletePartner(partnerId string) error {
 	return nil
 }
 
-func (p PartnerUsecases) RetrievePartner(limit int, page int) ([]entity.PartnerEntity, error) {
+func (p PartnerUsecases) RetrievePartner(page int) ([]entity.PartnerEntity, error) {
 
-	offset := pkg.GetOffset(limit, page)
-	partners, err := p.repo.RetrievePartner(limit, offset)
+	offset := pkg.GetOffset(50, page)
+	partners, err := p.repo.RetrievePartner(offset)
 
 	if err != nil {
 		return partners, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}

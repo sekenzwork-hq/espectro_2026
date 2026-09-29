@@ -170,26 +170,26 @@ func (e ExhibitionPostgresRepo) DeleteExhibition(exhibitionId string) error {
 	return nil
 }
 
-func (e ExhibitionPostgresRepo) RetrieveExhibitionFromUserSide(userId string, offset int, limit int) ([]entity.ExhibitionDBRetrieveEntityFromUserSide, error) {
+func (e ExhibitionPostgresRepo) RetrieveExhibitionFromUserSide(userId string, offset int) ([]entity.ExhibitionDBRetrieveEntityFromUserSide, error) {
 
 	var exhibitions []entity.ExhibitionDBRetrieveEntityFromUserSide
 
 	err := e.db.Table("exhibitions").Select("id,event_id,organization_id,token_number,category,booth_number,available_sqft,assigned_staff,item_title,item_description,item_image_urls,status,created_at").
 		Where("user_id=?", userId).
 		Offset(offset).
-		Limit(limit).Scan(&exhibitions).Error
+		Limit(50).Scan(&exhibitions).Error
 
 	return exhibitions, err
 }
 
-func (e ExhibitionPostgresRepo) RetrieveExhibitionFromAdminSide(offset int, limit int) ([]entity.ExhibitionDBRetrieveEntityFromAdminSide, error) {
+func (e ExhibitionPostgresRepo) RetrieveExhibitionFromAdminSide(offset int) ([]entity.ExhibitionDBRetrieveEntityFromAdminSide, error) {
 
 	var exhibitions []entity.ExhibitionDBRetrieveEntityFromAdminSide
 
 	err := e.db.Table("exhibitions").Select("id,user_id,event_id,organization_id,token_number,category,booth_number,available_sqft,assigned_staff,item_title,item_description,item_image_urls,status,created_at").
 		Where("deleted_at IS NULL").
 		Offset(offset).
-		Limit(limit).
+		Limit(50).
 		Scan(&exhibitions).Error
 
 	return exhibitions, err

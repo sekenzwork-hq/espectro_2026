@@ -66,7 +66,7 @@ func (s SponsorPostgresRepo) DeleteSponsor(sponsorId string) error {
 	return nil
 }
 
-func (s SponsorPostgresRepo) RetrieveSponsors(limit int, offset int) ([]entity.SponsorEntity, error) {
+func (s SponsorPostgresRepo) RetrieveSponsors(offset int) ([]entity.SponsorEntity, error) {
 
 	var sponsors []entity.SponsorEntity
 
@@ -74,7 +74,7 @@ func (s SponsorPostgresRepo) RetrieveSponsors(limit int, offset int) ([]entity.S
 		Table("sponsors").
 		Select("id,name,profile_or_org_url,amount,sponsored_type,created_at").
 		Offset(offset).
-		Limit(limit).
+		Limit(50).
 		Scan(&sponsors).Error
 
 	return sponsors, err

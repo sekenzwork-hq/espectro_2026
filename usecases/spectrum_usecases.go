@@ -175,16 +175,12 @@ func (s SpectrumUsecases) DeleteSpectrum(spectrumId string) error {
 	return err
 }
 
-func (s SpectrumUsecases) RetrieveSpectrums(limit int, page int) ([]entity.SpectrumEntity, error) {
+func (s SpectrumUsecases) RetrieveSpectrums(page int) ([]entity.SpectrumEntity, error) {
 
 	emptySpectrums := []entity.SpectrumEntity{}
 
-	if limit > 150 {
-		return emptySpectrums, &customerrors.SizeError{DisplayError: "Limit should be less than or equal to 150"}
-	}
-
-	offset := pkg.GetOffset(limit, page)
-	spectrums, spectrumsErr := s.spectrumRepo.RetrieveSpectrums(offset, limit)
+	offset := pkg.GetOffset(50, page)
+	spectrums, spectrumsErr := s.spectrumRepo.RetrieveSpectrums(offset)
 	if spectrumsErr != nil {
 		return emptySpectrums, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}

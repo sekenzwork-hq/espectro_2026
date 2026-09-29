@@ -63,7 +63,7 @@ func (g GalleryPostgresRepo) DeleteGallery(galleryId string) error {
 	return nil
 }
 
-func (g GalleryPostgresRepo) RetrieveGalleries(limit int, offset int) ([]entity.GalleryEntity, error) {
+func (g GalleryPostgresRepo) RetrieveGalleries(offset int) ([]entity.GalleryEntity, error) {
 
 	var galleries []entity.GalleryEntity
 
@@ -72,7 +72,7 @@ func (g GalleryPostgresRepo) RetrieveGalleries(limit int, offset int) ([]entity.
 		Select("id,name,created_at,image_urls").
 		Where("deleted_at IS NULL").
 		Offset(offset).
-		Limit(limit).
+		Limit(50).
 		Scan(&galleries).Error
 
 	return galleries, err

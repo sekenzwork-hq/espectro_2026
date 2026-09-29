@@ -151,14 +151,9 @@ func (s SpectrumHandlers) DeleteSpectrum(ctx *gin.Context) {
 
 func (s SpectrumHandlers) RetrieveSpectrums(ctx *gin.Context) {
 
-	limit, page, limitErr := pkg.ParsePageAndLimit(ctx.Query("limit"), ctx.Query("page"))
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
 
-	if limitErr != nil {
-		code := pkg.GetStatusCodeForError(limitErr)
-		ctx.JSON(code, gin.H{"status": code, "message": limitErr.Error()})
-	}
-
-	spectrums, spectrumsErr := s.usecases.RetrieveSpectrums(limit, page)
+	spectrums, spectrumsErr := s.usecases.RetrieveSpectrums(page)
 
 	if spectrumsErr != nil {
 		code := pkg.GetStatusCodeForError(spectrumsErr)
