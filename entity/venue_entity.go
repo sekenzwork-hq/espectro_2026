@@ -2,12 +2,10 @@ package entity
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type VenueEntity struct {
-	Id        uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Id        string    `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Country   string    `json:"country" gorm:"column:country"`
 	State     string    `json:"state" gorm:"column:state"`
 	City      string    `json:"city" gorm:"column:city"`

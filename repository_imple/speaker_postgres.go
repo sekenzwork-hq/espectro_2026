@@ -108,3 +108,37 @@ func (s SpeakerPostgresRepo) SpeakerExists(speakerId string) (bool, error) {
 
 	return exists, err
 }
+
+func (s SpeakerPostgresRepo) RetrieveSpeaker(eventId string, offset int) ([]entity.SpeakerDBRetrieveEntity, error) {
+
+	var speakers []entity.SpeakerDBRetrieveEntity
+
+	err := s.db.Raw(
+		`
+		SELECT s.id,
+		s.fullname,
+		s.profile_pic_url,
+		s.is_featured,
+		s.bio,
+		s.country,
+		s.phone,
+		s.email,
+		s.created_at
+		
+		FROM event_speakers es
+		LEFT JOIN events e on e.id=es.event_id
+		LEFT JOIN speakers s on s.id=es.speaker_id
+
+		WHERE es.event_id=? 
+		AND es.deleted_at IS NULL 
+		AND e.deleted_at IS NULL 
+		AND s.deleted_at IS NULL
+		OFFSET ?
+		LIMIT 50
+		`,
+		eventId,
+		offset,
+	).Scan(&speakers).Error
+
+	return speakers, err
+}

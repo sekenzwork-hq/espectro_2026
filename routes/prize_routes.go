@@ -31,6 +31,5 @@ func RegisterPrizeRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Cloudi
 	prizeApi.POST("", leaderMemberAdminMiddleware.AdminMiddleWare, prizeHandlers.CreatePrize)
 	prizeApi.PATCH("", leaderMemberAdminMiddleware.AdminMiddleWare, prizeHandlers.UpdatePrize)
 	prizeApi.DELETE("", leaderMemberAdminMiddleware.AdminMiddleWare, prizeHandlers.DeletePrize)
-	prizeApi.GET("", prizeHandlers.RetrievePrize)
 
 }

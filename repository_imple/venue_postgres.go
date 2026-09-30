@@ -74,7 +74,7 @@ func (v VenuePostgresRepo) RetrieveVenue(offset int) ([]entity.VenueEntity, erro
 	return venue, out.Error
 }
 
-func (v VenuePostgresRepo) CheckVenueExists(venueId string) (bool, error) {
+func (v VenuePostgresRepo) VenueExists(venueId string) (bool, error) {
 
 	var exists bool
 	err := v.db.

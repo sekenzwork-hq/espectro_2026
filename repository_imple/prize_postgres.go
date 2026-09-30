@@ -105,16 +105,16 @@ func (p PrizePostgresRepo) DeletePrize(prizeId string) error {
 	return out.Error
 }
 
-func (p PrizePostgresRepo) RetrievePrize(prizeId string) (entity.PrizeDBRetrieveEntity, error) {
+func (p PrizePostgresRepo) PrizeExists(prizeId string) (bool, error) {
 
-	var prize entity.PrizeDBRetrieveEntity
+	var exists bool
 
-	err := p.db.
-		Table("prize").
-		Select("id,title,description,amount,logo_url,created_at,type").
-		Where("id=? AND deleted_at IS NULL", prizeId).
-		Scan(&prize).
-		Limit(1).Error
+	err := p.db.Raw(
+		`
+		SELECT EXISTS (SELECT 1 FROM prize WHERE id=? AND deleted_at IS NULL)
+		`,
+		prizeId,
+	).Scan(&exists).Error
 
-	return prize, err
+	return exists, err
 }

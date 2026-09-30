@@ -32,8 +32,10 @@ func RegisterSpeakerRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	speakerApi.POST("", leaderMemberAdminMiddleware.AdminMiddleWare, speakerHandlers.CreateSpeaker)
 	speakerApi.PATCH("", leaderMemberAdminMiddleware.AdminMiddleWare, speakerHandlers.UpdateSpeaker)
 	speakerApi.DELETE("", leaderMemberAdminMiddleware.AdminMiddleWare, speakerHandlers.DeleteSpeaker)
+	speakerApi.GET("", speakerHandlers.RetrieveSpeaker)
 
 	eventSpeakerApi := speakerApi.Group("/event")
 
 	eventSpeakerApi.POST("", leaderMemberAdminMiddleware.AdminMiddleWare, speakerHandlers.AddSpeakerToEvent)
+	eventSpeakerApi.DELETE("", leaderMemberAdminMiddleware.AdminMiddleWare, speakerHandlers.RemoveSpeakerFromEvent)
 }

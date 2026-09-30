@@ -186,21 +186,6 @@ func (p PrizeUsecases) DeletePrize(prizeId string) error {
 	return nil
 }
 
-func (p PrizeUsecases) RetrievePrize(prizeId string) (entity.PrizeDBRetrieveEntity, error) {
-
-	if !pkg.ValidateUUID(prizeId) {
-		return entity.PrizeDBRetrieveEntity{}, &customerrors.ValidationError{DisplayError: "Invalid prize id"}
-	}
-
-	prize, err := p.prizeRepo.RetrievePrize(prizeId)
-
-	if err != nil {
-		return entity.PrizeDBRetrieveEntity{}, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
-	}
-
-	return prize, nil
-}
-
 func (p PrizeUsecases) validatePrizeData(id *string, title *string, description *string, amount *float32, logo *multipart.FileHeader, eventId *string, prizeType *enums.PrizeTypeEnum) error {
 
 	if id != nil && !pkg.ValidateUUID(*id) {

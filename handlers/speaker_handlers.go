@@ -216,3 +216,50 @@ func (s SpeakerHandlers) AddSpeakerToEvent(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Speaker has been added to the event successfully"})
 	}
 }
+
+func (s SpeakerHandlers) RemoveSpeakerFromEvent(ctx *gin.Context) {
+
+	speakerId, speakerIdExists := ctx.GetQuery("speaker_id")
+
+	if !speakerIdExists {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide speaker id"))
+		return
+	}
+
+	eventId, eventIdExists := ctx.GetQuery("event_id")
+
+	if !eventIdExists {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide event id"))
+		return
+	}
+
+	err := s.usecases.RemoveSpeakerFromEvent(speakerId, eventId)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Speaker has been removed from the event successfully"})
+	}
+}
+
+func (s SpeakerHandlers) RetrieveSpeaker(ctx *gin.Context) {
+
+	eventId, exists := ctx.GetQuery("event_id")
+
+	page := pkg.ParsePageSetMin1(ctx.Query("page"))
+
+	if !exists {
+		ctx.JSON(http.StatusNotAcceptable, pkg.EmptyMessage("Provide event id"))
+		return
+	}
+
+	speakers, err := s.usecases.RetrieveSpeaker(eventId, page)
+
+	if err != nil {
+		code := pkg.GetStatusCodeForError(err)
+		ctx.JSON(code, gin.H{"status": code, "message": err.Error()})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{"status": 200, "message": "Request was successfull", "speakers": speakers})
+	}
+}

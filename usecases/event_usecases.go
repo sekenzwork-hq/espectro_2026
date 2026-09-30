@@ -442,7 +442,7 @@ func (e EventUsecases) validateEventDetailsAndCheckExistence(name *string,
 	}
 
 	if venueId != nil {
-		venueExists, venueExistanceErr := e.venueRepo.CheckVenueExists(*venueId)
+		venueExists, venueExistanceErr := e.venueRepo.VenueExists(*venueId)
 
 		if venueExistanceErr != nil {
 			return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
