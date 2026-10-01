@@ -10,8 +10,7 @@ You can download the SDK from golang official website : https://go.dev/doc/insta
 version of the Go by using this command in cmd or terminal
 
 ```bash
- 
-    go version
+go version
 
 ```
 
@@ -22,8 +21,7 @@ Expected output : go version go1.27.0 windows/amd6
 Create a folder where you want to clone this project and clone this repository by using this command in cmd or terminal
 
 ```bash
-
-   git clone https://github.com/sekenzwork-hq/espectro_2026
+git clone https://github.com/sekenzwork-hq/espectro_2026
 
 ```
 
@@ -34,12 +32,12 @@ Navigate to the folder where you cloned it and open it in an IDE
 After opening the IDE, open the terminal and use these commands to run the server
 
 ```bash
-    go mod tidy
-    
-    go mod download
+go mod tidy
 
-    go install github.com/air-verse/air@latest
+go mod download
 
-    go tool air
+go install github.com/air-verse/air@latest
+
+go tool air
 
 ```
