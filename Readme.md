@@ -1,7 +1,7 @@
 # Prerequisites
 
--Git (should be installed on you machine)
--IDE (Use any IDE as you wish)
+- Git (should be installed on you machine)
+- IDE (Use any IDE as you wish)
 
 
 # Install Go SDK from official site
