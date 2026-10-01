@@ -1,12 +1,15 @@
 package usecases
 
 import (
+	"errors"
 	customerrors "espectro/custom_errors"
 	"espectro/entity"
 	"espectro/pkg"
 	"espectro/repository"
+	"strings"
 
 	"github.com/bytedance/gopkg/util/logger"
+	"gorm.io/gorm"
 )
 
 type UserUsecases struct {
@@ -19,58 +22,93 @@ func NewUserUsecases(r repository.UserRepository) UserUsecases {
 	}
 }
 
-func (u UserUsecases) RegisterUser(user entity.UserEntity) (entity.UserEntity, error) {
+func (u UserUsecases) RegisterUser(user entity.UserJsonCreateEntity) (entity.UserEntity, error) {
 
 	empty := entity.UserEntity{}
+
+	if len(user.Username) < 3 {
+		return empty, &customerrors.ValidationError{DisplayError: "Username length should be greater than or equal to 3"}
+	} else if len(user.Username) > 100 {
+		return empty, &customerrors.ValidationError{DisplayError: "Username lengths should be less than or equal to 100"}
+	}
+
+	passwordErr := pkg.ValidatePassword(user.Password)
+
+	if passwordErr != nil {
+		return empty, passwordErr
+	}
+
 	fullnameErr := pkg.ValidateFullname(user.Fullname)
 
 	if fullnameErr != nil {
 		return empty, &customerrors.ValidationError{DisplayError: fullnameErr.Error()}
 	}
 
-	isEmailCorrect := pkg.ValidateEmail(user.Email)
-
-	if !isEmailCorrect {
+	if !pkg.ValidateEmail(user.Email) {
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid email"}
 	}
 
-	isCountryCodeCorrect := pkg.ValidateCountryCode(user.CountryCode)
-
-	if !isCountryCodeCorrect {
+	if !pkg.ValidateCountryCode(user.CountryCode) {
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid country code"}
 	}
 
-	isCountryCorrect := pkg.ValidateCountryOrState(user.Country)
-
-	if !isCountryCorrect {
+	if !pkg.ValidateCountryOrState(user.Country) {
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid country name"}
 	}
 
-	isStateCorrect := pkg.ValidateCountryOrState(user.State)
-
-	if !isStateCorrect {
+	if !pkg.ValidateCountryOrState(user.State) {
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid state name"}
 	}
 
-	isCityCorrect := pkg.ValidateCity(user.City)
-
-	if !isCityCorrect {
+	if !pkg.ValidateCity(user.City) {
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid city"}
 	}
 
-	isPhoneNumberCorrect := pkg.ValidatePhoneNumber(user.PhoneNumber)
-
-	if !isPhoneNumberCorrect {
+	if !pkg.ValidatePhoneNumber(user.PhoneNumber) {
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid phone number"}
 	}
 
-	isCorrectUserType := pkg.ValidateUserType(user.Usertype)
-
-	if !isCorrectUserType {
+	if !pkg.ValidateUserType(user.Usertype) {
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid user type"}
 	}
 
-	createdUser, dbErr := u.repo.RegisterUser(user)
+	trimmedUsername := strings.TrimSpace(user.Username)
+	trimmedFullname := strings.TrimSpace(user.Fullname)
+	trimmedPassword := strings.TrimSpace(user.Password)
+	trimmedCountry := strings.TrimSpace(user.Country)
+	trimmedCountryCode := strings.TrimSpace(user.CountryCode)
+	trimmedState := strings.TrimSpace(user.State)
+	trimmedUserType := strings.TrimSpace(user.Usertype)
+	trimmedCity := strings.TrimSpace(user.City)
+	trimmedEmail := strings.TrimSpace(user.Email)
+	trimmedPhoneNumber := strings.TrimSpace(user.PhoneNumber)
+
+	exists, usernameCheckingErr := u.repo.UsernameExists(trimmedUsername)
+
+	if usernameCheckingErr != nil {
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+	} else if exists {
+		return empty, &customerrors.ValidationError{DisplayError: "Username already exists"}
+	}
+
+	hashedPass, hashErr := pkg.EncryptPassword(trimmedPassword)
+
+	if hashErr != nil {
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+	}
+
+	createdUser, dbErr := u.repo.RegisterUser(entity.UserDBCreateEntity{
+		Fullname:    trimmedFullname,
+		Username:    trimmedUsername,
+		Password:    hashedPass,
+		Email:       trimmedEmail,
+		Country:     trimmedCountry,
+		State:       trimmedState,
+		City:        trimmedCity,
+		PhoneNumber: trimmedPhoneNumber,
+		CountryCode: trimmedCountryCode,
+		Usertype:    trimmedUserType,
+	})
 
 	if dbErr != nil {
 		logger.Error("DB error while inserting user data : ", dbErr)
@@ -80,17 +118,53 @@ func (u UserUsecases) RegisterUser(user entity.UserEntity) (entity.UserEntity, e
 	return createdUser, nil
 }
 
-func (u UserUsecases) CheckUserExists(userId string) (bool, error) {
+func (u UserUsecases) Login(userEnteredCred entity.UserCredentialsJsonEntity) (string, error) {
 
-	if !pkg.ValidateUUID(userId) {
-		return false, &customerrors.ValidationError{DisplayError: "Invalid user id"}
+	credErr := &customerrors.CredentialsError{DisplayError: "Invalid credentials"}
+	if len(userEnteredCred.Username) < 5 {
+		return "", credErr
+	} else if len(userEnteredCred.Username) > 100 {
+		return "", credErr
 	}
 
-	exists, err := u.repo.CheckUserExists(userId)
+	if len(userEnteredCred.Password) < 6 {
+		return "", credErr
+	} else if len(userEnteredCred.Password) > 18 {
+		return "", credErr
+	}
+
+	credentials, err := u.repo.RetrieveUserCredByUsername(userEnteredCred.Username)
 
 	if err != nil {
-		return false, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", credErr
+		} else {
+			return "", &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+		}
 	}
 
-	return exists, nil
+	if !pkg.CompareHashedPass(userEnteredCred.Password, credentials.Password) {
+		return "", credErr
+	}
+
+	return credentials.Id, nil
+}
+
+func (u UserUsecases) CheckUserExists(userId string) error {
+
+	if !pkg.ValidateUUID(userId) {
+		return &customerrors.ValidationError{DisplayError: "Invalid user id"}
+	}
+
+	exists, err := u.repo.UserExists(userId)
+
+	if err != nil {
+		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+	}
+
+	if !exists {
+		return &customerrors.NotFoundError{DisplayError: "User does not exist"}
+	}
+
+	return nil
 }

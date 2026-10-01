@@ -217,7 +217,7 @@ func (e EventUsecases) Register(userId string, eventId string) (entity.EventRegi
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid event id"}
 	}
 
-	userExists, userErr := e.userRepo.CheckUserExists(userId)
+	userExists, userErr := e.userRepo.UserExists(userId)
 	if userErr != nil {
 		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if !userExists {

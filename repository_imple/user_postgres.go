@@ -16,38 +16,47 @@ func NewUserPostgresRepo(db *gorm.DB) UserPostgresRepo {
 	}
 }
 
-func (u UserPostgresRepo) RegisterUser(user entity.UserEntity) (entity.UserEntity, error) {
+func (u UserPostgresRepo) RegisterUser(user entity.UserDBCreateEntity) (entity.UserEntity, error) {
 
 	var createdUser entity.UserEntity
 
 	err := u.db.Raw(
 		`
 		INSERT INTO users
-		(fullname,
+		(
+		username,
+		password,
+		fullname,
 		email,
 		country,
+		country_code,
 		state,
 		city,
 		phone,
 		user_type)
 
-		VALUES (?,?,?,?,?,?,?)
+		VALUES (?,?,?,?,?,?,?,?,?,?)
 
 		RETURNING
 
 		id,
 		fullname,
+		username,
 		email,
 		country,
+		country_code,
 		state,
 		city,
 		phone,
 		user_type,
 		created_at;
 		`,
+		user.Username,
+		user.Password,
 		user.Fullname,
 		user.Email,
 		user.Country,
+		user.CountryCode,
 		user.State,
 		user.City,
 		user.PhoneNumber,
@@ -57,7 +66,7 @@ func (u UserPostgresRepo) RegisterUser(user entity.UserEntity) (entity.UserEntit
 	return createdUser, err
 }
 
-func (u UserPostgresRepo) CheckUserExists(userId string) (bool, error) {
+func (u UserPostgresRepo) UserExists(userId string) (bool, error) {
 
 	var exists bool
 	err := u.db.Raw(
@@ -68,4 +77,30 @@ func (u UserPostgresRepo) CheckUserExists(userId string) (bool, error) {
 	).Scan(&exists).Error
 
 	return exists, err
+}
+
+func (u UserPostgresRepo) UsernameExists(username string) (bool, error) {
+
+	var exists bool
+	err := u.db.Raw(
+		`
+		SELECT EXISTS (SELECT 1 FROM users WHERE username=?)
+		`,
+		username,
+	).Scan(&exists).Error
+
+	return exists, err
+}
+
+func (u UserPostgresRepo) RetrieveUserCredByUsername(username string) (entity.UserDBCredentialsEntity, error) {
+
+	var cred entity.UserDBCredentialsEntity
+
+	err := u.db.Table("users").
+		Select("id,username,password").
+		Where("username=?", username).
+		First(&cred).Error
+
+	return cred, err
+
 }

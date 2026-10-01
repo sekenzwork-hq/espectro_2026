@@ -18,5 +18,6 @@ func RegisterUserRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	userHandlers := handlers.NewUserHandlers(usecases)
 
 	usersApi.POST("", userHandlers.RegisterUser)
+	usersApi.POST("/login", userHandlers.Login)
 
 }

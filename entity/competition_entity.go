@@ -19,7 +19,7 @@ type CompetitionDBRetrieveEntity struct {
 	Prize           PrizeDBRetrieveEntity       `json:"prize"`
 	Venue           VenueEntity                 `json:"venue"`
 	LogoURL         *string                     `json:"logo_url" gorm:"column:logo_url"`
-	CreatedAt       time.Time                   `json:"created_at" gorm:"column:created_at"`
+	CreatedAt       time.Time                   `json:"created_at" gorm:"column:created_at; type:timestampz; default:now()"`
 }
 
 type CompetitionDBCreateEntity struct {
@@ -37,6 +37,22 @@ type CompetitionDBCreateEntity struct {
 	VenueId         string                      `gorm:"column:venue_id"`
 	LogoURL         *string                     `gorm:"column:logo_url"`
 }
+
+type CompetitionDBUpdateEntity struct {
+	EventId         *string                      `gorm:"column:event_id"`
+	Title           *string                      `gorm:"column:title"`
+	Description     *string                      `gorm:"column:description"`
+	Rules           *string                      `gorm:"column:rules"`
+	Status          *enums.CompetitionStatusEnum `gorm:"column:status"`
+	OpeningTime     *time.Time                   `gorm:"column:opening_time"`
+	ClosingTime     *time.Time                   `gorm:"column:closing_time"`
+	ResultTime      *time.Time                   `gorm:"column:result_time"`
+	RegistrationFee *float32                     `gorm:"column:reg_fee"`
+	PrizeId         *string                      `gorm:"column:prize_id"`
+	VenueId         *string                      `gorm:"column:venue_id"`
+	LogoURL         *string                      `gorm:"column:logo_url"`
+}
+
 type CompetitionCreateEntity struct {
 	EventId         string
 	Title           string
@@ -49,5 +65,20 @@ type CompetitionCreateEntity struct {
 	RegistrationFee float32
 	PrizeId         string
 	VenueId         string
+	Logo            *multipart.FileHeader
+}
+
+type CompetitionUpdateEntity struct {
+	EventId         *string
+	Title           *string
+	Description     *string
+	Rules           *string
+	Status          *enums.CompetitionStatusEnum
+	OpeningTime     *time.Time
+	ClosingTime     *time.Time
+	ResultTime      *time.Time
+	RegistrationFee *float32
+	PrizeId         *string
+	VenueId         *string
 	Logo            *multipart.FileHeader
 }

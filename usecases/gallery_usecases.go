@@ -145,6 +145,10 @@ func (g GalleryUsecases) DeleteGallery(galleryId string) error {
 		return nil
 	})
 
+	if err == nil {
+		go g.mediaRepo.DeleteFile("gallery/", galleryId)
+	}
+
 	return err
 }
 

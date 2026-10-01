@@ -171,6 +171,8 @@ func (o OrganizationUsecases) DeleteOrganization(id string) error {
 		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
+	go o.mediaRepo.DeleteFile("organization/", id)
+
 	return nil
 }
 

@@ -19,15 +19,28 @@ func RegisterCompetitionRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.
 	venueRepo := repositoryimple.NewVenuePostgresRepo(db)
 	prizeRepo := repositoryimple.NewPrizePostgresRepo(db)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
+	eventRepo := repositoryimple.NewEventPostgresRepo(db)
+	userRepo := repositoryimple.NewUserPostgresRepo(db)
 
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
-	competitionUsecases := usecases.NewCompetitionUsecases(competitionRepo, venueRepo, prizeRepo, mediaRepo)
+	userUsecases := usecases.NewUserUsecases(userRepo)
+	competitionUsecases := usecases.NewCompetitionUsecases(
+		competitionRepo,
+		venueRepo,
+		prizeRepo,
+		eventRepo,
+		mediaRepo,
+	)
 
 	leaderMemberAdminMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
+	userAdminMiddleware := middlewares.NewUserAdminMiddleware(userUsecases, adminUsecases)
 
 	competitionHandlers := handlers.NewCompetitionHandlers(competitionUsecases)
 
 	competitionApi := r.Group("/competition")
 
 	competitionApi.POST("", leaderMemberAdminMiddleware.AdminMiddleWare, competitionHandlers.CreateCompetition)
+	competitionApi.PATCH("", leaderMemberAdminMiddleware.AdminMiddleWare, competitionHandlers.UpdateCompetition)
+	competitionApi.DELETE("", leaderMemberAdminMiddleware.AdminMiddleWare, competitionHandlers.DeleteCompetition)
+	competitionApi.GET("", userAdminMiddleware.UserAdminMiddleware, competitionHandlers.RetrieveCompetitions)
 }

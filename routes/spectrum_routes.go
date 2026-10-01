@@ -20,16 +20,21 @@ func RegisterSpectrumRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clo
 	transactionM := database.NewTransactionManager(db)
 	cldMediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
 	eventRepo := repositoryimple.NewEventPostgresRepo(db)
+	userRepo := repositoryimple.NewUserPostgresRepo(db)
+
 	spectrumUsecase := usecases.NewSpectrumUsecases(spectrumRepo, cldMediaRepo, eventRepo, transactionM)
-	adminUsecase := usecases.NewAdminUsecases(adminRepo)
+	adminUsecases := usecases.NewAdminUsecases(adminRepo)
+	userUsecases := usecases.NewUserUsecases(userRepo)
+
 	handlers := handlers.NewSpectrumHandlers(spectrumUsecase)
 
-	leaderAndMemberMiddleware := middlewares.NewAdminMiddleWare(adminUsecase, enums.LeaderAndMemberMiddleware)
+	leaderAndMemberMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
+	userAdminMiddleware := middlewares.NewUserAdminMiddleware(userUsecases, adminUsecases)
 
 	spectrumApi := r.Group("/spectrum")
 
 	spectrumApi.POST("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreateSpectrum)
 	spectrumApi.PATCH("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdateSpectrum)
 	spectrumApi.DELETE("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeleteSpectrum)
-	spectrumApi.GET("", handlers.RetrieveSpectrums)
+	spectrumApi.GET("", userAdminMiddleware.UserAdminMiddleware, handlers.RetrieveSpectrums)
 }

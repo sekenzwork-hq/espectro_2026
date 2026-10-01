@@ -5,6 +5,8 @@ import (
 )
 
 type UserRepository interface {
-	RegisterUser(user entity.UserEntity) (entity.UserEntity, error)
-	CheckUserExists(userId string) (bool, error)
+	RegisterUser(user entity.UserDBCreateEntity) (entity.UserEntity, error)
+	UserExists(userId string) (bool, error)
+	UsernameExists(username string) (bool, error)
+	RetrieveUserCredByUsername(username string) (entity.UserDBCredentialsEntity, error)
 }

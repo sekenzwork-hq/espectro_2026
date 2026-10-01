@@ -7,6 +7,7 @@ import (
 	"espectro/enums"
 	"espectro/pkg"
 	"espectro/repository"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -79,6 +80,16 @@ func (a AdminUsecases) CreateNewAdmin(admin entity.AdminCreateEntity, requestedA
 		return empty, &customerrors.ValidationError{DisplayError: "Invalid admin role"}
 	}
 
+	trimmedEmail := strings.TrimSpace(admin.Email)
+
+	emailExists, emailCheckingErr := a.repo.AdminEmailExists(trimmedEmail)
+
+	if emailCheckingErr != nil {
+		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
+	} else if emailExists {
+		return empty, &customerrors.ValidationError{DisplayError: "Email already exists"}
+	}
+
 	hashedPass, hashingErr := pkg.EncryptPassword(admin.Password)
 	if hashingErr != nil {
 		return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
@@ -117,13 +128,13 @@ func (a AdminUsecases) DeleteMemberOrVolunteer(adminId string, requestedAdminId 
 	return nil
 }
 
-func (a AdminUsecases) CheckAdminExists(adminId string) error {
+func (a AdminUsecases) AdminExists(adminId string) error {
 
 	if len(adminId) == 0 {
 		return &customerrors.AuthenticationError{DisplayError: "Current admin is invalid"}
 	}
 
-	exists, err := a.repo.CheckAdminExists(adminId)
+	exists, err := a.repo.AdminExists(adminId)
 	if err != nil {
 		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	} else if !exists {

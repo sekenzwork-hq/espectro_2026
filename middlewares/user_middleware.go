@@ -32,13 +32,11 @@ func (u UserMiddleware) UserMiddleware(ctx *gin.Context) {
 		return
 	}
 
-	exists, err := u.userUsecases.CheckUserExists(parsedUserId)
+	err := u.userUsecases.CheckUserExists(parsedUserId)
 
 	if err != nil {
 		code := pkg.GetStatusCodeForError(err)
 		ctx.AbortWithStatusJSON(code, gin.H{"status": code, "message": err.Error()})
-	} else if !exists {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"status": 404, "message": "User does not exist"})
 	} else {
 		ctx.Set("user_id", parsedUserId)
 		ctx.Next()

@@ -172,6 +172,10 @@ func (s SpectrumUsecases) DeleteSpectrum(spectrumId string) error {
 		return nil
 	})
 
+	if err == nil {
+		go s.mediaRepo.DeleteFile("spectrum/", spectrumId)
+	}
+
 	return err
 }
 

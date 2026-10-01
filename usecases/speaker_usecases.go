@@ -158,9 +158,7 @@ func (s SpeakerUsecases) DeleteSpeaker(speakerId string) error {
 		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
-	go func() {
-		s.mediaRepo.DeleteFile("speakers/", speakerId)
-	}()
+	go s.mediaRepo.DeleteFile("speakers/", speakerId)
 
 	return nil
 }

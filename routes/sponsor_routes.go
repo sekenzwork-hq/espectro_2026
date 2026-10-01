@@ -20,11 +20,17 @@ func RegisterSponsorRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	eventSponsorRepo := repositoryimple.NewEventSponsorPostgresRepo(db)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
 	mediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
+	userRepo := repositoryimple.NewUserPostgresRepo(db)
+
 	transactionManager := database.NewTransactionManager(db)
+
 	sponsorUsecases := usecases.NewSponsorUsecases(sponsorRepo, eventSponsorRepo, eventRepo, transactionManager, mediaRepo)
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
+	userUsecases := usecases.NewUserUsecases(userRepo)
 
 	leaderAndMemberMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
+	userAdminMiddleware := middlewares.NewUserAdminMiddleware(userUsecases, adminUsecases)
+
 	handlers := handlers.NewSponsorHandlers(sponsorUsecases)
 
 	sponsorApi := r.Group("sponsor")
@@ -32,5 +38,5 @@ func RegisterSponsorRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	sponsorApi.POST("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreateSponsor)
 	sponsorApi.PATCH("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdateSponsor)
 	sponsorApi.DELETE("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeleteSponsor)
-	sponsorApi.GET("", handlers.RetrieveSponsors)
+	sponsorApi.GET("", userAdminMiddleware.UserAdminMiddleware, handlers.RetrieveSponsors)
 }

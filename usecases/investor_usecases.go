@@ -129,6 +129,8 @@ func (i InvestorUsecases) DeleteInvestor(investorId string) error {
 		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
+	go i.mediaRepo.DeleteFile("investor/", investorId)
+
 	return nil
 
 }

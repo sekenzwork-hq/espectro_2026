@@ -2,6 +2,7 @@ package pkg
 
 import (
 	customerrors "espectro/custom_errors"
+	"fmt"
 	"os"
 
 	"github.com/bytedance/gopkg/util/logger"
@@ -11,7 +12,7 @@ import (
 func GenerateJWTForAdmin(id string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"id": id,
+		"admin_id": id,
 	})
 
 	strToken, err := token.SignedString([]byte(os.Getenv("JWT_SECRETE")))
@@ -23,7 +24,7 @@ func GenerateJWTForAdmin(id string) (string, error) {
 func GenerateJWTForUser(userId string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"id": userId,
+		"user_id": userId,
 	})
 
 	strToken, err := token.SignedString([]byte(os.Getenv("JWT_SECRETE")))
@@ -53,7 +54,9 @@ func ParseJWTFromAdmin(token string) (string, error) {
 		return "", invalidTokenErr
 	}
 
-	id, idOk := claims["id"]
+	fmt.Println("Claims : ", claims)
+
+	id, idOk := claims["admin_id"]
 
 	if !idOk {
 		return "", invalidTokenErr
@@ -92,7 +95,7 @@ func ParseJWTFromUser(token string) (string, error) {
 		return "", invalidTokenErr
 	}
 
-	id, idOk := claims["id"]
+	id, idOk := claims["user_id"]
 
 	if !idOk {
 		return "", invalidTokenErr

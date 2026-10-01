@@ -93,7 +93,7 @@ func (a AdminPostgresRepo) DeleteMemberOrVolunteer(adminId string) error {
 	return nil
 }
 
-func (a AdminPostgresRepo) CheckAdminExists(adminId string) (bool, error) {
+func (a AdminPostgresRepo) AdminExists(adminId string) (bool, error) {
 
 	var exists bool
 	err := a.db.
@@ -102,6 +102,21 @@ func (a AdminPostgresRepo) CheckAdminExists(adminId string) (bool, error) {
 
 	return exists, err
 
+}
+
+func (a AdminPostgresRepo) AdminEmailExists(email string) (bool, error) {
+
+	var exists bool
+
+	err := a.db.Raw(
+		`
+		SELECT EXISTS (SELECT 1 FROM admins WHERE email=? AND deleted_at IS NULL)
+		`,
+		email,
+	).
+		Scan(&exists).Error
+
+	return exists, err
 }
 
 func (a AdminPostgresRepo) UpdateCurrentAdmin(adminId string, admin entity.AdminUpdateEntity) (entity.AdminEntity, error) {

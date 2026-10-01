@@ -250,7 +250,7 @@ func (e ExhibitionUsecases) UpdateExhibitionFromAdminSide(exhibitionId string, n
 
 	if newExhibition.ApprovedBy != nil {
 
-		exists, err := e.adminRepo.CheckAdminExists(*newExhibition.ApprovedBy)
+		exists, err := e.adminRepo.AdminExists(*newExhibition.ApprovedBy)
 
 		if err != nil {
 			return empty, &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
@@ -306,7 +306,6 @@ func (e ExhibitionUsecases) DeleteExhibition(exhibitionId string) error {
 
 	if deletionError != nil {
 
-		fmt.Println("Deletion error : ", deletionError)
 		if errors.Is(deletionError, gorm.ErrRecordNotFound) {
 			return &customerrors.NotFoundError{DisplayError: "Exhibition does not exist"}
 		} else {
@@ -315,9 +314,7 @@ func (e ExhibitionUsecases) DeleteExhibition(exhibitionId string) error {
 
 	}
 
-	go func() {
-		e.mediaRepo.DeleteFile("exhibition/", exhibitionId)
-	}()
+	go e.mediaRepo.DeleteFile("exhibition/", exhibitionId)
 
 	return nil
 }

@@ -52,7 +52,7 @@ func ValidateFullname(fullname string) error {
 
 func ValidateEmail(email string) bool {
 
-	if len(email) > 255 {
+	if len(email) > 1000 {
 		return false
 	}
 	reg := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
@@ -161,8 +161,8 @@ func ValidatePassword(password string) error {
 
 	if len(password) < 6 {
 		return &customerrors.ValidationError{DisplayError: "Password length should be atleast 6"}
-	} else if len(password) > 200 {
-		return &customerrors.ValidationError{DisplayError: "Password length should be less than or equal to 200"}
+	} else if len(password) > 18 {
+		return &customerrors.ValidationError{DisplayError: "Password length should be less than or equal to 18"}
 	}
 
 	password = strings.TrimSpace(password)

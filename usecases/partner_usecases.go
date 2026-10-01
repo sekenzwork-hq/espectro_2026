@@ -127,6 +127,8 @@ func (p PartnerUsecases) DeletePartner(partnerId string) error {
 		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
+	go p.mediaRepo.DeleteFile("partner/", partnerId)
+
 	return nil
 }
 

@@ -32,13 +32,14 @@ func RegisterEventRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 	leaderAndMemberMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
 	userMiddleware := middlewares.NewUserMiddleware(userUsecases)
+	userAdminMiddleware := middlewares.NewUserAdminMiddleware(userUsecases, adminUsecases)
 
 	eventApi := r.Group("event")
 
 	eventApi.POST("", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.CreateEvent)
 	eventApi.PATCH("", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.UpdateEvent)
 	eventApi.DELETE("", leaderAndMemberMiddleware.AdminMiddleWare, eventHandlers.DeleteEvent)
-	eventApi.GET("", eventHandlers.RetrieveEvents)
+	eventApi.GET("", userAdminMiddleware.UserAdminMiddleware, eventHandlers.RetrieveEvents)
 
 	registrationApi := eventApi.Group("/registration")
 

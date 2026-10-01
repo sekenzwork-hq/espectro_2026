@@ -16,17 +16,22 @@ func RegisterPartnerRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 
 	partnerRepo := repositoryimple.NewPartnerPostgres(db)
 	mediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
-	partnerUsecases := usecases.NewPartnerUsecases(partnerRepo, mediaRepo)
 	adminRepo := repositoryimple.NewAdminPostgresRepo(db)
+	userRepo := repositoryimple.NewUserPostgresRepo(db)
+
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
+	partnerUsecases := usecases.NewPartnerUsecases(partnerRepo, mediaRepo)
+	userUsecases := usecases.NewUserUsecases(userRepo)
+
 	handlers := handlers.NewPartnerHandlers(partnerUsecases)
 
 	leaderAndMemberMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
+	userAdminMiddleware := middlewares.NewUserAdminMiddleware(userUsecases, adminUsecases)
 
 	partnerApi := r.Group("/partner")
 
 	partnerApi.POST("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.CreatePartner)
 	partnerApi.PATCH("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.UpdatePartner)
 	partnerApi.DELETE("", leaderAndMemberMiddleware.AdminMiddleWare, handlers.DeletePartner)
-	partnerApi.GET("", handlers.RetrievePartner)
+	partnerApi.GET("", userAdminMiddleware.UserAdminMiddleware, handlers.RetrievePartner)
 }

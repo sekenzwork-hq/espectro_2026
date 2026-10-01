@@ -179,9 +179,7 @@ func (p PrizeUsecases) DeletePrize(prizeId string) error {
 		}
 	}
 
-	go func() {
-		p.mediaRepo.DeleteFile("prize/", prizeId)
-	}()
+	go p.mediaRepo.DeleteFile("prize/", prizeId)
 
 	return nil
 }

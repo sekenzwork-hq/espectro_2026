@@ -46,7 +46,7 @@ func (a AdminMiddleWare) AdminMiddleWare(ctx *gin.Context) {
 
 	switch a.adminType {
 	case enums.AllAdminMiddleware:
-		err = a.usecases.CheckAdminExists(parsedAdminId)
+		err = a.usecases.AdminExists(parsedAdminId)
 	case enums.LeaderMiddleware:
 
 		role, roleErr := a.usecases.RetrieveAdminRoleByID(parsedAdminId)

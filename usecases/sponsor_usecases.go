@@ -194,6 +194,8 @@ func (s SponsorUsecases) DeleteSponsor(sponsorId string) error {
 		return &customerrors.ServerError{DisplayError: "Something went wrong while operating"}
 	}
 
+	go s.mediaRepo.DeleteFile("sponsor/", sponsorId)
+
 	return nil
 }
 

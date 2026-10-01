@@ -19,20 +19,23 @@ func RegisterSpeakerRoutes(r *gin.RouterGroup, db *gorm.DB, cld *cloudinary.Clou
 	eventRepo := repositoryimple.NewEventPostgresRepo(db)
 	eventSpeakerRepo := repositoryimple.NewEventSpeakerPostgresRepo(db)
 	mediaRepo := repositoryimple.NewMediaCloudinaryRepo(cld)
+	userRepo := repositoryimple.NewUserPostgresRepo(db)
 
 	speakerUsecases := usecases.NewSpeakerUsecases(speakerRepo, mediaRepo, eventRepo, eventSpeakerRepo)
 	adminUsecases := usecases.NewAdminUsecases(adminRepo)
+	userUsecases := usecases.NewUserUsecases(userRepo)
 
 	speakerHandlers := handlers.NewSpeakerHandlers(speakerUsecases)
 
 	leaderMemberAdminMiddleware := middlewares.NewAdminMiddleWare(adminUsecases, enums.LeaderAndMemberMiddleware)
+	userAdminMiddleware := middlewares.NewUserAdminMiddleware(userUsecases, adminUsecases)
 
 	speakerApi := r.Group("/speaker")
 
 	speakerApi.POST("", leaderMemberAdminMiddleware.AdminMiddleWare, speakerHandlers.CreateSpeaker)
 	speakerApi.PATCH("", leaderMemberAdminMiddleware.AdminMiddleWare, speakerHandlers.UpdateSpeaker)
 	speakerApi.DELETE("", leaderMemberAdminMiddleware.AdminMiddleWare, speakerHandlers.DeleteSpeaker)
-	speakerApi.GET("", speakerHandlers.RetrieveSpeaker)
+	speakerApi.GET("", userAdminMiddleware.UserAdminMiddleware, speakerHandlers.RetrieveSpeaker)
 
 	eventSpeakerApi := speakerApi.Group("/event")
 

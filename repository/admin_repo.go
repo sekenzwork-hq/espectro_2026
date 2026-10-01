@@ -10,7 +10,8 @@ type AdminRepo interface {
 	CreateNewAdmin(admin entity.AdminCreateEntity) (entity.AdminEntity, error)
 	RetrieveAdminRoleByID(adminId string) (enums.AdminRole, error)
 	DeleteMemberOrVolunteer(adminId string) error
-	CheckAdminExists(adminId string) (bool, error)
+	AdminExists(adminId string) (bool, error)
+	AdminEmailExists(email string) (bool, error)
 	UpdateCurrentAdmin(adminId string, admin entity.AdminUpdateEntity) (entity.AdminEntity, error)
 	UpdateAdminRole(adminId string, newRole enums.AdminRole) error
 }
